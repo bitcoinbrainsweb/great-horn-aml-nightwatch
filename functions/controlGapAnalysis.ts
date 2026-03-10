@@ -8,6 +8,8 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.20';
  * - Missing enhanced controls = Moderate Gap
  * - Missing triggered conditional controls = Major Gap
  * - Compensating controls may reduce severity
+ * 
+ * Now integrates conditional trigger evaluation and decision tracing
  */
 
 Deno.serve(async (req) => {
@@ -27,7 +29,7 @@ Deno.serve(async (req) => {
 
     const controlMappings = JSON.parse(assessmentState.control_mappings || '{}');
     const selectedControls = JSON.parse(assessmentState.selected_controls || '[]');
-    const controlImplementations = JSON.parse(assessmentState.control_implementations || '{}');
+    const conditionalTriggerResults = JSON.parse(assessmentState.conditional_trigger_results || '{}');
     
     const gaps = [];
     
@@ -41,7 +43,7 @@ Deno.serve(async (req) => {
         );
         
         if (!implemented && !hasCompensating) {
-          gaps.push({
+          const gap = {
             gap_level: 'Major',
             gap_type: 'Missing Baseline Control',
             risk_id: riskId,
@@ -50,17 +52,19 @@ Deno.serve(async (req) => {
             description: `Baseline control "${baselineControl.control_name}" is not implemented for risk ${riskId}.`,
             recommended_controls: [baselineControl.control_id],
             severity_score: 8
-          });
-        } else if (!implemented && hasCompensating) {
-          gaps.push({
-            gap_level: 'Moderate',
-            gap_type: 'Baseline Control Compensated',
-            risk_id: riskId,
-            control_id: baselineControl.control_id,
-            control_name: baselineControl.control_name,
-            description: `Baseline control "${baselineControl.control_name}" is compensated but not directly implemented.`,
-            recommended_controls: [baselineControl.control_id],
-            severity_score: 5
+          };
+          gaps.push(gap);
+          
+          // Log decision trace
+          await base44.entities.DecisionTrace.create({
+            assessment_id,
+            object_type: 'gap',
+            object_id: `${riskId}-${baselineControl.control_id}`,
+            decision_type: 'gap_severity',
+            source_type: 'engine',
+            source_function: 'controlGapAnalysis',
+            rules_triggered: ['missing_baseline_control', 'no_compensating_control'],
+            output_snapshot: JSON.stringify(gap)
           });
         }
       }
@@ -70,7 +74,7 @@ Deno.serve(async (req) => {
         const implemented = selectedControls.includes(enhancedControl.control_id);
         
         if (!implemented) {
-          gaps.push({
+          const gap = {
             gap_level: 'Moderate',
             gap_type: 'Missing Enhanced Control',
             risk_id: riskId,
@@ -79,24 +83,40 @@ Deno.serve(async (req) => {
             description: `Enhanced control "${enhancedControl.control_name}" is recommended but not implemented.`,
             recommended_controls: [enhancedControl.control_id],
             severity_score: 4
-          });
+          };
+          gaps.push(gap);
         }
       }
       
-      // Check conditional controls (simplified - would need trigger evaluation logic)
-      for (const conditionalControl of mapping.conditional) {
-        const implemented = selectedControls.includes(conditionalControl.control_id);
+      // Check triggered conditional controls
+      const triggeredConditionals = conditionalTriggerResults[riskId]?.triggered_conditionals || [];
+      for (const triggered of triggeredConditionals) {
+        const implemented = selectedControls.includes(triggered.control_id);
         
         if (!implemented) {
-          gaps.push({
-            gap_level: 'Minor',
-            gap_type: 'Conditional Control Not Evaluated',
+          const gap = {
+            gap_level: 'Major',
+            gap_type: 'Missing Triggered Conditional Control',
             risk_id: riskId,
-            control_id: conditionalControl.control_id,
-            control_name: conditionalControl.control_name,
-            description: `Conditional control "${conditionalControl.control_name}" may be required based on specific conditions.`,
-            recommended_controls: [conditionalControl.control_id],
-            severity_score: 3
+            control_id: triggered.control_id,
+            control_name: triggered.control_name,
+            description: `Triggered conditional control "${triggered.control_name}" is required but not implemented.`,
+            trigger_reason: triggered.trigger_reason,
+            recommended_controls: [triggered.control_id],
+            severity_score: 8
+          };
+          gaps.push(gap);
+          
+          // Log decision trace
+          await base44.entities.DecisionTrace.create({
+            assessment_id,
+            object_type: 'gap',
+            object_id: `${riskId}-${triggered.control_id}`,
+            decision_type: 'gap_severity',
+            source_type: 'engine',
+            source_function: 'controlGapAnalysis',
+            rules_triggered: ['conditional_control_triggered', 'not_implemented'],
+            output_snapshot: JSON.stringify(gap)
           });
         }
       }

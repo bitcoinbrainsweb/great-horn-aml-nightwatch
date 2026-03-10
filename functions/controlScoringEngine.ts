@@ -112,6 +112,29 @@ Deno.serve(async (req) => {
       last_generated_at: new Date().toISOString()
     });
     
+    // Log decision trace for scoring outcome
+    await base44.entities.DecisionTrace.create({
+      assessment_id,
+      object_type: 'score',
+      object_id: risk_id,
+      decision_type: 'residual_risk_score',
+      source_type: 'engine',
+      source_function: 'controlScoringEngine',
+      rules_triggered: ['scoring_formula_applied'],
+      input_snapshot: JSON.stringify({
+        inherent_risk_score: inherentScore,
+        control_effectiveness_score: controlEffectivenessScore
+      }),
+      calculations_performed: JSON.stringify({
+        formula: config.residual_risk_formula,
+        result: residualRiskScore
+      }),
+      output_snapshot: JSON.stringify({
+        residual_risk_score: residualRiskScore,
+        residual_risk_level: residualRiskLevel
+      })
+    });
+    
     return Response.json({
       success: true,
       risk_id,
