@@ -6,6 +6,23 @@ import PageHeader from '../components/ui/PageHeader';
 const REPORT_DATE = '2026-03-10';
 const BUILD_VERSION = 'Post-Repair Update — March 2026';
 
+const VERIFICATION_HISTORY = [
+  {
+    id: 'v1',
+    label: 'V1 — Post-Repair Build Audit',
+    date: '2026-03-10',
+    scope: 'Full codebase review following March 2026 repair update',
+    checked: 6, pass: 5, partial: 1, fail: 0, openIssues: 3,
+  },
+  {
+    id: 'v2',
+    label: 'V2 — Workspace Architecture & Multi-tenancy Update',
+    date: '2026-03-10',
+    scope: 'Workspace entity schemas, hybrid library model, control testing extensions, Help docs, ControlsTab build fix',
+    checked: 5, pass: 4, partial: 1, fail: 0, openIssues: 3,
+  },
+];
+
 const REPORT_MD = `# Nightwatch Verification Audit Report
 
 **Build Version:** ${BUILD_VERSION}
