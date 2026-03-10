@@ -499,6 +499,17 @@ export default function EngagementDetail() {
         </DialogContent>
       </Dialog>
 
+      {/* Delete Task Confirmation */}
+      <ConfirmDialog
+        open={!!confirmDeleteTask}
+        onClose={() => setConfirmDeleteTask(null)}
+        onConfirm={() => deleteTask(confirmDeleteTask)}
+        title="Delete Task"
+        description={<>Permanently delete task <strong>{confirmDeleteTask?.task_name}</strong>? This cannot be undone.</>}
+        confirmWord="DELETE"
+        actionLabel="Delete Task"
+      />
+
       {/* Add Task Dialog */}
       <Dialog open={showAddTask} onOpenChange={setShowAddTask}>
         <DialogContent>

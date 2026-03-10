@@ -308,10 +308,13 @@ ${content}
               <Save className="w-4 h-4" /> {saving ? 'Saving...' : 'Save Changes'}
             </Button>
 
-            {isDraft && (
+            {isDraft && isAnalyst && (
               <Button variant="outline" onClick={submitForReview} className="gap-2 border-blue-200 text-blue-700 hover:bg-blue-50">
                 <Send className="w-4 h-4" /> Submit for Review
               </Button>
+            )}
+            {isDraft && !isAnalyst && (
+              <span className="text-xs text-slate-400 italic self-center">Only the assigned analyst or admin can submit for review.</span>
             )}
 
             {isUnderReview && isReviewer && (
