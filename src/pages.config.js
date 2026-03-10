@@ -106,6 +106,7 @@ import Tasks from './pages/Tasks';
 import PageInventoryAudit from './pages/PageInventoryAudit';
 import AdminChangeManagement from './pages/AdminChangeManagement';
 import PublishNW013 from './pages/PublishNW013';
+import NW013DeliveryGateFinal from './pages/NW013DeliveryGateFinal';
 import __Layout from './Layout.jsx';
 
 
@@ -169,6 +170,7 @@ export const PAGES = {
     "PageInventoryAudit": PageInventoryAudit,
     "AdminChangeManagement": AdminChangeManagement,
     "PublishNW013": PublishNW013,
+    "NW013DeliveryGateFinal": NW013DeliveryGateFinal,
 }
 
 export const pagesConfig = {
