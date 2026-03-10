@@ -1,0 +1,237 @@
+// Intake Questionnaire Configuration
+// Each section contains questions with structured field types
+
+export const INTAKE_SECTIONS = [
+  {
+    id: 'engagement_setup',
+    title: '1. Engagement Setup',
+    icon: 'Settings',
+    questions: [
+      { key: 'report_template', label: 'Report Template', type: 'select', options: ['Standard EWRA', 'Virtual Asset EWRA', 'Cash Business EWRA', 'Compliance Audit', 'Policy Package'] },
+      { key: 'priority', label: 'Priority', type: 'select', options: ['Low', 'Medium', 'High', 'Critical'] },
+    ]
+  },
+  {
+    id: 'business_profile',
+    title: '2. Business Profile',
+    icon: 'Building2',
+    questions: [
+      { key: 'legal_entity_name', label: 'Legal Entity Name', type: 'text' },
+      { key: 'operating_name', label: 'Operating Name', type: 'text' },
+      { key: 'country_of_incorporation', label: 'Country of Incorporation', type: 'text' },
+      { key: 'province_state', label: 'Province or State of Operation', type: 'text' },
+      { key: 'primary_office_location', label: 'Primary Office Location', type: 'text' },
+      { key: 'industry', label: 'Industry', type: 'text' },
+      { key: 'business_type', label: 'Business Type', type: 'text' },
+      { key: 'year_established', label: 'Year Established', type: 'number' },
+      { key: 'website', label: 'Website', type: 'text' },
+      { key: 'business_description', label: 'Short Business Description', type: 'text' },
+      { key: 'regulated', label: 'Regulated?', type: 'boolean' },
+      { key: 'licenses_held', label: 'Licenses or Registrations Held', type: 'text' },
+    ]
+  },
+  {
+    id: 'products_services',
+    title: '3. Products and Services',
+    icon: 'Package',
+    questions: [
+      { key: 'products_offered', label: 'Products or Services Offered', type: 'text' },
+      { key: 'handles_fiat', label: 'Handles fiat currency?', type: 'boolean' },
+      { key: 'handles_virtual_assets', label: 'Handles virtual assets?', type: 'boolean' },
+      { key: 'accepts_cash', label: 'Accepts cash?', type: 'boolean' },
+      { key: 'offers_cheque_cashing', label: 'Offers cheque cashing?', type: 'boolean' },
+      { key: 'offers_payment_processing', label: 'Offers payment processing?', type: 'boolean' },
+      { key: 'offers_remittances', label: 'Offers remittances?', type: 'boolean' },
+      { key: 'holds_client_funds', label: 'Holds client funds?', type: 'boolean' },
+      { key: 'custodies_virtual_assets', label: 'Custodies virtual assets?', type: 'boolean' },
+      { key: 'allows_third_party_payouts', label: 'Allows third-party payouts?', type: 'boolean' },
+      { key: 'offers_cross_border_services', label: 'Offers cross-border services?', type: 'boolean' },
+      { key: 'avg_transaction_size', label: 'Average Transaction Size', type: 'number' },
+      { key: 'max_transaction_size', label: 'Maximum Transaction Size', type: 'number' },
+      { key: 'monthly_transaction_volume', label: 'Approx Monthly Transaction Volume', type: 'number' },
+      { key: 'monthly_client_count', label: 'Approx Monthly Client Count', type: 'number' },
+    ]
+  },
+  {
+    id: 'delivery_channels',
+    title: '4. Delivery Channels',
+    icon: 'Globe',
+    questions: [
+      { key: 'services_in_person', label: 'Services offered in person?', type: 'boolean' },
+      { key: 'services_offered_online', label: 'Services offered online?', type: 'boolean' },
+      { key: 'onboarding_fully_remote', label: 'Onboarding fully remote?', type: 'boolean' },
+      { key: 'transactions_through_web', label: 'Transactions initiated through web portal?', type: 'boolean' },
+      { key: 'transactions_through_api', label: 'Transactions initiated through API?', type: 'boolean' },
+      { key: 'services_through_agents', label: 'Services through agents or intermediaries?', type: 'boolean' },
+      { key: 'self_service_channels', label: 'Self-service channels?', type: 'boolean' },
+      { key: 'atm_kiosk_channels', label: 'ATM or kiosk channels?', type: 'boolean' },
+      { key: 'white_label_channels', label: 'White-label or embedded channels?', type: 'boolean' },
+      { key: 'third_parties_in_onboarding', label: 'Third parties involved in onboarding/service delivery?', type: 'boolean' },
+    ]
+  },
+  {
+    id: 'customer_base',
+    title: '5. Customer / Client Base',
+    icon: 'Users',
+    questions: [
+      { key: 'client_base', label: 'Client base type', type: 'select', options: ['individuals', 'businesses', 'both'] },
+      { key: 'customers_msbs', label: 'Customers that are MSBs or financial institutions?', type: 'boolean' },
+      { key: 'customers_virtual_asset', label: 'Customers that are virtual asset businesses?', type: 'boolean' },
+      { key: 'customers_charities', label: 'Customers that are charities or NPOs?', type: 'boolean' },
+      { key: 'customers_cash_intensive', label: 'Customers that are cash-intensive businesses?', type: 'boolean' },
+      { key: 'hnw_clients', label: 'High-net-worth clients a meaningful segment?', type: 'boolean' },
+      { key: 'foreign_customers_permitted', label: 'Foreign customers permitted?', type: 'boolean' },
+      { key: 'peps_permitted', label: 'PEPs permitted?', type: 'boolean' },
+      { key: 'high_risk_sectors_permitted', label: 'High-risk sectors permitted?', type: 'boolean' },
+      { key: 'entity_foreign_bos', label: 'Entity clients with beneficial owners outside Canada?', type: 'boolean' },
+    ]
+  },
+  {
+    id: 'geography',
+    title: '6. Geography',
+    icon: 'MapPin',
+    questions: [
+      { key: 'countries_business_operates', label: 'Countries where business operates', type: 'text' },
+      { key: 'countries_customers_located', label: 'Countries where customers are located', type: 'text' },
+      { key: 'restricted_to_canada', label: 'Services restricted to Canada only?', type: 'boolean' },
+      { key: 'cross_border_permitted', label: 'Cross-border transactions permitted?', type: 'boolean' },
+      { key: 'foreign_bos_counterparties', label: 'Customers/BOs/counterparties outside Canada?', type: 'boolean' },
+      { key: 'high_risk_jurisdictions', label: 'High-risk or sanctioned jurisdictions relevant?', type: 'boolean' },
+      { key: 'foreign_banking_partners', label: 'Foreign banking/settlement/liquidity partners?', type: 'boolean' },
+      { key: 'foreign_tech_providers', label: 'Foreign technology or service providers?', type: 'boolean' },
+    ]
+  },
+  {
+    id: 'ownership_control',
+    title: '7. Ownership and Control',
+    icon: 'Shield',
+    questions: [
+      { key: 'client_individual_or_entity', label: 'Client is individual or entity?', type: 'select', options: ['Individual', 'Entity', 'Both'] },
+      { key: 'onboards_entities', label: 'Business onboards corporate/entity customers?', type: 'boolean' },
+      { key: 'bo_collected', label: 'Beneficial ownership collected?', type: 'boolean' },
+      { key: 'directors_collected', label: 'Directors collected?', type: 'boolean' },
+      { key: 'complex_structures', label: 'Ownership structures ever complex?', type: 'boolean' },
+      { key: 'nominee_trust_structures', label: 'Nominee/layered/trust structures possible?', type: 'boolean' },
+      { key: 'foreign_bos_possible', label: 'Foreign beneficial owners possible?', type: 'boolean' },
+      { key: 'pep_screening', label: 'Politically exposed persons screened?', type: 'boolean' },
+    ]
+  },
+  {
+    id: 'aml_controls',
+    title: '8. AML Program Controls',
+    icon: 'Lock',
+    questions: [
+      { key: 'compliance_officer', label: 'Designated compliance officer?', type: 'boolean' },
+      { key: 'aml_policies', label: 'AML policies documented?', type: 'boolean' },
+      { key: 'procedures_documented', label: 'Procedures documented?', type: 'boolean' },
+      { key: 'formal_risk_assessment', label: 'Formal risk assessment process?', type: 'boolean' },
+      { key: 'staff_training', label: 'Staff AML training conducted?', type: 'boolean' },
+      { key: 'training_documented', label: 'Training documented?', type: 'boolean' },
+      { key: 'identity_verification', label: 'Identity verification performed?', type: 'boolean' },
+      { key: 'bo_verification', label: 'Beneficial ownership verification performed?', type: 'boolean' },
+      { key: 'sanctions_screening', label: 'Sanctions screening performed?', type: 'boolean' },
+      { key: 'adverse_media_screening', label: 'Adverse media screening performed?', type: 'boolean' },
+      { key: 'transaction_monitoring', label: 'Transaction monitoring performed?', type: 'boolean' },
+      { key: 'str_escalation', label: 'Suspicious transaction escalation procedures documented?', type: 'boolean' },
+      { key: 'recordkeeping', label: 'Recordkeeping documented and standardized?', type: 'boolean' },
+      { key: 'independent_review', label: 'Independent review or effectiveness review?', type: 'boolean' },
+      { key: 'client_risk_rated', label: 'Clients risk-rated?', type: 'boolean' },
+      { key: 'edd_high_risk', label: 'EDD performed for higher-risk clients?', type: 'boolean' },
+    ]
+  },
+  {
+    id: 'reporting_recordkeeping',
+    title: '9. Reporting and Recordkeeping',
+    icon: 'FileText',
+    questions: [
+      { key: 'str_procedures', label: 'STR procedures in place?', type: 'boolean' },
+      { key: 'astr_procedures', label: 'ASTR procedures in place?', type: 'boolean' },
+      { key: 'eftr_procedures', label: 'EFTR procedures in place?', type: 'boolean' },
+      { key: 'record_retention_policy', label: 'Record retention policy documented?', type: 'boolean' },
+      { key: 'records_retrievable', label: 'Records easily retrievable?', type: 'boolean' },
+      { key: 'investigations_documented', label: 'Investigations documented?', type: 'boolean' },
+      { key: 'law_enforcement_tracked', label: 'Law enforcement requests tracked?', type: 'boolean' },
+      { key: 'compliance_decisions_documented', label: 'Compliance decisions documented?', type: 'boolean' },
+    ]
+  },
+  {
+    id: 'technology_security',
+    title: '10. Technology and Security',
+    icon: 'Cpu',
+    questions: [
+      { key: 'internally_developed_software', label: 'Relies on internally developed software?', type: 'boolean' },
+      { key: 'third_party_integrations', label: 'Third-party integrations used?', type: 'boolean' },
+      { key: 'api_connections', label: 'API connections used for key controls?', type: 'boolean' },
+      { key: 'mfa', label: 'Multi-factor authentication used?', type: 'boolean' },
+      { key: 'rbac', label: 'Role-based access control used?', type: 'boolean' },
+      { key: 'audit_logs', label: 'Audit logs maintained?', type: 'boolean' },
+      { key: 'cybersecurity_audits', label: 'Cybersecurity audits or reviews completed?', type: 'boolean' },
+      { key: 'change_management', label: 'Change management documented?', type: 'boolean' },
+      { key: 'backups_recovery', label: 'Backups and recovery procedures in place?', type: 'boolean' },
+      { key: 'electronic_storage', label: 'Sensitive records stored electronically?', type: 'boolean' },
+    ]
+  },
+  {
+    id: 'service_providers',
+    title: '11. Service Providers and Third Parties',
+    icon: 'Link',
+    questions: [
+      { key: 'third_party_kyc', label: 'Third-party KYC providers used?', type: 'boolean' },
+      { key: 'third_party_sanctions', label: 'Third-party sanctions screening tools used?', type: 'boolean' },
+      { key: 'third_party_tm', label: 'Third-party transaction monitoring tools used?', type: 'boolean' },
+      { key: 'banking_partners', label: 'Banking partners relied on?', type: 'boolean' },
+      { key: 'payment_providers', label: 'Payment service providers used?', type: 'boolean' },
+      { key: 'liquidity_providers', label: 'Liquidity providers used?', type: 'boolean' },
+      { key: 'hosting_providers', label: 'Infrastructure or hosting providers used?', type: 'boolean' },
+      { key: 'vendor_dd_completed', label: 'Vendor due diligence completed?', type: 'boolean' },
+      { key: 'vendor_contracts_reviewed', label: 'Vendor contracts reviewed for compliance obligations?', type: 'boolean' },
+      { key: 'provider_incidents_tracked', label: 'Provider incidents or outages tracked?', type: 'boolean' },
+    ]
+  },
+  {
+    id: 'virtual_asset_module',
+    title: '12. Virtual Asset Methodology Module',
+    icon: 'Bitcoin',
+    methodology: 'Virtual Asset EWRA',
+    questions: [
+      { key: 'supported_assets', label: 'Supported assets', type: 'text' },
+      { key: 'external_wallets', label: 'External wallets permitted?', type: 'boolean' },
+      { key: 'onchain_screening', label: 'On-chain screening performed?', type: 'boolean' },
+      { key: 'wallet_ownership_attested', label: 'Wallet ownership attested?', type: 'boolean' },
+      { key: 'travel_rule', label: 'Travel Rule compliance required?', type: 'boolean' },
+      { key: 'lightning_offchain', label: 'Lightning or off-chain services supported?', type: 'boolean' },
+      { key: 'swaps_supported', label: 'Swaps supported?', type: 'boolean' },
+      { key: 'custody_services', label: 'Custody services offered?', type: 'boolean' },
+      { key: 'privacy_assets', label: 'Privacy-enhancing assets or tools relevant?', type: 'boolean' },
+      { key: 'foreign_exchanges', label: 'Foreign exchanges or liquidity providers used?', type: 'boolean' },
+    ]
+  },
+  {
+    id: 'cash_business_module',
+    title: '13. Cash Business Methodology Module',
+    icon: 'Banknote',
+    methodology: 'Cash Business EWRA',
+    questions: [
+      { key: 'cash_accepted', label: 'Cash accepted?', type: 'boolean' },
+      { key: 'cheque_cashing', label: 'Cheque cashing performed?', type: 'boolean' },
+      { key: 'realtime_review', label: 'Transactions reviewed in real time by frontline staff?', type: 'boolean' },
+      { key: 'issuer_screening', label: 'Instruments screened for issuer concerns?', type: 'boolean' },
+      { key: 'cctv_available', label: 'In-person recordings or CCTV available?', type: 'boolean' },
+      { key: 'refusal_procedures', label: 'Refusal procedures documented?', type: 'boolean' },
+      { key: 'structuring_mule_review', label: 'Structuring or mule indicators reviewed?', type: 'boolean' },
+      { key: 'manual_exceptions', label: 'Manual exception decisions documented?', type: 'boolean' },
+    ]
+  },
+  {
+    id: 'analyst_inputs',
+    title: '14. Analyst Inputs',
+    icon: 'PenTool',
+    questions: [
+      { key: 'risk_notes', label: 'Key business-specific risk notes', type: 'textarea' },
+      { key: 'unusual_factors', label: 'Key unusual factors not captured above', type: 'textarea' },
+      { key: 'preliminary_complexity', label: 'Preliminary overall complexity', type: 'select', options: ['Low', 'Moderate', 'High'] },
+      { key: 'initial_concerns', label: 'Initial concerns requiring reviewer attention', type: 'textarea' },
+      { key: 'missing_information', label: 'Missing information list', type: 'textarea' },
+    ]
+  },
+];

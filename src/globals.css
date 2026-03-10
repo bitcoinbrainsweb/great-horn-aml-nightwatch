@@ -1,0 +1,94 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --navy-950: #0A0F1C;
+  --navy-900: #0F172A;
+  --navy-800: #1E293B;
+  --navy-700: #334155;
+  --gold-500: #D4A853;
+  --gold-400: #E2BE7A;
+  --gold-300: #EDD4A0;
+  --risk-low: #10B981;
+  --risk-moderate: #F59E0B;
+  --risk-high: #EF4444;
+}
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 222.2 84% 4.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 84% 4.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222.2 84% 4.9%;
+    --primary: 222.2 47.4% 11.2%;
+    --primary-foreground: 210 40% 98%;
+    --secondary: 210 40% 96.1%;
+    --secondary-foreground: 222.2 47.4% 11.2%;
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+    --accent: 210 40% 96.1%;
+    --accent-foreground: 222.2 47.4% 11.2%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 222.2 84% 4.9%;
+    --radius: 0.5rem;
+    --chart-1: 12 76% 61%;
+    --chart-2: 173 58% 39%;
+    --chart-3: 197 37% 24%;
+    --chart-4: 43 74% 66%;
+    --chart-5: 27 87% 67%;
+  }
+}
+
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #CBD5E1;
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #94A3B8;
+}
+
+/* Risk rating colors */
+.risk-low { color: var(--risk-low); }
+.risk-moderate { color: var(--risk-moderate); }
+.risk-high { color: var(--risk-high); }
+.risk-bg-low { background-color: #ECFDF5; color: #065F46; }
+.risk-bg-moderate { background-color: #FFFBEB; color: #92400E; }
+.risk-bg-high { background-color: #FEF2F2; color: #991B1B; }
+
+/* Status badges */
+.status-active { background-color: #ECFDF5; color: #065F46; }
+.status-inactive { background-color: #F3F4F6; color: #6B7280; }
+.status-prospect { background-color: #EFF6FF; color: #1E40AF; }
+
+/* Transitions */
+.sidebar-transition {
+  transition: width 200ms ease-in-out;
+}
+
+/* Ql editor overrides for compliance */
+.ql-editor {
+  min-height: 200px;
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  line-height: 1.6;
+}
