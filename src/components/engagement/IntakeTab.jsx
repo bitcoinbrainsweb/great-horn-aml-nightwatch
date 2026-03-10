@@ -155,5 +155,6 @@ export default function IntakeTab({ engagement, isLocked }) {
         )}
       </div>
     </div>
+    </div>
   );
 }
