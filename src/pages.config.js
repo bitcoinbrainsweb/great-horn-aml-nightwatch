@@ -75,6 +75,7 @@ import VerificationReportA7364 from './pages/VerificationReportA7364';
 import VerificationReportB6142 from './pages/VerificationReportB6142';
 import VerificationReportM4827 from './pages/VerificationReportM4827';
 import LibraryReviewDashboard from './pages/LibraryReviewDashboard';
+import VerificationReportU4827 from './pages/VerificationReportU4827';
 import __Layout from './Layout.jsx';
 
 
@@ -107,6 +108,7 @@ export const PAGES = {
     "VerificationReportB6142": VerificationReportB6142,
     "VerificationReportM4827": VerificationReportM4827,
     "LibraryReviewDashboard": LibraryReviewDashboard,
+    "VerificationReportU4827": VerificationReportU4827,
 }
 
 export const pagesConfig = {
