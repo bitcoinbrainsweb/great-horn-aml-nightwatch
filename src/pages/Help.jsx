@@ -320,6 +320,160 @@ const TOPICS = [
       </div>
     )
   },
+  {
+    id: 'workspace',
+    title: 'Workspace Architecture',
+    icon: Building,
+    content: (
+      <div className="space-y-4">
+        <h2 className="text-lg font-bold text-slate-900">Workspace Architecture</h2>
+        <p className="text-sm text-slate-700 leading-relaxed">Nightwatch is built on a workspace model. Each workspace is an isolated organizational unit with its own clients, engagements, reports, documents, tasks, and custom library items. All data is scoped to the workspace, ensuring complete data separation between organizations.</p>
+        <h3 className="text-base font-semibold text-slate-900 mt-4">Default Workspace</h3>
+        <p className="text-sm text-slate-700 leading-relaxed">The default workspace is <strong>Great Horn AML</strong>. All existing and new data belongs to this workspace. Users are auto-assigned to this workspace on first login based on their email domain.</p>
+        <h3 className="text-base font-semibold text-slate-900 mt-4">Workspace-Scoped Data</h3>
+        <div className="grid grid-cols-2 gap-2">
+          {['Clients', 'Engagements', 'Reports', 'Documents', 'Tasks', 'Custom Risks', 'Custom Controls', 'Narrative Templates'].map(item => (
+            <span key={item} className="px-2 py-1 bg-slate-100 rounded text-xs font-medium text-slate-700">{item}</span>
+          ))}
+        </div>
+        <h3 className="text-base font-semibold text-slate-900 mt-4">User Roles (Workspace-Aware)</h3>
+        <div className="space-y-1.5">
+          {[
+            ['super_admin', 'Full access. Manage workspace settings, libraries, users, test scenarios.'],
+            ['compliance_admin', 'Manage clients, engagements, library items. Cannot manage workspace settings.'],
+            ['analyst', 'Create and manage engagements, complete intake, assess risks and controls.'],
+            ['reviewer', 'Review and approve reports. Default role for new users.'],
+          ].map(([role, desc]) => (
+            <div key={role} className="flex items-start gap-2">
+              <span className="px-2 py-0.5 rounded text-xs font-semibold bg-slate-900 text-white flex-shrink-0">{role}</span>
+              <span className="text-sm text-slate-600">{desc}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+    )
+  },
+  {
+    id: 'hybrid-library',
+    title: 'Hybrid Library Model',
+    icon: Library,
+    content: (
+      <div className="space-y-4">
+        <h2 className="text-lg font-bold text-slate-900">Hybrid Library Model</h2>
+        <p className="text-sm text-slate-700 leading-relaxed">Nightwatch uses a hybrid library model that combines the <strong>Nightwatch Core Library</strong> with a <strong>Workspace Custom Library</strong>. This allows each workspace to extend and customize the standard risk and control libraries without affecting the core content.</p>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
+          <div className="p-4 bg-slate-50 rounded-lg border border-slate-200">
+            <p className="text-sm font-semibold text-slate-900">Nightwatch Core Library</p>
+            <p className="text-xs text-slate-600 mt-1">Maintained by Great Horn AML. Contains standardized AML risks and controls based on PCMLTFA, FATF, and industry best practices. Available to all workspaces.</p>
+          </div>
+          <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
+            <p className="text-sm font-semibold text-blue-900">Workspace Custom Library</p>
+            <p className="text-xs text-blue-700 mt-1">Items created by workspace admins. Private to the workspace. Can be tailored to specific industry verticals, jurisdictions, or client types.</p>
+          </div>
+        </div>
+        <h3 className="text-base font-semibold text-slate-900 mt-4">Workspace Admin Controls</h3>
+        <div className="space-y-2">
+          <div className="flex items-start gap-2"><ChevronRight className="w-3.5 h-3.5 text-slate-400 mt-0.5 flex-shrink-0" /><span className="text-sm text-slate-700"><strong>Disable core items</strong> — Hide specific core library risks or controls that are not applicable to your workspace's client base.</span></div>
+          <div className="flex items-start gap-2"><ChevronRight className="w-3.5 h-3.5 text-slate-400 mt-0.5 flex-shrink-0" /><span className="text-sm text-slate-700"><strong>Add custom risks</strong> — Create workspace-specific risks not present in the core library. These appear alongside core items during engagement risk assessment.</span></div>
+          <div className="flex items-start gap-2"><ChevronRight className="w-3.5 h-3.5 text-slate-400 mt-0.5 flex-shrink-0" /><span className="text-sm text-slate-700"><strong>Add custom controls</strong> — Create workspace-specific controls and link them to risks. Appear alongside core controls during control assessment.</span></div>
+        </div>
+        <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg mt-2">
+          <p className="text-xs font-semibold text-amber-800 mb-1">Core Library Protection</p>
+          <p className="text-xs text-amber-700">Core library items cannot be edited directly. Use the Workspace Custom Library to extend or override behavior. Core items can only be disabled, not deleted.</p>
+        </div>
+      </div>
+    )
+  },
+  {
+    id: 'control-testing',
+    title: 'Control Testing Program',
+    icon: ClipboardList,
+    content: (
+      <div className="space-y-4">
+        <h2 className="text-lg font-bold text-slate-900">Control Testing Program</h2>
+        <p className="text-sm text-slate-700 leading-relaxed">Nightwatch supports structured control testing as a first-class feature. Each control assessment can capture a full testing lifecycle including evidence uploads, testing procedures, sample results, and reviewer sign-off.</p>
+        <h3 className="text-base font-semibold text-slate-900 mt-4">Control Testing Model</h3>
+        <div className="space-y-2">
+          {[
+            ['Control', 'The AML control being assessed (e.g. CDD policy, transaction monitoring alerts).'],
+            ['Evidence', 'Supporting documents, screenshots, samples, or observations uploaded to justify the assessment.'],
+            ['Test', 'The testing approach including sample size, methodology, and procedure applied.'],
+            ['Result', 'Summary of test findings and sample results.'],
+            ['Reviewer Sign-Off', 'Formal reviewer confirmation that the evidence and testing are sufficient.'],
+          ].map(([step, desc]) => (
+            <div key={step} className="flex items-start gap-3">
+              <span className="flex-shrink-0 px-2 py-0.5 rounded text-xs font-semibold bg-slate-900 text-white">{step}</span>
+              <p className="text-sm text-slate-600">{desc}</p>
+            </div>
+          ))}
+        </div>
+        <h3 className="text-base font-semibold text-slate-900 mt-4">Control Assessment Fields</h3>
+        <div className="grid grid-cols-2 gap-2">
+          {['Design Effectiveness', 'Operational Effectiveness', 'Consistency of Application', 'Control Rating', 'Evidence Reference', 'Testing Notes', 'Sample Size', 'Sample Results', 'Testing Conclusion', 'Reviewer Notes', 'Reviewer Sign-Off'].map(f => (
+            <span key={f} className="px-2 py-1 bg-slate-100 rounded text-xs text-slate-700">{f}</span>
+          ))}
+        </div>
+        <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg mt-2">
+          <p className="text-xs font-semibold text-blue-800 mb-1">Evidence Uploads</p>
+          <p className="text-xs text-blue-700">Upload supporting documents directly to each control assessment via the Controls tab. Evidence items are stored and linked to the specific control assessment they support.</p>
+        </div>
+      </div>
+    )
+  },
+  {
+    id: 'compliance-overview',
+    title: 'Compliance Overview',
+    icon: Activity,
+    content: (
+      <div className="space-y-4">
+        <h2 className="text-lg font-bold text-slate-900">Client Compliance Overview</h2>
+        <p className="text-sm text-slate-700 leading-relaxed">Each client page includes a <strong>Compliance Overview</strong> tab that aggregates AML compliance posture data across all of the client's engagements, risks, controls, and tasks. This provides a client-level compliance snapshot without needing to open each engagement individually.</p>
+        <h3 className="text-base font-semibold text-slate-900 mt-4">Summary Cards</h3>
+        <div className="grid grid-cols-2 gap-2">
+          {['Overall AML Risk Rating', 'High Residual Risks', 'Weak Controls', 'Open Compliance Tasks', 'Active Engagements', 'Risks Assessed', 'Last Risk Assessment Date', 'Next Review Due'].map(card => (
+            <span key={card} className="px-2 py-1 bg-slate-100 rounded text-xs text-slate-700">{card}</span>
+          ))}
+        </div>
+        <h3 className="text-base font-semibold text-slate-900 mt-4">Data Sources</h3>
+        <p className="text-sm text-slate-700 leading-relaxed">The Compliance Overview aggregates data from:</p>
+        <div className="space-y-1">
+          {['All EngagementRisk records linked to this client', 'All ControlAssessment records across all engagements', 'All open and overdue Tasks', 'Engagement metadata including risk ratings and delivery dates'].map(s => (
+            <div key={s} className="flex items-center gap-2"><ChevronRight className="w-3.5 h-3.5 text-slate-400 flex-shrink-0" /><span className="text-xs text-slate-600">{s}</span></div>
+          ))}
+        </div>
+        <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg mt-2">
+          <p className="text-xs font-semibold text-amber-800 mb-1">Note</p>
+          <p className="text-xs text-amber-700">The Compliance Overview reflects calculated residual risk ratings. Residual risk must be calculated per risk in the Controls tab for this data to be accurate and current.</p>
+        </div>
+      </div>
+    )
+  },
+  {
+    id: 'audit-trail',
+    title: 'Audit Trail',
+    icon: Activity,
+    content: (
+      <div className="space-y-4">
+        <h2 className="text-lg font-bold text-slate-900">Audit Trail & Activity Logging</h2>
+        <p className="text-sm text-slate-700 leading-relaxed">Nightwatch maintains two complementary audit systems: the <strong>AuditLog</strong> (system-level, field-by-field changes) and the <strong>ActivityLog</strong> (engagement-level narrative history).</p>
+        <h3 className="text-base font-semibold text-slate-900 mt-4">AuditLog — System Events</h3>
+        <p className="text-sm text-slate-700">Found under <strong>Admin → Audit Log</strong>. Captures all material system changes with field-level detail.</p>
+        <div className="space-y-1 mt-2">
+          {['Client create/update/archive/delete', 'Engagement create/update/status change', 'Task create/update/delete', 'Risk acceptance, removal, scoring changes', 'Control assessment create/update', 'Evidence and testing field updates', 'Report generation/submission/approval/finalization/export', 'Test data generation and deletion', 'Admin library changes', 'Template changes'].map(item => (
+            <div key={item} className="flex items-center gap-2"><ChevronRight className="w-3.5 h-3.5 text-slate-400 flex-shrink-0" /><span className="text-xs text-slate-600">{item}</span></div>
+          ))}
+        </div>
+        <h3 className="text-base font-semibold text-slate-900 mt-4">AuditLog Fields</h3>
+        <div className="grid grid-cols-2 gap-2">
+          {['workspace_id', 'user_email', 'user_name', 'object_type', 'object_id', 'action', 'field_changed', 'old_value', 'new_value', 'details', 'timestamp'].map(f => (
+            <span key={f} className="px-2 py-1 bg-slate-100 rounded text-xs font-mono text-slate-700">{f}</span>
+          ))}
+        </div>
+        <h3 className="text-base font-semibold text-slate-900 mt-4">ActivityLog — Engagement History</h3>
+        <p className="text-sm text-slate-700">Visible in the <strong>Activity</strong> tab on each engagement. Provides a human-readable narrative of who did what and when on a given engagement.</p>
+      </div>
+    )
+  },
 ];
 
 export default function Help() {
