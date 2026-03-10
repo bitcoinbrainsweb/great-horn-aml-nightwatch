@@ -1,4 +1,3 @@
-import React, { useState } from 'react';
 import React, { useState, useEffect } from 'react';
 import { CheckCircle2, AlertTriangle, XCircle, ChevronDown, ChevronRight, Download, Zap } from 'lucide-react';
 import { Button } from '@/components/ui/button';
