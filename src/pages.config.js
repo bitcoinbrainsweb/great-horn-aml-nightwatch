@@ -54,6 +54,16 @@ import Tasks from './pages/Tasks';
 import Reports from './pages/Reports';
 import Admin from './pages/Admin';
 import ClientDetail from './pages/ClientDetail';
+import EngagementDetail from './pages/EngagementDetail';
+import AdminRiskLibrary from './pages/AdminRiskLibrary';
+import AdminControlLibrary from './pages/AdminControlLibrary';
+import AdminMethodologies from './pages/AdminMethodologies';
+import AdminNarratives from './pages/AdminNarratives';
+import AdminUsers from './pages/AdminUsers';
+import AdminAuditLog from './pages/AdminAuditLog';
+import AdminJurisdictions from './pages/AdminJurisdictions';
+import AdminIndustries from './pages/AdminIndustries';
+import AdminSuggestions from './pages/AdminSuggestions';
 import __Layout from './Layout.jsx';
 
 
@@ -65,6 +75,16 @@ export const PAGES = {
     "Reports": Reports,
     "Admin": Admin,
     "ClientDetail": ClientDetail,
+    "EngagementDetail": EngagementDetail,
+    "AdminRiskLibrary": AdminRiskLibrary,
+    "AdminControlLibrary": AdminControlLibrary,
+    "AdminMethodologies": AdminMethodologies,
+    "AdminNarratives": AdminNarratives,
+    "AdminUsers": AdminUsers,
+    "AdminAuditLog": AdminAuditLog,
+    "AdminJurisdictions": AdminJurisdictions,
+    "AdminIndustries": AdminIndustries,
+    "AdminSuggestions": AdminSuggestions,
 }
 
 export const pagesConfig = {
