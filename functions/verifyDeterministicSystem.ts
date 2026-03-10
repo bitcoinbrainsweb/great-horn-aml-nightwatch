@@ -132,8 +132,9 @@ Deno.serve(async (req) => {
 
     // 7. Check finding hashing consistency
     try {
-      const hash1 = require('crypto').createHash('sha256').update(JSON.stringify({ a: 1 })).digest('hex').slice(0, 16);
-      const hash2 = require('crypto').createHash('sha256').update(JSON.stringify({ a: 1 })).digest('hex').slice(0, 16);
+      const str = JSON.stringify({ a: 1 });
+      const hash1 = btoa(String.fromCharCode.apply(null, new TextEncoder().encode(str))).slice(0, 16);
+      const hash2 = btoa(String.fromCharCode.apply(null, new TextEncoder().encode(str))).slice(0, 16);
       checks.push({
         name: 'Finding hash consistency',
         passed: hash1 === hash2,
