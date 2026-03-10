@@ -397,7 +397,13 @@ export default function NightwatchVerificationReport() {
   }, []);
 
   async function loadGateRuns() {
-    setGateRuns([]); // Disable dynamic loading - use hardcoded reports only
+    try {
+      const runs = await base44.entities.DeliveryGateRun.list('-startedAt', 100);
+      setGateRuns(runs || []);
+    } catch (error) {
+      console.error('Failed to load gate runs:', error);
+      setGateRuns([]);
+    }
   }
 
   return (
