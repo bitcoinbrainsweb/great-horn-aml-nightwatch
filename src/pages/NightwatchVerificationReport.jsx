@@ -397,13 +397,7 @@ export default function NightwatchVerificationReport() {
   }, []);
 
   async function loadGateRuns() {
-    try {
-      const runs = await base44.entities.DeliveryGateRun.list('-completedAt');
-      setGateRuns(runs || []);
-    } catch (error) {
-      console.error('Failed to load delivery gate runs:', error);
-      setGateRuns([]);
-    }
+    setGateRuns([]); // Disable dynamic loading - use hardcoded reports only
   }
 
   return (
@@ -438,9 +432,9 @@ export default function NightwatchVerificationReport() {
           </ReportCard>
         ))}
 
-        {/* V0.9.0 — Release Versioning (Most Recent if manually added) */}
+        {/* NW-UPGRADE-009 — Most Recent */}
         <ReportCard
-          id="V0.9.0"
+          id="NW-UPGRADE-009"
           name="Nightwatch v0.9.0 — Release Versioning + Historical Tracking Normalization"
           date="2026-03-10 08:15 PM"
           scope="ProductVersion entity, UpgradeVersionMapping, retroactive version assignment (v0.3.0, v0.4.0, v0.5.0), VersionDashboard UI, delivery gate version integration, report naming standardization."
@@ -464,9 +458,9 @@ export default function NightwatchVerificationReport() {
           </div>
         </ReportCard>
 
-        {/* V1.8 — Evidence & Control Testing Framework */}
+        {/* NW-UPGRADE-008 — Evidence & Control Testing Framework */}
         <ReportCard
-          id="V1.8"
+          id="NW-UPGRADE-008"
           name="Nightwatch v1.8 — Evidence & Control Testing Framework"
           date="2026-03-10 07:30 PM"
           scope="Enterprise-grade evidence management, control testing workflows, deterministic confidence evaluation (completeness × 0.6 + testing × 0.4), integration with control effectiveness and residual risk."
@@ -661,9 +655,9 @@ All core guarantees preserved.
           </div>
         </ReportCard>
 
-        {/* V1.7 — System Configuration Registry */}
+        {/* NW-UPGRADE-007 — System Configuration Registry */}
         <ReportCard
-          id="V1.7"
+          id="NW-UPGRADE-007"
           name="Nightwatch v1.7 — System Configuration Registry"
           date="2026-03-10 06:45 PM"
           scope="Centralized SystemConfig registry with 35 configurable settings across 8 categories. ConfigLoader function with caching and type-safe parsing. SystemConfigDashboard admin UI. UpgradeRegistry for tracking all major upgrades using NW-UPGRADE naming scheme. DeliveryGate integration with upgrade tracking."
@@ -888,9 +882,9 @@ Nightwatch v1.7 successfully implements centralized configuration registry with 
           </div>
         </ReportCard>
 
-        {/* V1.5 — Product UX Rollout (Most Recent) */}
+        {/* NW-UPGRADE-006 — Product UX Rollout */}
         <ReportCard
-          id="V1.5"
+          id="NW-UPGRADE-006"
           name="Nightwatch v1.5 — Product UX Rollout + Delivery Gate Framework"
           date="2026-03-10 06:30 PM"
           scope="Complete user-facing operational features: feedback system, processing job progress tracking, system event timeline, execution metrics dashboard, page explanations. Delivery Gate framework for automated upgrade verification. 5 UI components, 1 backend function, 1 entity."
@@ -1066,9 +1060,9 @@ Nightwatch v1.5 successfully delivers complete product with operational user-fac
           </div>
         </ReportCard>
 
-        {/* V1.4 — Infrastructure Layer (Most Recent) */}
+        {/* NW-UPGRADE-005 — Infrastructure Layer */}
         <ReportCard
-          id="V1.4"
+          id="NW-UPGRADE-005"
           name="Nightwatch v1.4 — Infrastructure Layer + Observability Upgrade"
           date="2026-03-10 01:30 PM"
           scope="Complete infrastructure layer: library caching (90-95% reduction), narrative caching (20-30% LLM reduction), execution metrics tracking, system event timeline, help documentation auto-generation, page explanations. 6 new entities, 8 backend functions, 50-70% LLM usage savings."
@@ -1286,9 +1280,9 @@ The Nightwatch v1.4 infrastructure layer successfully delivers intelligent cachi
           </div>
         </ReportCard>
 
-        {/* NW11 — Most Recent (v1.1 Remediation) */}
+        {/* NW-UPGRADE-004 — v1.1 Remediation Upgrade */}
         <ReportCard
-          id="NW11"
+          id="NW-UPGRADE-004"
           name="Nightwatch v1.1 — Remediation Upgrade (Post-Verification)"
           date="2026-03-10 11:45 AM"
           scope="Complete remediation and retest: async job processing, parallel risk execution, transaction safety with rollback, AssessmentState audit trail, decision provenance, conditional control triggers, idempotency safeguards. Verification report + fresh comprehensive audit included."
@@ -1423,9 +1417,9 @@ The Nightwatch v1.1 architecture is substantially more robust, auditable, and pr
           </div>
         </ReportCard>
 
-        {/* H7314 — previous System Audit */}
+        {/* NW-UPGRADE-003 — Core Architecture Audit */}
         <ReportCard
-          id="H7314"
+          id="NW-UPGRADE-003"
           name="Nightwatch Core Architecture v1 — Comprehensive System Audit"
           date="2026-03-10 10:45 AM"
           scope="Complete architectural and product audit: prompt system, state model, mapping engine, verification layer, UX/product, performance, and production readiness assessment. 9 detailed audit sections with critical findings and prioritized remediation roadmap."
@@ -1513,9 +1507,9 @@ The Nightwatch v1 Core Architecture is architecturally sound and ready for MVP/l
           <SystemAuditReportH7314 />
         </ReportCard>
 
-        {/* C4186 */}
+        {/* NW-LEGACY-C4186 */}
         <ReportCard
-          id="C4186"
+          id="NW-LEGACY-C4186"
           name="Manual Control Attachment for Risks — Analyst Workflow Enhancement"
           date="2026-03-10 10:15 AM"
           scope="8-section implementation: manual control attachment in Risks and Controls tabs, searchable ControlLibrary modal, duplicate prevention, visual separation (Recommended vs. Additional), manual control badge, audit logging, removal workflow."
@@ -1536,9 +1530,9 @@ The Nightwatch v1 Core Architecture is architecturally sound and ready for MVP/l
           <VerificationReportC4186 />
         </ReportCard>
 
-        {/* U4827 */}
+        {/* NW-LEGACY-U4827 */}
         <ReportCard
-          id="U4827"
+          id="NW-LEGACY-U4827"
           name="Library Review Dashboard — Risk and Control Proposal Management"
           date="2026-03-10 10:00 AM"
           scope="13-section implementation: dedicated admin workflow for reviewing proposed risks and controls, merge workflow, edit-before-approval, analyst visibility, source badges, full audit logging, summary stats dashboard."
@@ -1560,9 +1554,9 @@ The Nightwatch v1 Core Architecture is architecturally sound and ready for MVP/l
           <VerificationReportU4827 />
         </ReportCard>
 
-        {/* B6142 */}
+        {/* NW-LEGACY-B6142 */}
         <ReportCard
-          id="B6142"
+          id="NW-LEGACY-B6142"
           name="Operational Intelligence Upgrade v1 — Reviewer Workflow, Compliance Calendar & Platform Ops"
           date="2026-03-09 03:45 PM"
           scope="17-section upgrade: engagement cycle year, score justification & explain score, evidence missing warnings, reviewer dashboard, engagement snapshot on finalization, compliance obligation entity, notification bell, feature flags, release log, admin library source badges."
@@ -1584,9 +1578,9 @@ The Nightwatch v1 Core Architecture is architecturally sound and ready for MVP/l
           <VerificationReportB6142 />
         </ReportCard>
 
-        {/* A7364 */}
+        {/* NW-LEGACY-A7364 */}
         <ReportCard
-          id="A7364"
+          id="NW-LEGACY-A7364"
           name="Master Risk & Control Library Migration — Amanda AML Framework"
           date="2026-03-09 02:20 PM"
           scope="Full library migration: 28 Amanda framework risks imported, 35 controls imported, 92 risk-to-control mappings rebuilt, 19 legacy items preserved and flagged for admin review. Zero existing engagements or reports modified."
@@ -1609,9 +1603,9 @@ The Nightwatch v1 Core Architecture is architecturally sound and ready for MVP/l
           <VerificationReportA7364 />
         </ReportCard>
 
-        {/* M4827 */}
+        {/* NW-LEGACY-M4827 */}
         <ReportCard
-          id="M4827"
+          id="NW-LEGACY-M4827"
           name="Critical Guardrail Repair & Re-Verification"
           date="2026-03-09 01:15 PM"
           scope="Targeted re-verification of 4 critical guardrail fixes: engagement lock enforcement (Intake/Risks/Controls), task delete confirmation, Submit for Review role guard, client delete Inactive-first gate"
@@ -1632,9 +1626,9 @@ The Nightwatch v1 Core Architecture is architecturally sound and ready for MVP/l
           <VerificationReportM4827 />
         </ReportCard>
 
-        {/* A1847 */}
+        {/* NW-LEGACY-A1847 */}
         <ReportCard
-          id="A1847"
+          id="NW-LEGACY-A1847"
           name="Full Platform Audit — Post-Upgrade Verification Suite"
           date="2026-03-08 11:45 AM"
           scope="Complete 64-point codebase audit: access, security, workspace isolation, audit integrity, controls, risk workflow, templates, reporting, dashboard, help"
@@ -1659,9 +1653,9 @@ The Nightwatch v1 Core Architecture is architecturally sound and ready for MVP/l
           <VerificationReportA1847 />
         </ReportCard>
 
-        {/* V3 */}
+        {/* NW-LEGACY-V3 */}
         <ReportCard
-          id="V3"
+          id="NW-LEGACY-V3"
           name="Workflow, Security, Intelligence & UX Upgrade — Verification"
           date="2026-03-08 09:30 AM"
           scope="Invitation-only access, Technical Admin label, destructive action protection, engagement lock, integrity seal, risk proposals, Bitcoin risk intelligence"
@@ -1682,9 +1676,9 @@ The Nightwatch v1 Core Architecture is architecturally sound and ready for MVP/l
           <V3Content />
         </ReportCard>
 
-        {/* V2 */}
+        {/* NW-LEGACY-V2 */}
         <ReportCard
-          id="V2"
+          id="NW-LEGACY-V2"
           name="Workspace Architecture & Multi-Tenancy Update — Verification"
           date="2026-03-07 04:20 PM"
           scope="Workspace entity schemas, hybrid library model, control testing extensions, Help docs, ControlsTab build fix"
@@ -1706,9 +1700,9 @@ The Nightwatch v1 Core Architecture is architecturally sound and ready for MVP/l
           <V2Content />
         </ReportCard>
 
-        {/* V1 */}
+        {/* NW-LEGACY-V1 */}
         <ReportCard
-          id="V1"
+          id="NW-LEGACY-V1"
           name="Post-Repair Build Audit — Verification"
           date="2026-03-07 01:10 PM"
           scope="Full codebase review following March 2026 repair update: report schema, cascade delete, reviewer permissions, audit trail, progress tracker, regression"
