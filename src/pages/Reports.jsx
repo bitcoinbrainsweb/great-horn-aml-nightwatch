@@ -17,9 +17,20 @@ export default function Reports() {
   const [typeFilter, setTypeFilter] = useState('all');
 
   useEffect(() => {
-    // Load from canonical GeneratedReport entity
-    base44.entities.GeneratedReport.filter({ visibleOnReportsPage: true, status: 'published' })
-      .then(r => { setReports(r.sort((a, b) => new Date(b.reportDate) - new Date(a.reportDate))); setLoading(false); });
+    // Load from canonical PublishedOutput entity, reports only
+    base44.entities.PublishedOutput.filter({ classification: 'report', status: 'published' })
+      .then(r => { 
+        const mapped = r.map(o => ({
+          id: o.id,
+          reportTitle: o.outputName,
+          upgradeId: o.upgrade_id,
+          productVersion: o.product_version,
+          reportType: o.report_type || o.subtype,
+          reportDate: o.published_at,
+        }));
+        setReports(mapped.sort((a, b) => new Date(b.reportDate) - new Date(a.reportDate))); 
+        setLoading(false); 
+      });
   }, []);
 
   const filtered = reports.filter(r => {
