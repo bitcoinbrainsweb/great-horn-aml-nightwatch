@@ -24,16 +24,18 @@ export default function ControlsTab({ engagement }) {
   useEffect(() => { loadData(); }, [engagement.id]);
 
   async function loadData() {
-    const [risks, controls, lib, rLib] = await Promise.all([
+    const [risks, controls, lib, rLib, me] = await Promise.all([
       base44.entities.EngagementRisk.filter({ engagement_id: engagement.id }),
       base44.entities.ControlAssessment.filter({ engagement_id: engagement.id }),
       base44.entities.ControlLibrary.filter({ status: 'Active' }),
-      base44.entities.RiskLibrary.filter({ status: 'Active' })
+      base44.entities.RiskLibrary.filter({ status: 'Active' }),
+      base44.auth.me(),
     ]);
     setEngRisks(risks);
     setControlAssessments(controls);
     setControlLibrary(lib);
     setRiskLibrary(rLib);
+    setUser(me);
     setLoading(false);
   }
 

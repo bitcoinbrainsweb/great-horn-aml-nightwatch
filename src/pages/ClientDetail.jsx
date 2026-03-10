@@ -32,19 +32,21 @@ export default function ClientDetail() {
   useEffect(() => { if (clientId) loadData(); }, [clientId]);
 
   async function loadData() {
-    const [c, e, d, t, a, u] = await Promise.all([
+    const [c, e, d, t, a, u, me] = await Promise.all([
       base44.entities.Client.list().then(all => all.find(x => x.id === clientId)),
       base44.entities.Engagement.filter({ client_id: clientId }),
       base44.entities.Document.filter({ client_id: clientId }),
       base44.entities.Task.list('-created_date', 200).then(all => all.filter(t => engagements.some(e => e.id === t.engagement_id) || t.client_name === '')),
       base44.entities.ActivityLog.filter({ client_id: clientId }),
-      base44.entities.User.list()
+      base44.entities.User.list(),
+      base44.auth.me(),
     ]);
     setClient(c);
     setEngagements(e);
     setDocuments(d);
     setActivities(a);
     setUsers(u);
+    setUser(me);
     // Get tasks for client's engagements
     if (e.length > 0) {
       const engIds = new Set(e.map(x => x.id));
