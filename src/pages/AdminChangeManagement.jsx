@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
-import { format } from 'date-fns';
 import { Search, FileCheck } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import PageHeader from '../components/ui/PageHeader';
 import EmptyState from '../components/ui/EmptyState';
+import VerificationRecordCard from '../components/verification/VerificationRecordCard';
 
 export default function AdminChangeManagement() {
   const [records, setRecords] = useState([]);
@@ -65,38 +65,10 @@ export default function AdminChangeManagement() {
           description="Software development verification records will appear here."
         />
       ) : (
-        <div className="bg-white rounded-xl border border-slate-200/60 overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-slate-100 bg-slate-50/50">
-                  <th className="text-left px-5 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Record Name</th>
-                  <th className="text-left px-5 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider hidden md:table-cell">Upgrade</th>
-                  <th className="text-left px-5 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider hidden lg:table-cell">Version</th>
-                  <th className="text-left px-5 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider hidden lg:table-cell">Published</th>
-                  <th className="text-left px-5 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Type</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
-                {filtered.map(r => (
-                  <tr key={r.id} className="hover:bg-slate-50/50 transition-colors">
-                    <td className="px-5 py-3">
-                      <p className="font-medium text-slate-900">{r.outputName}</p>
-                      {r.summary && <p className="text-xs text-slate-500 mt-1 line-clamp-1">{r.summary}</p>}
-                    </td>
-                    <td className="px-5 py-3 text-slate-600 hidden md:table-cell font-mono text-xs">{r.upgrade_id || '—'}</td>
-                    <td className="px-5 py-3 text-slate-600 hidden lg:table-cell font-mono text-xs">{r.product_version || '—'}</td>
-                    <td className="px-5 py-3 text-slate-600 hidden lg:table-cell text-xs">
-                      {r.published_at ? format(new Date(r.published_at), 'MMM d, yyyy') : '—'}
-                    </td>
-                    <td className="px-5 py-3">
-                      <span className="text-xs px-2 py-1 bg-purple-100 text-purple-800 rounded">Verification</span>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+        <div className="space-y-3">
+          {filtered.map(r => (
+            <VerificationRecordCard key={r.id} record={r} />
+          ))}
         </div>
       )}
 
