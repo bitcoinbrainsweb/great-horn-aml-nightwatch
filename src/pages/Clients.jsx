@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
-import { Plus, Search, Building2, Trash2 } from 'lucide-react';
+import { Plus, Search, Building2, Trash2, Archive } from 'lucide-react';
+import ConfirmDialog from '../components/ui/ConfirmDialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -24,6 +25,7 @@ export default function Clients() {
   const [users, setUsers] = useState([]);
   const [user, setUser] = useState(null);
   const [confirmDelete, setConfirmDelete] = useState(null);
+  const [confirmArchive, setConfirmArchive] = useState(null);
   const [deleteError, setDeleteError] = useState('');
 
   useEffect(() => { loadData(); }, []);
@@ -41,6 +43,13 @@ export default function Clients() {
   }
 
   const isAdmin = ['admin', 'super_admin', 'compliance_admin'].includes(user?.role);
+
+  async function handleArchive(client) {
+    await base44.entities.Client.update(client.id, { status: 'Inactive' });
+    await logAudit({ userEmail: user?.email, objectType: 'Client', objectId: client.id, action: 'archived', details: `Client ${client.legal_name} archived (set Inactive)` });
+    setConfirmArchive(null);
+    await loadData();
+  }
 
   async function handleDelete(client) {
     // Guard: check for active engagements
