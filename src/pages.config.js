@@ -72,6 +72,7 @@ import Tasks from './pages/Tasks';
 import VerificationReportA1847 from './pages/VerificationReportA1847';
 import VerificationReportM4827 from './pages/VerificationReportM4827';
 import VerificationReportA7364 from './pages/VerificationReportA7364';
+import ReviewerDashboard from './pages/ReviewerDashboard';
 import __Layout from './Layout.jsx';
 
 
@@ -101,6 +102,7 @@ export const PAGES = {
     "VerificationReportA1847": VerificationReportA1847,
     "VerificationReportM4827": VerificationReportM4827,
     "VerificationReportA7364": VerificationReportA7364,
+    "ReviewerDashboard": ReviewerDashboard,
 }
 
 export const pagesConfig = {
