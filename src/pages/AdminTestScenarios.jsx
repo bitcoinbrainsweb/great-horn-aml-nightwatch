@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Checkbox } from '@/components/ui/checkbox';
 import { SCENARIO_TYPES, SCENARIO_DEFINITIONS } from '../components/test/ScenarioData';
 import { calculateInherentRisk, calculateResidualRisk, LIKELIHOOD_SCALE, IMPACT_SCALE, DEFAULT_TASKS } from '../components/scoring/riskScoringEngine';
-import { logAudit } from '../components/util/auditLog';
+import { logAudit } from '../components/util/auditLog'; // audit helper
 
 export default function AdminTestScenarios() {
   const [user, setUser] = useState(null);
