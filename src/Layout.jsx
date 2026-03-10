@@ -37,9 +37,7 @@ export default function Layout({ children, currentPageName }) {
     const me = await base44.auth.me();
     // Platform admin (app builder/owner) always gets through as Technical Admin
     if (me.role === 'admin') {
-      await base44.auth.updateMe({ role: 'super_admin' });
-      const updated = await base44.auth.me();
-      setUser(updated);
+      setUser(me);
       return;
     }
 
