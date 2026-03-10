@@ -206,9 +206,18 @@ export default function Engagements() {
                     <td className="px-5 py-3"><StatusBadge status={e.status} /></td>
                     {isAdmin && (
                       <td className="px-3 py-3">
-                        <Button variant="ghost" size="icon" onClick={() => setConfirmDelete(e)} className="h-7 w-7 text-slate-400 hover:text-red-600">
-                          <Trash2 className="w-3.5 h-3.5" />
-                        </Button>
+                        <div className="flex items-center gap-1">
+                          {e.status !== 'Archived' && (
+                            <Button variant="ghost" size="icon" onClick={() => setConfirmArchive(e)} className="h-7 w-7 text-slate-400 hover:text-amber-600" title="Archive">
+                              <Archive className="w-3.5 h-3.5" />
+                            </Button>
+                          )}
+                          {(user?.role === 'super_admin' || user?.role === 'admin') && e.status === 'Archived' && (
+                            <Button variant="ghost" size="icon" onClick={() => setConfirmDelete(e)} className="h-7 w-7 text-slate-400 hover:text-red-600" title="Permanently delete">
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </Button>
+                          )}
+                        </div>
                       </td>
                     )}
                   </tr>
