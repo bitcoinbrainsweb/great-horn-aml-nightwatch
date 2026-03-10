@@ -43,7 +43,7 @@ export default function Reports() {
           <SelectTrigger className="w-[140px]"><SelectValue /></SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All Status</SelectItem>
-            {['Draft', 'Under Review', 'Final', 'Delivered'].map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+            {['Draft', 'Under Review', 'Approved', 'Finalized', 'Exported'].map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
           </SelectContent>
         </Select>
       </div>

@@ -4,8 +4,9 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { StatusBadge } from '../ui/RiskBadge';
-import { CheckCircle2, XCircle, MessageSquare } from 'lucide-react';
+import { CheckCircle2, XCircle, MessageSquare, Lock } from 'lucide-react';
 import { format } from 'date-fns';
+import { logAudit } from '../lib/auditLog';
 
 export default function ReviewTab({ engagement }) {
   const [reviewLogs, setReviewLogs] = useState([]);
@@ -15,40 +16,48 @@ export default function ReviewTab({ engagement }) {
   const [section, setSection] = useState('');
   const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [user, setUser] = useState(null);
 
   useEffect(() => { loadData(); }, [engagement.id]);
 
   async function loadData() {
-    const [logs, rpts] = await Promise.all([
+    const [logs, rpts, me] = await Promise.all([
       base44.entities.ReviewLog.filter({ engagement_id: engagement.id }),
-      base44.entities.Report.filter({ engagement_id: engagement.id })
+      base44.entities.Report.filter({ engagement_id: engagement.id }),
+      base44.auth.me()
     ]);
     setReviewLogs(logs.sort((a, b) => new Date(b.created_date) - new Date(a.created_date)));
     setReports(rpts);
+    setUser(me);
     setLoading(false);
   }
 
+  const isReviewer = user?.email === engagement.assigned_reviewer || ['admin', 'super_admin', 'compliance_admin'].includes(user?.role);
+
   async function submitReview() {
+    if (!isReviewer) return;
     setSaving(true);
-    const me = await base44.auth.me();
     await base44.entities.ReviewLog.create({
       engagement_id: engagement.id,
       report_id: reports[0]?.id || '',
-      reviewer: me.email,
+      reviewer: user.email,
       decision,
       section,
       comments
     });
 
     if (decision === 'Approved') {
-      await base44.entities.Engagement.update(engagement.id, { status: 'Completed' });
       if (reports[0]) {
-        await base44.entities.Report.update(reports[0].id, { status: 'Final' });
+        await base44.entities.Report.update(reports[0].id, { status: 'Approved' });
       }
     } else if (decision === 'Changes Requested') {
+      if (reports[0]) {
+        await base44.entities.Report.update(reports[0].id, { status: 'Draft' });
+      }
       await base44.entities.Engagement.update(engagement.id, { status: 'Draft Report' });
     }
 
+    await logAudit({ userEmail: user?.email, objectType: 'Report', objectId: reports[0]?.id || '', action: 'review_submitted', details: `Decision: ${decision}. ${comments}` });
     setDecision('');
     setComments('');
     setSection('');
@@ -61,6 +70,7 @@ export default function ReviewTab({ engagement }) {
   return (
     <div className="space-y-6">
       {/* Submit review */}
+      {isReviewer ? (
       <div className="bg-white rounded-xl border border-slate-200/60 p-6 space-y-4">
         <h3 className="text-sm font-semibold text-slate-900">Submit Review</h3>
         <div className="grid grid-cols-2 gap-4">
@@ -94,6 +104,15 @@ export default function ReviewTab({ engagement }) {
           </Button>
         </div>
       </div>
+      ) : (
+        <div className="bg-slate-50 rounded-xl border border-slate-200/60 p-5 flex items-center gap-3">
+          <Lock className="w-4 h-4 text-slate-400 flex-shrink-0" />
+          <div>
+            <p className="text-sm font-medium text-slate-700">Review submission restricted</p>
+            <p className="text-xs text-slate-400 mt-0.5">Only the assigned reviewer or an admin may submit review decisions. Review history is visible below.</p>
+          </div>
+        </div>
+      )}
 
       {/* Review log */}
       <div className="bg-white rounded-xl border border-slate-200/60 overflow-hidden">

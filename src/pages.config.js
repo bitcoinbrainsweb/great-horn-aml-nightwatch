@@ -63,9 +63,9 @@ import Clients from './pages/Clients';
 import Dashboard from './pages/Dashboard';
 import EngagementDetail from './pages/EngagementDetail';
 import Engagements from './pages/Engagements';
+import Help from './pages/Help';
 import Reports from './pages/Reports';
 import Tasks from './pages/Tasks';
-import Help from './pages/Help';
 import __Layout from './Layout.jsx';
 
 
@@ -86,9 +86,9 @@ export const PAGES = {
     "Dashboard": Dashboard,
     "EngagementDetail": EngagementDetail,
     "Engagements": Engagements,
+    "Help": Help,
     "Reports": Reports,
     "Tasks": Tasks,
-    "Help": Help,
 }
 
 export const pagesConfig = {

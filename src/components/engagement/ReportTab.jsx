@@ -5,6 +5,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { FileText, Save, Sparkles, Send, CheckCircle2, Lock, Download, FileDown, AlertTriangle } from 'lucide-react';
 import { StatusBadge } from '../ui/RiskBadge';
 import { jsPDF } from 'jspdf';
+import { logAudit } from '../lib/auditLog';
 
 const REPORT_SECTIONS = [
   'Executive Summary',
@@ -96,6 +97,7 @@ Each should be 2-4 paragraphs of professional compliance language. Use the clien
       });
       setReport(newReport);
     }
+    await logAudit({ userEmail: user?.email, objectType: 'Report', objectId: report?.id || '', action: 'report_generated', details: `Draft report generated for ${engagement.client_name}` });
     setGenerating(false);
   }
 
@@ -116,23 +118,27 @@ Each should be 2-4 paragraphs of professional compliance language. Use the clien
     }
     await base44.entities.Report.update(report.id, { status: 'Under Review' });
     setReport(r => ({ ...r, status: 'Under Review' }));
+    await logAudit({ userEmail: user?.email, objectType: 'Report', objectId: report.id, action: 'submitted_for_review', details: `Report submitted for review for ${engagement.client_name}` });
   }
 
   async function approveReport() {
     setActionError('');
     await base44.entities.Report.update(report.id, { status: 'Approved' });
     setReport(r => ({ ...r, status: 'Approved' }));
+    await logAudit({ userEmail: user?.email, objectType: 'Report', objectId: report.id, action: 'report_approved', details: `Report approved for ${engagement.client_name}` });
   }
 
   async function finalizeReport() {
     setActionError('');
     await base44.entities.Report.update(report.id, { status: 'Finalized' });
     setReport(r => ({ ...r, status: 'Finalized' }));
+    await logAudit({ userEmail: user?.email, objectType: 'Report', objectId: report.id, action: 'report_finalized', details: `Report finalized for ${engagement.client_name}` });
   }
 
   async function markExported() {
     await base44.entities.Report.update(report.id, { status: 'Exported' });
     setReport(r => ({ ...r, status: 'Exported' }));
+    await logAudit({ userEmail: user?.email, objectType: 'Report', objectId: report.id, action: 'report_exported', details: `Report exported for ${engagement.client_name}` });
   }
 
   function exportPDF() {

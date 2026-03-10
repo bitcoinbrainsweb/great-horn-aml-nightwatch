@@ -11,6 +11,7 @@ import { Label } from '@/components/ui/label';
 import PageHeader from '../components/ui/PageHeader';
 import { StatusBadge } from '../components/ui/RiskBadge';
 import EmptyState from '../components/ui/EmptyState';
+import { logAudit } from '../lib/auditLog';
 
 export default function Clients() {
   const [clients, setClients] = useState([]);
@@ -50,6 +51,7 @@ export default function Clients() {
       setDeleteError('This client cannot be deleted because it has active engagements. Complete or archive the engagements first.');
       return;
     }
+    await logAudit({ userEmail: user?.email, objectType: 'Client', objectId: client.id, action: 'deleted', details: `Deleted client: ${client.legal_name}` });
     await base44.entities.Client.delete(client.id);
     setConfirmDelete(null);
     await loadData();
@@ -58,7 +60,8 @@ export default function Clients() {
   async function handleCreate(e) {
     e.preventDefault();
     setSaving(true);
-    await base44.entities.Client.create({ ...form, status: form.status || 'Active' });
+    const newClient = await base44.entities.Client.create({ ...form, status: form.status || 'Active' });
+    await logAudit({ userEmail: user?.email, objectType: 'Client', objectId: newClient.id, action: 'created', details: `Created client: ${form.legal_name}` });
     await loadData();
     setShowCreate(false);
     setForm({});

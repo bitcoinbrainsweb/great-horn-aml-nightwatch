@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Checkbox } from '@/components/ui/checkbox';
 import { SCENARIO_TYPES, SCENARIO_DEFINITIONS } from '../components/test/ScenarioData';
 import { calculateInherentRisk, calculateResidualRisk, LIKELIHOOD_SCALE, IMPACT_SCALE, DEFAULT_TASKS } from '../components/scoring/riskScoringEngine';
+import { logAudit } from '../lib/auditLog';
 
 export default function AdminTestScenarios() {
   const [user, setUser] = useState(null);
@@ -186,6 +187,7 @@ export default function AdminTestScenarios() {
         controls: controlRecords.map(r => r.id),
       },
     });
+    await logAudit({ userEmail: user?.email, objectType: 'TestScenario', objectId: engagement.id, action: 'test_data_generated', details: `Generated "${scenarioType}": ${finalClientName}` });
     setGenerating(false);
   }
 
@@ -205,6 +207,7 @@ export default function AdminTestScenarios() {
     ]);
     await base44.entities.Engagement.delete(allIds.engagement);
     await base44.entities.Client.delete(allIds.client);
+    await logAudit({ userEmail: user?.email, objectType: 'TestScenario', objectId: allIds.engagement, action: 'test_data_deleted', details: `Deleted test scenario: ${result.clientName}` });
     setResult(null);
     setClientName('');
     setDeleting(false);

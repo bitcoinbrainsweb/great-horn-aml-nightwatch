@@ -21,6 +21,7 @@ import ReviewTab from '../components/engagement/ReviewTab';
 import RiskSnapshotPanel from '../components/engagement/RiskSnapshotPanel';
 import ProgressTracker from '../components/engagement/ProgressTracker';
 import { format } from 'date-fns';
+import { logAudit } from '../lib/auditLog';
 
 const ENGAGEMENT_STATUSES = ['Not Started', 'Intake In Progress', 'Risk Analysis', 'Draft Report', 'Under Review', 'Completed', 'Archived'];
 
@@ -99,6 +100,7 @@ export default function EngagementDetail() {
         return;
       }
     }
+    await logAudit({ userEmail: user?.email, objectType: 'Engagement', objectId: engId, action: 'status_changed', fieldChanged: 'status', oldValue: engagement.status, newValue: newStatus, details: `Status: ${engagement.status} → ${newStatus}` });
     await base44.entities.Engagement.update(engId, { status: newStatus });
     await loadData();
   }

@@ -13,6 +13,7 @@ import { StatusBadge, RiskBadge } from '../components/ui/RiskBadge';
 import EmptyState from '../components/ui/EmptyState';
 import { DEFAULT_TASKS } from '../components/scoring/riskScoringEngine';
 import { format } from 'date-fns';
+import { logAudit } from '../lib/auditLog';
 
 export default function Engagements() {
   const [engagements, setEngagements] = useState([]);
@@ -50,13 +51,15 @@ export default function Engagements() {
   const isAdmin = ['admin', 'super_admin', 'compliance_admin'].includes(user?.role);
 
   async function handleDelete(engagement) {
-    // Cascade delete all child records
-    const [tasks, intake, risks, controls, reports] = await Promise.all([
+    const [tasks, intake, risks, controls, reports, docs, reviews, actLogs] = await Promise.all([
       base44.entities.Task.filter({ engagement_id: engagement.id }),
       base44.entities.IntakeResponse.filter({ engagement_id: engagement.id }),
       base44.entities.EngagementRisk.filter({ engagement_id: engagement.id }),
       base44.entities.ControlAssessment.filter({ engagement_id: engagement.id }),
       base44.entities.Report.filter({ engagement_id: engagement.id }),
+      base44.entities.Document.filter({ engagement_id: engagement.id }),
+      base44.entities.ReviewLog.filter({ engagement_id: engagement.id }),
+      base44.entities.ActivityLog.filter({ engagement_id: engagement.id }),
     ]);
     await Promise.all([
       ...tasks.map(r => base44.entities.Task.delete(r.id)),
@@ -64,7 +67,11 @@ export default function Engagements() {
       ...risks.map(r => base44.entities.EngagementRisk.delete(r.id)),
       ...controls.map(r => base44.entities.ControlAssessment.delete(r.id)),
       ...reports.map(r => base44.entities.Report.delete(r.id)),
+      ...docs.map(r => base44.entities.Document.delete(r.id)),
+      ...reviews.map(r => base44.entities.ReviewLog.delete(r.id)),
+      ...actLogs.map(r => base44.entities.ActivityLog.delete(r.id)),
     ]);
+    await logAudit({ userEmail: user?.email, objectType: 'Engagement', objectId: engagement.id, action: 'deleted', details: `${engagement.engagement_type} for ${engagement.client_name} deleted (full cascade)` });
     await base44.entities.Engagement.delete(engagement.id);
     setConfirmDelete(null);
     await loadData();
@@ -81,6 +88,7 @@ export default function Engagements() {
       methodology_name: meth?.name || '',
       status: 'Not Started',
     });
+    await logAudit({ userEmail: user?.email, objectType: 'Engagement', objectId: engagement.id, action: 'created', details: `${form.engagement_type} created for ${client?.legal_name}` });
 
     // Create default tasks
     const defaultTasks = DEFAULT_TASKS[form.engagement_type] || [];
