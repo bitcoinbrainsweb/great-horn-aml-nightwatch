@@ -66,6 +66,7 @@ import Engagements from './pages/Engagements';
 import Help from './pages/Help';
 import Reports from './pages/Reports';
 import Tasks from './pages/Tasks';
+import NightwatchVerificationReport from './pages/NightwatchVerificationReport';
 import __Layout from './Layout.jsx';
 
 
@@ -89,6 +90,7 @@ export const PAGES = {
     "Help": Help,
     "Reports": Reports,
     "Tasks": Tasks,
+    "NightwatchVerificationReport": NightwatchVerificationReport,
 }
 
 export const pagesConfig = {
