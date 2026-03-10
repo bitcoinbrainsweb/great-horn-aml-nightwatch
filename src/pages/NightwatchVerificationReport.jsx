@@ -5,6 +5,7 @@ import PageHeader from '../components/ui/PageHeader';
 import VerificationReportA1847 from './VerificationReportA1847';
 import VerificationReportM4827 from './VerificationReportM4827';
 import VerificationReportA7364 from './VerificationReportA7364';
+import VerificationReportB6142 from './VerificationReportB6142';
 
 // ── shared helpers ────────────────────────────────────────────────────────────
 
@@ -368,7 +369,24 @@ export default function NightwatchVerificationReport() {
 
       <div className="space-y-4">
 
-        {/* A7364 — most recent */}
+        {/* B6142 — most recent */}
+        <ReportCard
+          id="B6142"
+          name="Operational Intelligence Upgrade v1 — Reviewer Workflow, Compliance Calendar & Platform Ops"
+          date="2026-03-10"
+          scope="17-section upgrade: engagement cycle year, score justification & explain score, evidence missing warnings, reviewer dashboard, engagement snapshot on finalization, compliance obligation entity, notification bell, feature flags, release log, admin library source badges."
+          statusLabel="✅ All Passed — Safe to Proceed"
+          statusColor="green"
+          badges={[
+            { label: 'Checks', value: 17, variant: 'neutral' },
+            { label: 'PASS', value: 17, variant: 'pass' },
+            { label: 'New Entities', value: 5, variant: 'neutral' },
+          ]}
+        >
+          <VerificationReportB6142 />
+        </ReportCard>
+
+        {/* A7364 */}
         <ReportCard
           id="A7364"
           name="Master Risk & Control Library Migration — Amanda AML Framework"
