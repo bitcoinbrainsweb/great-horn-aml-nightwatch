@@ -3,16 +3,7 @@ import { CheckCircle2, AlertTriangle, XCircle, ChevronDown, ChevronRight, Downlo
 import { Button } from '@/components/ui/button';
 import { base44 } from '@/api/base44Client';
 import PageHeader from '../components/ui/PageHeader';
-import VerificationReportA1847 from './VerificationReportA1847';
-import VerificationReportM4827 from './VerificationReportM4827';
-import VerificationReportA7364 from './VerificationReportA7364';
-import VerificationReportB6142 from './VerificationReportB6142';
-import VerificationReportU4827 from './VerificationReportU4827';
-import VerificationReportC4186 from './VerificationReportC4186';
-import VerificationReportH7314 from './VerificationReportH7314';
-import SystemAuditReportH7314 from './SystemAuditReportH7314';
-import VerificationReportNW11 from './VerificationReportNW11';
-import SystemAuditReportNW11 from './SystemAuditReportNW11';
+// Removed hard-coded report component imports — now reads from canonical PublishedOutput entity
 
 // ── shared helpers ────────────────────────────────────────────────────────────
 
@@ -390,32 +381,115 @@ function V3Content() {
 // ── main page ─────────────────────────────────────────────────────────────────
 
 export default function NightwatchVerificationReport() {
-  const [gateRuns, setGateRuns] = useState([]);
+  const [verificationReports, setVerificationReports] = useState([]);
+  const [legacyReports, setLegacyReports] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    loadGateRuns();
+    loadVerificationReports();
   }, []);
 
-  async function loadGateRuns() {
+  async function loadVerificationReports() {
     try {
-      const runs = await base44.entities.DeliveryGateRun.list('-startedAt', 100);
-      setGateRuns(runs || []);
+      // Load canonical verification reports: classification=report, subtype=verification, status=published
+      const reports = await base44.entities.PublishedOutput.filter({
+        classification: 'report',
+        subtype: 'verification',
+        status: 'published'
+      }, '-published_at', 100);
+      
+      setVerificationReports(reports || []);
+      
+      // Try to load legacy reports from DeliveryGateRun for backward compatibility
+      try {
+        const legacyRuns = await base44.entities.DeliveryGateRun.list('-completedAt', 50);
+        setLegacyReports(legacyRuns || []);
+      } catch (err) {
+        console.warn('Could not load legacy gate runs:', err);
+        setLegacyReports([]);
+      }
+      
+      setLoading(false);
     } catch (error) {
-      console.error('Failed to load gate runs:', error);
-      setGateRuns([]);
+      console.error('Failed to load verification reports:', error);
+      setVerificationReports([]);
+      setLegacyReports([]);
+      setLoading(false);
     }
+  }
+
+  if (loading) {
+    return (
+      <div className="max-w-5xl mx-auto">
+        <PageHeader title="Nightwatch Verification Reports" subtitle="Loading..." />
+        <div className="flex items-center justify-center h-64">
+          <div className="w-8 h-8 border-2 border-slate-300 border-t-slate-800 rounded-full animate-spin" />
+        </div>
+      </div>
+    );
   }
 
   return (
     <div className="max-w-5xl mx-auto">
       <PageHeader
         title="Nightwatch Verification Reports"
-        subtitle="All platform audit reports · Newest first · Click to expand"
+        subtitle={`${verificationReports.length} published verification reports · Newest first · Click to expand`}
       />
 
       <div className="space-y-4" id="reportsList">
 
-        {/* NW-UPGRADE-010 — Regression Testing Framework (MOST RECENT) */}
+        {/* Canonical verification reports from PublishedOutput */}
+        {verificationReports.map(report => (
+          <ReportCard
+            key={report.id}
+            id={report.upgrade_id || 'UNKNOWN'}
+            name={report.outputName || report.title}
+            date={report.published_at ? new Date(report.published_at).toLocaleString() : 'Unknown'}
+            scope={report.summary || 'Verification report'}
+            statusLabel="✅ PUBLISHED"
+            statusColor="green"
+            isFullAudit={true}
+            badges={[
+              { label: 'Status', value: 'Published', variant: 'pass' },
+              { label: 'Version', value: report.product_version || 'unknown', variant: 'neutral' },
+              { label: 'Upgrade', value: report.upgrade_id || 'unknown', variant: 'neutral' },
+            ]}
+            onDownload={() => {
+              const content = typeof report.content === 'string' ? report.content : JSON.stringify(report.content, null, 2);
+              const blob = new Blob([content], { type: 'text/markdown' });
+              const url = URL.createObjectURL(blob);
+              const a = document.createElement('a');
+              a.href = url;
+              a.download = `${report.outputName || 'verification_report'}.md`;
+              a.click();
+              URL.revokeObjectURL(url);
+            }}
+          >
+            <div className="space-y-3 text-xs text-slate-700">
+              <p><strong>Report Name:</strong> {report.outputName}</p>
+              <p><strong>Product Version:</strong> {report.product_version}</p>
+              <p><strong>Upgrade ID:</strong> {report.upgrade_id}</p>
+              <p><strong>Classification:</strong> {report.classification} / {report.subtype}</p>
+              <p><strong>Published:</strong> {report.published_at ? new Date(report.published_at).toLocaleString() : 'N/A'}</p>
+              {report.summary && <p><strong>Summary:</strong> {report.summary}</p>}
+            </div>
+          </ReportCard>
+        ))}
+
+        {/* Legacy gate runs for backward compatibility */}
+        {legacyReports.length > 0 && (
+          <div className="p-4 bg-amber-50 border border-amber-200 rounded-lg text-sm text-amber-800">
+            <p><strong>⚠️ Legacy Reports:</strong> {legacyReports.length} legacy gate runs found. These should be migrated to the canonical PublishedOutput store.</p>
+          </div>
+        )}
+
+        {verificationReports.length === 0 && legacyReports.length === 0 && (
+          <div className="p-4 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-600">
+            <p>No verification reports yet. Reports will appear here after successful verification runs are published.</p>
+          </div>
+        )}
+
+        {/* NW-UPGRADE-010 — Regression Testing Framework (HISTORICAL) */}
         <ReportCard
           id="NW-UPGRADE-010"
           name="Nightwatch v0.10.0 — Regression Testing Framework"
