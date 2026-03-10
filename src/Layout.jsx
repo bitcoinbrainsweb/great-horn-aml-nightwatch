@@ -17,7 +17,6 @@ const NAV_ITEMS = [
   { name: 'Reviewer', icon: Shield, page: 'ReviewerDashboard' },
   { name: 'Admin', icon: Settings, page: 'Admin' },
   { name: 'Feedback', icon: HelpCircle, page: 'Feedback' },
-  { name: 'Help', icon: HelpCircle, page: 'Help' },
 ];
 
 export default function Layout({ children, currentPageName }) {
