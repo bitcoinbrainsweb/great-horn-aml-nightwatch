@@ -53,7 +53,7 @@ export default function ControlsTab({ engagement }) {
     const toAdd = linkedNames.filter(name => !existingNames.includes(name));
     for (const name of toAdd) {
       const libControl = controlLibrary.find(c => c.control_name === name);
-      await base44.entities.ControlAssessment.create({
+      const newCtrl = await base44.entities.ControlAssessment.create({
         engagement_risk_id: risk.id,
         engagement_id: engagement.id,
         control_id: libControl?.id || '',
@@ -64,6 +64,13 @@ export default function ControlsTab({ engagement }) {
         operational_effectiveness: 'Not Assessed',
         consistency_of_application: 'Not Assessed',
         control_rating: 'Not Assessed'
+      });
+      await logAudit({
+        userEmail: user?.email,
+        objectType: 'ControlAssessment',
+        objectId: newCtrl.id,
+        action: 'created',
+        details: `Control "${name}" added to risk "${risk.risk_name}" on engagement ${engagement.id}`,
       });
     }
     await loadData();

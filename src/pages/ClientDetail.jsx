@@ -57,7 +57,18 @@ export default function ClientDetail() {
   }
 
   async function handleSave() {
+    const changedFields = Object.keys(form).filter(k => form[k] !== client[k]);
     await base44.entities.Client.update(clientId, form);
+    await logAudit({
+      userEmail: user?.email,
+      objectType: 'Client',
+      objectId: clientId,
+      action: 'updated',
+      fieldChanged: changedFields.join(', '),
+      oldValue: changedFields.map(k => `${k}: ${client[k]}`).join('; '),
+      newValue: changedFields.map(k => `${k}: ${form[k]}`).join('; '),
+      details: `Updated client: ${form.legal_name || client.legal_name}`,
+    });
     setEditing(false);
     await loadData();
   }
