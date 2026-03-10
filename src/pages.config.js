@@ -95,6 +95,9 @@ import NightwatchAuditReport from './pages/NightwatchAuditReport';
 import NightwatchV15Summary from './pages/NightwatchV15Summary';
 import NightwatchV15VerificationReport from './pages/NightwatchV15VerificationReport';
 import NightwatchV15InternalAudit from './pages/NightwatchV15InternalAudit';
+import NightwatchV17Summary from './pages/NightwatchV17Summary';
+import NightwatchV17VerificationReport from './pages/NightwatchV17VerificationReport';
+import NightwatchV17InternalAudit from './pages/NightwatchV17InternalAudit';
 import __Layout from './Layout.jsx';
 
 
@@ -147,6 +150,9 @@ export const PAGES = {
     "NightwatchV15Summary": NightwatchV15Summary,
     "NightwatchV15VerificationReport": NightwatchV15VerificationReport,
     "NightwatchV15InternalAudit": NightwatchV15InternalAudit,
+    "NightwatchV17Summary": NightwatchV17Summary,
+    "NightwatchV17VerificationReport": NightwatchV17VerificationReport,
+    "NightwatchV17InternalAudit": NightwatchV17InternalAudit,
 }
 
 export const pagesConfig = {
