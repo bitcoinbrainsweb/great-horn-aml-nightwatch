@@ -108,6 +108,7 @@ import NightwatchV09InternalAudit from './pages/NightwatchV09InternalAudit';
 import NightwatchV09DeliveryGateSummary from './pages/NightwatchV09DeliveryGateSummary';
 import NightwatchV09Summary from './pages/NightwatchV09Summary';
 import RegressionTestDashboard from './pages/RegressionTestDashboard';
+import NW010DeliveryGateSummary from './pages/NW010DeliveryGateSummary';
 import __Layout from './Layout.jsx';
 
 
@@ -173,6 +174,7 @@ export const PAGES = {
     "NightwatchV09DeliveryGateSummary": NightwatchV09DeliveryGateSummary,
     "NightwatchV09Summary": NightwatchV09Summary,
     "RegressionTestDashboard": RegressionTestDashboard,
+    "NW010DeliveryGateSummary": NW010DeliveryGateSummary,
 }
 
 export const pagesConfig = {
