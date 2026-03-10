@@ -94,7 +94,7 @@ export default function Layout({ children, currentPageName }) {
 
   async function reloadReports() {
     if (user?.role === 'admin') {
-      window.location.href = createPageUrl('NightwatchVerificationReport');
+      window.location.href = createPageUrl('AdminReleaseLog');
     }
   }
 
@@ -190,7 +190,7 @@ export default function Layout({ children, currentPageName }) {
               (item.page === 'Clients' && currentPageName === 'ClientDetail') ||
               (item.page === 'Engagements' && currentPageName === 'EngagementDetail') ||
               (item.page === 'Feedback' && ['Feedback'].includes(currentPageName)) ||
-              (item.page === 'Admin' && ['AdminRiskLibrary', 'AdminControlLibrary', 'AdminMethodologies', 'AdminNarratives', 'AdminUsers', 'AdminAuditLog', 'AdminJurisdictions', 'AdminIndustries', 'AdminSuggestions', 'AdminTestScenarios', 'AdminInvitations', 'AdminRiskProposals', 'VerificationReportA1847', 'AdminFeatureFlags', 'AdminReleaseLog', 'LibraryReviewDashboard', 'AdminGovernance', 'OutputClassificationDebug'].includes(currentPageName));
+              (item.page === 'Admin' && ['AdminRiskLibrary', 'AdminControlLibrary', 'AdminMethodologies', 'AdminNarratives', 'AdminUsers', 'AdminAuditLog', 'AdminJurisdictions', 'AdminIndustries', 'AdminSuggestions', 'AdminTestScenarios', 'AdminInvitations', 'AdminRiskProposals', 'AdminFeatureFlags', 'AdminReleaseLog', 'AdminChangeManagement', 'LibraryReviewDashboard', 'AdminGovernance'].includes(currentPageName));
             return (
               <Link
                 key={item.page}
