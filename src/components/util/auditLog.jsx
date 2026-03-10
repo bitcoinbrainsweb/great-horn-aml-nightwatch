@@ -3,9 +3,12 @@ import { base44 } from '@/api/base44Client';
 /**
  * Write a record to the AuditLog entity.
  * Failures are swallowed so audit writes never break the main app flow.
+ * Pass workspaceId when available for full workspace-scoped audit trails.
  */
 export async function logAudit({
+  workspaceId,
   userEmail,
+  userName,
   objectType,
   objectId,
   action,
@@ -16,12 +19,16 @@ export async function logAudit({
 }) {
   try {
     let email = userEmail;
+    let name = userName;
     if (!email) {
       const me = await base44.auth.me();
       email = me?.email || 'unknown';
+      name = name || me?.full_name || '';
     }
     await base44.entities.AuditLog.create({
+      workspace_id: workspaceId || '',
       user_email: email,
+      user_name: name || '',
       object_type: objectType || '',
       object_id: objectId ? String(objectId) : '',
       action: action || '',
