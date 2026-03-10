@@ -69,6 +69,7 @@ import Reports from './pages/Reports';
 import Tasks from './pages/Tasks';
 import AdminInvitations from './pages/AdminInvitations';
 import AdminRiskProposals from './pages/AdminRiskProposals';
+import VerificationReportA1847 from './pages/VerificationReportA1847';
 import __Layout from './Layout.jsx';
 
 
@@ -95,6 +96,7 @@ export const PAGES = {
     "Tasks": Tasks,
     "AdminInvitations": AdminInvitations,
     "AdminRiskProposals": AdminRiskProposals,
+    "VerificationReportA1847": VerificationReportA1847,
 }
 
 export const pagesConfig = {
