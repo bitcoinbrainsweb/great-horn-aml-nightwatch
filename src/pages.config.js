@@ -65,11 +65,17 @@ import Clients from './pages/Clients';
 import Dashboard from './pages/Dashboard';
 import EngagementDetail from './pages/EngagementDetail';
 import Engagements from './pages/Engagements';
+import Feedback from './pages/Feedback';
+import FeedbackImplementationSummary from './pages/FeedbackImplementationSummary';
+import FeedbackTestingReport from './pages/FeedbackTestingReport';
 import Help from './pages/Help';
+import ImplementationSummary from './pages/ImplementationSummary';
 import LibraryReviewDashboard from './pages/LibraryReviewDashboard';
 import NightwatchVerificationReport from './pages/NightwatchVerificationReport';
 import Reports from './pages/Reports';
 import ReviewerDashboard from './pages/ReviewerDashboard';
+import SystemAuditReportH7314 from './pages/SystemAuditReportH7314';
+import SystemAuditReportNW11 from './pages/SystemAuditReportNW11';
 import Tasks from './pages/Tasks';
 import VerificationReportA1847 from './pages/VerificationReportA1847';
 import VerificationReportA7364 from './pages/VerificationReportA7364';
@@ -77,14 +83,9 @@ import VerificationReportB6142 from './pages/VerificationReportB6142';
 import VerificationReportC4186 from './pages/VerificationReportC4186';
 import VerificationReportH7314 from './pages/VerificationReportH7314';
 import VerificationReportM4827 from './pages/VerificationReportM4827';
-import VerificationReportU4827 from './pages/VerificationReportU4827';
-import SystemAuditReportH7314 from './pages/SystemAuditReportH7314';
 import VerificationReportNW11 from './pages/VerificationReportNW11';
-import SystemAuditReportNW11 from './pages/SystemAuditReportNW11';
-import Feedback from './pages/Feedback';
-import FeedbackTestingReport from './pages/FeedbackTestingReport';
-import ImplementationSummary from './pages/ImplementationSummary';
-import FeedbackImplementationSummary from './pages/FeedbackImplementationSummary';
+import VerificationReportU4827 from './pages/VerificationReportU4827';
+import PromptTemplateSystemSummary from './pages/PromptTemplateSystemSummary';
 import __Layout from './Layout.jsx';
 
 
@@ -107,11 +108,17 @@ export const PAGES = {
     "Dashboard": Dashboard,
     "EngagementDetail": EngagementDetail,
     "Engagements": Engagements,
+    "Feedback": Feedback,
+    "FeedbackImplementationSummary": FeedbackImplementationSummary,
+    "FeedbackTestingReport": FeedbackTestingReport,
     "Help": Help,
+    "ImplementationSummary": ImplementationSummary,
     "LibraryReviewDashboard": LibraryReviewDashboard,
     "NightwatchVerificationReport": NightwatchVerificationReport,
     "Reports": Reports,
     "ReviewerDashboard": ReviewerDashboard,
+    "SystemAuditReportH7314": SystemAuditReportH7314,
+    "SystemAuditReportNW11": SystemAuditReportNW11,
     "Tasks": Tasks,
     "VerificationReportA1847": VerificationReportA1847,
     "VerificationReportA7364": VerificationReportA7364,
@@ -119,14 +126,9 @@ export const PAGES = {
     "VerificationReportC4186": VerificationReportC4186,
     "VerificationReportH7314": VerificationReportH7314,
     "VerificationReportM4827": VerificationReportM4827,
-    "VerificationReportU4827": VerificationReportU4827,
-    "SystemAuditReportH7314": SystemAuditReportH7314,
     "VerificationReportNW11": VerificationReportNW11,
-    "SystemAuditReportNW11": SystemAuditReportNW11,
-    "Feedback": Feedback,
-    "FeedbackTestingReport": FeedbackTestingReport,
-    "ImplementationSummary": ImplementationSummary,
-    "FeedbackImplementationSummary": FeedbackImplementationSummary,
+    "VerificationReportU4827": VerificationReportU4827,
+    "PromptTemplateSystemSummary": PromptTemplateSystemSummary,
 }
 
 export const pagesConfig = {
