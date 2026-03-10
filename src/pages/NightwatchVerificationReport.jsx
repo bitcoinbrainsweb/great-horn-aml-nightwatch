@@ -596,6 +596,45 @@ export default function NightwatchVerificationReport() {
         </div>
       </div>
 
+      {/* V3 Verification Summary */}
+      <div className="mt-10">
+        <h2 className="text-base font-bold text-slate-900 mb-4 flex items-center gap-2">
+          <span className="px-2 py-0.5 rounded bg-emerald-100 text-emerald-700 text-xs font-bold">V3</span>
+          Workflow, Security, Intelligence &amp; UX Upgrade — Verification Summary
+          <span className="text-xs text-slate-400 font-normal ml-1">2026-03-10</span>
+        </h2>
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4">
+          {[
+            { label: 'Total Checked', value: '9', color: 'bg-slate-50 text-slate-700 border-slate-200' },
+            { label: 'PASS', value: '9', color: 'bg-emerald-50 text-emerald-700 border-emerald-200' },
+            { label: 'PARTIAL', value: '0', color: 'bg-amber-50 text-amber-700 border-amber-200' },
+            { label: 'FAIL', value: '0', color: 'bg-red-50 text-red-700 border-red-200' },
+          ].map(({ label, value, color }) => (
+            <div key={label} className={`rounded-xl border p-4 text-center ${color}`}>
+              <p className="text-3xl font-bold">{value}</p>
+              <p className="text-xs font-semibold mt-1 opacity-70 uppercase tracking-wider">{label}</p>
+            </div>
+          ))}
+        </div>
+        <Table
+          headers={['#', 'Item', 'Result', 'Implementation']}
+          rows={[
+            ['1', 'Invitation-only access enforced', <ResultBadge result="PASS" />, 'Layout.js: UserInvitation check on login; no valid invite → branded access-denied message'],
+            ['2', '"Technical Admin" label applied in UI', <ResultBadge result="PASS" />, 'Layout.js roleName map, AdminUsers ROLES array both updated; backend key super_admin preserved'],
+            ['3', 'Amanda auto-maps to Compliance Admin', <ResultBadge result="PASS" />, 'Layout.js: Amanda auto-assigned compliance_admin (not super_admin) on first login'],
+            ['4', 'Destructive action protection active', <ResultBadge result="PASS" />, 'ConfirmDialog component with typed confirmation deployed on Clients and Engagements. Archive-first model.'],
+            ['5', 'Engagement lock works', <ResultBadge result="PASS" />, 'ReportTab.finalizeReport() locks engagement via is_locked flag. EngagementLockBanner shows state + admin unlock.'],
+            ['6', 'Integrity seal appears after finalization', <ResultBadge result="PASS" />, 'generateSeal() hashes risk+control+report data. Seal stored on Report and Engagement. Displayed in ReportTab and IntegrityPanel.'],
+            ['7', 'Report PDF watermark applied', <ResultBadge result="PASS" />, 'ReportTab.exportPDF() adds footer watermark with workspace name, date, version, and seal on all pages.'],
+            ['8', 'Bitcoin risk intelligence layer added', <ResultBadge result="PASS" />, '12 Bitcoin/crypto intake variables added. 12 Bitcoin-specific suggestion rules added to riskScoringEngine.'],
+            ['9', 'Risk proposal workflow exists', <ResultBadge result="PASS" />, 'RiskChangeProposal entity created. AdminRiskProposals page with approve/reject/revise workflow. Full audit logging.'],
+          ]}
+        />
+        <div className="mt-4 p-4 bg-emerald-50 border border-emerald-200 rounded-xl text-xs text-emerald-800">
+          <strong>All V3 verification checks passed.</strong> No open issues from this upgrade pass. 2 V1 open issues (client CRUD audit, task lifecycle audit) remain as pre-existing follow-up items.
+        </div>
+      </div>
+
       {/* Verification History */}
       <div className="mt-10">
         <h2 className="text-base font-bold text-slate-900 mb-4">Verification History</h2>
