@@ -12,6 +12,16 @@ Deno.serve(async (req) => {
     const today = new Date().toISOString().split('T')[0];
     const recordName = `Nightwatch_VerificationRecord_v0.6.0_NW-UPGRADE-013_${today}`;
 
+    // Check if record already exists for this upgrade to prevent duplication
+    const existingRecords = await base44.asServiceRole.entities.PublishedOutput.filter({
+      upgrade_id: 'NW-UPGRADE-013',
+      classification: 'verification_record'
+    });
+
+    // If record exists for today, update it; otherwise create new
+    let record;
+    const existingToday = existingRecords.find(r => r.outputName === recordName);
+
     const summary = 'NW-UPGRADE-013: Artifact Classification and Page Cleanup';
     
     const content = {
