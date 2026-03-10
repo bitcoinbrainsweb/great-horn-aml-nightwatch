@@ -4,7 +4,7 @@ import { createPageUrl } from '@/utils';
 import { base44 } from '@/api/base44Client';
 import {
   BookOpen, ShieldCheck, FileText, Users, History,
-  Globe, Factory, Lightbulb, FlaskConical
+  Globe, Factory, Lightbulb, FlaskConical, Mail
 } from 'lucide-react';
 import PageHeader from '../components/ui/PageHeader';
 
