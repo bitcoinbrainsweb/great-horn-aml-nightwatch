@@ -112,6 +112,7 @@ import NW010DeliveryGateSummary from './pages/NW010DeliveryGateSummary';
 import AdminGovernance from './pages/AdminGovernance';
 import GovernanceDeliveryGateSummary from './pages/GovernanceDeliveryGateSummary';
 import AdminGovernanceDocumentation from './pages/AdminGovernanceDocumentation';
+import HistoricalNormalizationSummary from './pages/HistoricalNormalizationSummary';
 import __Layout from './Layout.jsx';
 
 
@@ -181,6 +182,7 @@ export const PAGES = {
     "AdminGovernance": AdminGovernance,
     "GovernanceDeliveryGateSummary": GovernanceDeliveryGateSummary,
     "AdminGovernanceDocumentation": AdminGovernanceDocumentation,
+    "HistoricalNormalizationSummary": HistoricalNormalizationSummary,
 }
 
 export const pagesConfig = {

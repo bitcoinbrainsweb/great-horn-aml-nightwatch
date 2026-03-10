@@ -40,7 +40,6 @@ Deno.serve(async (req) => {
           await base44.entities.ProductVersion.create(pv);
           results.tasks.push({ type: 'ProductVersion', action: 'created', id: pv.versionId });
         } else {
-          // Update status if needed
           await base44.entities.ProductVersion.update(existing[0].id, { status: pv.status });
           results.tasks.push({ type: 'ProductVersion', action: 'updated', id: existing[0].id });
         }
@@ -73,22 +72,7 @@ Deno.serve(async (req) => {
       }
     }
 
-    // 3. Normalize UpgradeRegistry
-    const allUpgrades = await base44.entities.UpgradeRegistry.list();
-    for (const upgrade of allUpgrades) {
-      try {
-        // Find correct product version from mapping
-        const mapping = mappings.find(m => m.upgradeId === upgrade.upgradeId);
-        if (mapping && upgrade.version !== mapping.productVersion) {
-          await base44.entities.UpgradeRegistry.update(upgrade.id, { version: mapping.productVersion });
-          results.tasks.push({ type: 'UpgradeRegistry', action: 'normalized', upgradeId: upgrade.upgradeId, newVersion: mapping.productVersion });
-        }
-      } catch (e) {
-        results.tasks.push({ type: 'UpgradeRegistry', action: 'error', upgradeId: upgrade.upgradeId, error: e.message });
-      }
-    }
-
-    // 4. Backfill PromptHistoryRecords for major prompts
+    // 3. Backfill PromptHistoryRecords
     const promptHistoryRecords = [
       {
         promptHistoryId: 'phr-001',
@@ -139,30 +123,6 @@ Deno.serve(async (req) => {
         }
       } catch (e) {
         results.tasks.push({ type: 'PromptHistoryRecord', action: 'error', upgradeId: phr.upgradeId, error: e.message });
-      }
-    }
-
-    // 5. Normalize DeliveryGateRun records
-    const deliveryGateRuns = await base44.entities.DeliveryGateRun.list();
-    for (const run of deliveryGateRuns) {
-      try {
-        const mapping = mappings.find(m => m.upgradeId === run.upgradeId);
-        if (mapping) {
-          const canonicalTitle = `Nightwatch_DeliveryGate_${mapping.productVersion}_${run.upgradeId}_${new Date(run.startedAt).toISOString().split('T')[0]}`;
-          const updates = {};
-          if (!run.productVersion || run.productVersion !== mapping.productVersion) {
-            updates.productVersion = mapping.productVersion;
-          }
-          if (!run.canonicalReportTitle) {
-            updates.canonicalReportTitle = canonicalTitle;
-          }
-          if (Object.keys(updates).length > 0) {
-            await base44.entities.DeliveryGateRun.update(run.id, updates);
-            results.tasks.push({ type: 'DeliveryGateRun', action: 'normalized', upgradeId: run.upgradeId, productVersion: mapping.productVersion });
-          }
-        }
-      } catch (e) {
-        results.tasks.push({ type: 'DeliveryGateRun', action: 'error', id: run.id, error: e.message });
       }
     }
 

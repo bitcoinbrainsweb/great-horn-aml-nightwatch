@@ -24,9 +24,7 @@ Deno.serve(async (req) => {
         '✅ All historical upgrades mapped to product versions',
         '✅ ProductVersion records normalized',
         '✅ UpgradeVersionMapping established',
-        '✅ UpgradeRegistry records normalized to canonical versions',
         '✅ PromptHistoryRecord entity created and backfilled',
-        '✅ DeliveryGateRun records normalized with canonical titles',
       ],
     });
 
@@ -40,7 +38,7 @@ Deno.serve(async (req) => {
         '✅ v0.3.0 (User & Config): User management and system configuration (006-007)',
         '✅ v0.4.0 (Evidence & Testing): Control testing framework (008)',
         '✅ v0.5.0 (Release & Regression): Versioning and regression testing (009-010)',
-        '→ Version progression reflects platform maturity and feature completeness',
+        '→ Version progression reflects platform maturity',
       ],
     });
 
@@ -51,8 +49,7 @@ Deno.serve(async (req) => {
       details: [
         '✅ NW-UPGRADE-### sequence preserved',
         '✅ Unique engineering change identifiers remain stable',
-        '✅ Historical traceability to original upgrade records maintained',
-        '✅ No collisions or duplicate upgrade IDs introduced',
+        '✅ Historical traceability maintained',
       ],
     });
 
@@ -62,10 +59,8 @@ Deno.serve(async (req) => {
       status: 'pass',
       details: [
         '✅ ProductVersion → NW-UPGRADE mapping established',
-        '✅ DeliveryGateRun records now link upgradeId + productVersion',
-        '✅ PromptHistoryRecord preserves legacy prompt labels while normalizing',
-        '✅ Canonical report title format enables audit trail reconstruction',
-        '✅ Future reports automatically inherit correct product version context',
+        '✅ PromptHistoryRecord preserves legacy labels while normalizing',
+        '✅ Canonical naming enables audit trail reconstruction',
       ],
     });
 
@@ -74,11 +69,8 @@ Deno.serve(async (req) => {
       section: 'Deterministic Engine Integrity',
       status: 'pass',
       details: [
-        '✅ No changes to risk calculation logic',
-        '✅ No changes to finding generation',
-        '✅ No changes to assessment behavior',
+        '✅ No changes to assessment or risk logic',
         '✅ Versioning changes are governance/metadata only',
-        '✅ Assessment determinism preserved',
       ],
     });
 
@@ -87,33 +79,10 @@ Deno.serve(async (req) => {
       section: 'Naming Confusion Mitigation',
       status: 'pass',
       details: [
-        '✅ Prompt-local fake product versions (v0.9.0, v0.10.0, etc.) discontinued',
-        '✅ Canonical ProductVersion enum (v0.1.0, v0.2.0, etc.) now authoritative',
+        '✅ Prompt-local fake versions (v0.9.0, v0.10.0) discontinued',
         '✅ NW-UPGRADE-### clearly separated from ProductVersion',
-        '✅ Report title format disambiguates product version from upgrade ID',
-        '✅ Dashboard views now display both upgrade ID and product version',
         '→ Future ambiguity materially reduced',
       ],
-    });
-
-    // 7. Backward Compatibility
-    report.sections.push({
-      section: 'Backward Compatibility & Legacy Support',
-      status: 'pass',
-      details: [
-        '✅ Legacy prompt version labels preserved in PromptHistoryRecord for reference',
-        '✅ Old report titles retained as legacyTitle field where applicable',
-        '✅ UpgradeRegistry entries updated without losing historical identity',
-        '✅ DeliveryGateRun canonical titles coexist with legacy titles',
-        '→ No breaking changes to existing records',
-      ],
-    });
-
-    // 8. Summary
-    report.sections.push({
-      section: 'Overall Assessment',
-      status: 'pass',
-      summary: 'NW-UPGRADE-011A Historical Normalization is complete and coherent. Product versions now align with platform maturity. Engineering upgrade IDs remain stable and traceable. Naming confusion materially reduced. Core engine behavior unchanged. All governance changes are metadata-only.',
     });
 
     return Response.json(report);

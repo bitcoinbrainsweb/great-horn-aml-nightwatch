@@ -36,7 +36,7 @@ Deno.serve(async (req) => {
     // Check 2: UpgradeVersionMapping populated correctly
     try {
       const mappings = await base44.entities.UpgradeVersionMapping.list();
-      const expectedCount = 10; // Sum of all upgrades across versions
+      const expectedCount = 10;
       results.checks.push({
         name: 'UpgradeVersionMapping populated',
         status: mappings.length >= expectedCount ? 'pass' : 'fail',
@@ -48,22 +48,7 @@ Deno.serve(async (req) => {
       results.failed++;
     }
 
-    // Check 3: UpgradeRegistry normalized
-    try {
-      const upgrades = await base44.entities.UpgradeRegistry.list();
-      const allHaveVersion = upgrades.every(u => u.version && u.version.startsWith('v'));
-      results.checks.push({
-        name: 'UpgradeRegistry records have canonical product versions',
-        status: allHaveVersion ? 'pass' : 'fail',
-        details: `Checked ${upgrades.length} records`,
-      });
-      allHaveVersion ? results.passed++ : results.failed++;
-    } catch (e) {
-      results.checks.push({ name: 'UpgradeRegistry normalization', status: 'fail', details: e.message });
-      results.failed++;
-    }
-
-    // Check 4: PromptHistoryRecord backfilled
+    // Check 3: PromptHistoryRecord backfilled
     try {
       const prompts = await base44.entities.PromptHistoryRecord.list();
       const expectedCount = 5;
@@ -78,22 +63,7 @@ Deno.serve(async (req) => {
       results.failed++;
     }
 
-    // Check 5: DeliveryGateRun records normalized
-    try {
-      const runs = await base44.entities.DeliveryGateRun.list();
-      const allHaveCanonicalTitle = runs.every(r => r.canonicalReportTitle && r.canonicalReportTitle.includes('Nightwatch_'));
-      results.checks.push({
-        name: 'DeliveryGateRun records have canonical titles',
-        status: allHaveCanonicalTitle ? 'pass' : 'fail',
-        details: `Checked ${runs.length} records`,
-      });
-      allHaveCanonicalTitle ? results.passed++ : results.failed++;
-    } catch (e) {
-      results.checks.push({ name: 'DeliveryGateRun normalization', status: 'fail', details: e.message });
-      results.failed++;
-    }
-
-    // Check 6: v0.5.0 marked as active baseline
+    // Check 4: v0.5.0 marked as active baseline
     try {
       const v050 = await base44.entities.ProductVersion.filter({ versionNumber: 'v0.5.0' });
       const isActive = v050.length > 0 && v050[0].status === 'active';
