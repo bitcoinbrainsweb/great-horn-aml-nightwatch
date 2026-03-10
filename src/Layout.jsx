@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { base44 } from '@/api/base44Client';
+import FeedbackButton from '@/components/feedback/FeedbackButton';
 import {
   LayoutDashboard, Building2, FileStack, ListTodo, FileBarChart, Settings,
   ChevronLeft, ChevronRight, LogOut, Shield, Menu, Bell, HelpCircle
@@ -149,6 +150,7 @@ export default function Layout({ children, currentPageName }) {
 
   return (
     <div className="min-h-screen bg-slate-50 flex">
+      <FeedbackButton currentPage={currentPageName} currentRoute={window.location.pathname} />
       {/* Mobile overlay */}
       {mobileOpen && (
         <div className="fixed inset-0 bg-black/40 z-40 lg:hidden" onClick={() => setMobileOpen(false)} />
