@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { base44 } from '@/api/base44Client';
@@ -36,7 +36,7 @@ export default function Layout({ children, currentPageName }) {
     const domain = me.email?.split('@')[1];
     const allowed = ['greathornaml.com', 'libertylabs.ca', 'bitcoinbrains.com'];
     if (!allowed.includes(domain)) {
-      base44.auth.logout();
+      setAccessDenied(true);
       return;
     }
     // Auto-assign role on first login
@@ -51,11 +51,36 @@ export default function Layout({ children, currentPageName }) {
     setUser(me);
   }
 
+  const [accessDenied, setAccessDenied] = useState(false);
+
+  if (accessDenied) {
+    return (
+      <div className="min-h-screen bg-black flex items-center justify-center p-6">
+        <div className="max-w-sm w-full text-center space-y-6">
+          <div className="w-16 h-16 rounded-2xl bg-black border border-white/10 flex items-center justify-center mx-auto">
+            <img src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/69afb09f3cf8f7f93f857eb1/aff189096_GreatHornAMLLogo.png" alt="Great Horn AML" className="w-10 h-10 object-contain" />
+          </div>
+          <div>
+            <p className="text-xs font-semibold text-amber-400/80 uppercase tracking-widest mb-2">Great Horn AML</p>
+            <h1 className="text-xl font-bold text-white">Nightwatch</h1>
+            <p className="text-slate-400 text-sm mt-2">This Nightwatch workspace is restricted to approved company domains.</p>
+          </div>
+          <button onClick={() => base44.auth.logout()} className="px-6 py-2.5 bg-white/10 hover:bg-white/20 text-white text-sm font-medium rounded-lg transition-colors w-full">
+            Sign Out
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   if (!user) {
     return (
-      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+      <div className="min-h-screen bg-black flex items-center justify-center">
         <div className="flex flex-col items-center gap-4">
-          <div className="w-10 h-10 border-2 border-slate-300 border-t-slate-800 rounded-full animate-spin" />
+          <div className="w-12 h-12 rounded-2xl bg-black border border-white/10 flex items-center justify-center mb-2">
+            <img src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/69afb09f3cf8f7f93f857eb1/aff189096_GreatHornAMLLogo.png" alt="Great Horn AML" className="w-8 h-8 object-contain" />
+          </div>
+          <div className="w-6 h-6 border-2 border-slate-600 border-t-amber-400 rounded-full animate-spin" />
           <p className="text-sm text-slate-500">Authenticating...</p>
         </div>
       </div>
