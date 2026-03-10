@@ -92,6 +92,7 @@ import DeterministicEngineUpgradeSummary from './pages/DeterministicEngineUpgrad
 import InfrastructureLayerOverview from './pages/InfrastructureLayerOverview';
 import NightwatchV14FinalSummary from './pages/NightwatchV14FinalSummary';
 import NightwatchAuditReport from './pages/NightwatchAuditReport';
+import NightwatchV15Summary from './pages/NightwatchV15Summary';
 import __Layout from './Layout.jsx';
 
 
@@ -141,6 +142,7 @@ export const PAGES = {
     "InfrastructureLayerOverview": InfrastructureLayerOverview,
     "NightwatchV14FinalSummary": NightwatchV14FinalSummary,
     "NightwatchAuditReport": NightwatchAuditReport,
+    "NightwatchV15Summary": NightwatchV15Summary,
 }
 
 export const pagesConfig = {
