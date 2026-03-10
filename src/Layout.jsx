@@ -39,6 +39,15 @@ export default function Layout({ children, currentPageName }) {
       base44.auth.logout();
       return;
     }
+    // Auto-assign role on first login
+    if (!me.role || me.role === 'user') {
+      let newRole = 'reviewer';
+      if (me.email === 'amanda@greathornaml.com') newRole = 'super_admin';
+      await base44.auth.updateMe({ role: newRole });
+      const updated = await base44.auth.me();
+      setUser(updated);
+      return;
+    }
     setUser(me);
   }
 
@@ -79,13 +88,13 @@ export default function Layout({ children, currentPageName }) {
       `}>
         {/* Logo */}
         <div className={`flex items-center gap-3 px-4 h-16 border-b border-white/10 ${collapsed ? 'justify-center' : ''}`}>
-          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center flex-shrink-0">
-            <Shield className="w-4.5 h-4.5 text-white" />
+          <div className="w-9 h-9 rounded-lg bg-black flex items-center justify-center flex-shrink-0 overflow-hidden border border-white/10">
+            <img src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/69afb09f3cf8f7f93f857eb1/aff189096_GreatHornAMLLogo.png" alt="Great Horn AML" className="w-6 h-6 object-contain" />
           </div>
           {!collapsed && (
             <div className="min-w-0">
               <p className="text-sm font-bold text-white truncate leading-tight">Nightwatch</p>
-              <p className="text-[10px] text-amber-400/80 truncate leading-tight">Risk Intelligence Engine</p>
+              <p className="text-[10px] text-amber-400/80 truncate leading-tight">Great Horn AML</p>
             </div>
           )}
         </div>
