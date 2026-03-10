@@ -268,11 +268,17 @@ ${content}
     <div className="space-y-4">
       {/* Status bar */}
       {report && (
-        <div className="flex items-center gap-3 p-3 bg-white rounded-lg border border-slate-200/60">
+        <div className="flex items-center flex-wrap gap-3 p-3 bg-white rounded-lg border border-slate-200/60">
           <span className="text-xs text-slate-500 font-medium">Report Status:</span>
           <StatusBadge status={report.status} />
           <span className="text-xs text-slate-400">v{report.version}</span>
-          {isFinalized && <span className="text-xs text-emerald-600 font-medium ml-2">✓ Ready for Export</span>}
+          {isFinalized && <span className="text-xs text-emerald-600 font-medium">✓ Ready for Export</span>}
+          {report.integrity_seal && (
+            <div className="flex items-center gap-1.5 ml-auto px-2 py-1 bg-emerald-50 border border-emerald-200 rounded-lg">
+              <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
+              <span className="text-xs font-mono font-semibold text-emerald-800 tracking-widest">{report.integrity_seal}</span>
+            </div>
+          )}
         </div>
       )}
 
