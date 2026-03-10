@@ -79,6 +79,8 @@ import VerificationReportH7314 from './pages/VerificationReportH7314';
 import VerificationReportM4827 from './pages/VerificationReportM4827';
 import VerificationReportU4827 from './pages/VerificationReportU4827';
 import SystemAuditReportH7314 from './pages/SystemAuditReportH7314';
+import VerificationReportNW11 from './pages/VerificationReportNW11';
+import SystemAuditReportNW11 from './pages/SystemAuditReportNW11';
 import __Layout from './Layout.jsx';
 
 
@@ -115,6 +117,8 @@ export const PAGES = {
     "VerificationReportM4827": VerificationReportM4827,
     "VerificationReportU4827": VerificationReportU4827,
     "SystemAuditReportH7314": SystemAuditReportH7314,
+    "VerificationReportNW11": VerificationReportNW11,
+    "SystemAuditReportNW11": SystemAuditReportNW11,
 }
 
 export const pagesConfig = {
