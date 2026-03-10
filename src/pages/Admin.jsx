@@ -26,7 +26,6 @@ const ADMIN_SECTIONS = [
 
 const SUPERADMIN_SECTIONS = [
   { name: 'Test Scenario Generator', description: 'Generate fictional test data for internal QA', icon: FlaskConical, page: 'AdminTestScenarios', color: 'bg-rose-50 text-rose-600' },
-  { name: 'NW-010B Output Classification', description: 'Verify and correct output classifications and routing', icon: FileText, page: 'OutputClassificationSummary', color: 'bg-amber-50 text-amber-600' },
 ];
 
 export default function Admin() {

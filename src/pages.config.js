@@ -50,6 +50,8 @@
 import Admin from './pages/Admin';
 import AdminAuditLog from './pages/AdminAuditLog';
 import AdminControlLibrary from './pages/AdminControlLibrary';
+import AdminGovernance from './pages/AdminGovernance';
+import AdminGovernanceDocumentation from './pages/AdminGovernanceDocumentation';
 import AdminIndustries from './pages/AdminIndustries';
 import AdminInvitations from './pages/AdminInvitations';
 import AdminJurisdictions from './pages/AdminJurisdictions';
@@ -71,11 +73,18 @@ import Engagements from './pages/Engagements';
 import Feedback from './pages/Feedback';
 import FeedbackImplementationSummary from './pages/FeedbackImplementationSummary';
 import FeedbackTestingReport from './pages/FeedbackTestingReport';
+import GovernanceDeliveryGateSummary from './pages/GovernanceDeliveryGateSummary';
 import Help from './pages/Help';
+import HistoricalNormalizationSummary from './pages/HistoricalNormalizationSummary';
 import ImplementationSummary from './pages/ImplementationSummary';
 import InfrastructureLayerOverview from './pages/InfrastructureLayerOverview';
 import LibraryReviewDashboard from './pages/LibraryReviewDashboard';
+import NW010DeliveryGateSummary from './pages/NW010DeliveryGateSummary';
 import NightwatchAuditReport from './pages/NightwatchAuditReport';
+import NightwatchV09DeliveryGateSummary from './pages/NightwatchV09DeliveryGateSummary';
+import NightwatchV09InternalAudit from './pages/NightwatchV09InternalAudit';
+import NightwatchV09Summary from './pages/NightwatchV09Summary';
+import NightwatchV09VerificationReport from './pages/NightwatchV09VerificationReport';
 import NightwatchV14FinalSummary from './pages/NightwatchV14FinalSummary';
 import NightwatchV15InternalAudit from './pages/NightwatchV15InternalAudit';
 import NightwatchV15Summary from './pages/NightwatchV15Summary';
@@ -89,7 +98,11 @@ import NightwatchV18InternalAudit from './pages/NightwatchV18InternalAudit';
 import NightwatchV18Summary from './pages/NightwatchV18Summary';
 import NightwatchV18VerificationReport from './pages/NightwatchV18VerificationReport';
 import NightwatchVerificationReport from './pages/NightwatchVerificationReport';
+import OutputClassificationDebug from './pages/OutputClassificationDebug';
+import OutputClassificationSummary from './pages/OutputClassificationSummary';
 import PromptTemplateSystemSummary from './pages/PromptTemplateSystemSummary';
+import RegressionTestDashboard from './pages/RegressionTestDashboard';
+import ReportPublicationDebug from './pages/ReportPublicationDebug';
 import Reports from './pages/Reports';
 import ReviewerDashboard from './pages/ReviewerDashboard';
 import SystemAuditReportH7314 from './pages/SystemAuditReportH7314';
@@ -103,19 +116,7 @@ import VerificationReportH7314 from './pages/VerificationReportH7314';
 import VerificationReportM4827 from './pages/VerificationReportM4827';
 import VerificationReportNW11 from './pages/VerificationReportNW11';
 import VerificationReportU4827 from './pages/VerificationReportU4827';
-import NightwatchV09VerificationReport from './pages/NightwatchV09VerificationReport';
-import NightwatchV09InternalAudit from './pages/NightwatchV09InternalAudit';
-import NightwatchV09DeliveryGateSummary from './pages/NightwatchV09DeliveryGateSummary';
-import NightwatchV09Summary from './pages/NightwatchV09Summary';
-import RegressionTestDashboard from './pages/RegressionTestDashboard';
-import NW010DeliveryGateSummary from './pages/NW010DeliveryGateSummary';
-import AdminGovernance from './pages/AdminGovernance';
-import GovernanceDeliveryGateSummary from './pages/GovernanceDeliveryGateSummary';
-import AdminGovernanceDocumentation from './pages/AdminGovernanceDocumentation';
-import HistoricalNormalizationSummary from './pages/HistoricalNormalizationSummary';
-import ReportPublicationDebug from './pages/ReportPublicationDebug';
-import OutputClassificationDebug from './pages/OutputClassificationDebug';
-import OutputClassificationSummary from './pages/OutputClassificationSummary';
+import NW010BRoutingDiagnostic from './pages/NW010BRoutingDiagnostic';
 import __Layout from './Layout.jsx';
 
 
@@ -123,6 +124,8 @@ export const PAGES = {
     "Admin": Admin,
     "AdminAuditLog": AdminAuditLog,
     "AdminControlLibrary": AdminControlLibrary,
+    "AdminGovernance": AdminGovernance,
+    "AdminGovernanceDocumentation": AdminGovernanceDocumentation,
     "AdminIndustries": AdminIndustries,
     "AdminInvitations": AdminInvitations,
     "AdminJurisdictions": AdminJurisdictions,
@@ -144,11 +147,18 @@ export const PAGES = {
     "Feedback": Feedback,
     "FeedbackImplementationSummary": FeedbackImplementationSummary,
     "FeedbackTestingReport": FeedbackTestingReport,
+    "GovernanceDeliveryGateSummary": GovernanceDeliveryGateSummary,
     "Help": Help,
+    "HistoricalNormalizationSummary": HistoricalNormalizationSummary,
     "ImplementationSummary": ImplementationSummary,
     "InfrastructureLayerOverview": InfrastructureLayerOverview,
     "LibraryReviewDashboard": LibraryReviewDashboard,
+    "NW010DeliveryGateSummary": NW010DeliveryGateSummary,
     "NightwatchAuditReport": NightwatchAuditReport,
+    "NightwatchV09DeliveryGateSummary": NightwatchV09DeliveryGateSummary,
+    "NightwatchV09InternalAudit": NightwatchV09InternalAudit,
+    "NightwatchV09Summary": NightwatchV09Summary,
+    "NightwatchV09VerificationReport": NightwatchV09VerificationReport,
     "NightwatchV14FinalSummary": NightwatchV14FinalSummary,
     "NightwatchV15InternalAudit": NightwatchV15InternalAudit,
     "NightwatchV15Summary": NightwatchV15Summary,
@@ -162,7 +172,11 @@ export const PAGES = {
     "NightwatchV18Summary": NightwatchV18Summary,
     "NightwatchV18VerificationReport": NightwatchV18VerificationReport,
     "NightwatchVerificationReport": NightwatchVerificationReport,
+    "OutputClassificationDebug": OutputClassificationDebug,
+    "OutputClassificationSummary": OutputClassificationSummary,
     "PromptTemplateSystemSummary": PromptTemplateSystemSummary,
+    "RegressionTestDashboard": RegressionTestDashboard,
+    "ReportPublicationDebug": ReportPublicationDebug,
     "Reports": Reports,
     "ReviewerDashboard": ReviewerDashboard,
     "SystemAuditReportH7314": SystemAuditReportH7314,
@@ -176,19 +190,7 @@ export const PAGES = {
     "VerificationReportM4827": VerificationReportM4827,
     "VerificationReportNW11": VerificationReportNW11,
     "VerificationReportU4827": VerificationReportU4827,
-    "NightwatchV09VerificationReport": NightwatchV09VerificationReport,
-    "NightwatchV09InternalAudit": NightwatchV09InternalAudit,
-    "NightwatchV09DeliveryGateSummary": NightwatchV09DeliveryGateSummary,
-    "NightwatchV09Summary": NightwatchV09Summary,
-    "RegressionTestDashboard": RegressionTestDashboard,
-    "NW010DeliveryGateSummary": NW010DeliveryGateSummary,
-    "AdminGovernance": AdminGovernance,
-    "GovernanceDeliveryGateSummary": GovernanceDeliveryGateSummary,
-    "AdminGovernanceDocumentation": AdminGovernanceDocumentation,
-    "HistoricalNormalizationSummary": HistoricalNormalizationSummary,
-    "ReportPublicationDebug": ReportPublicationDebug,
-    "OutputClassificationDebug": OutputClassificationDebug,
-    "OutputClassificationSummary": OutputClassificationSummary,
+    "NW010BRoutingDiagnostic": NW010BRoutingDiagnostic,
 }
 
 export const pagesConfig = {
