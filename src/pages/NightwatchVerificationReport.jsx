@@ -6,6 +6,7 @@ import VerificationReportA1847 from './VerificationReportA1847';
 import VerificationReportM4827 from './VerificationReportM4827';
 import VerificationReportA7364 from './VerificationReportA7364';
 import VerificationReportB6142 from './VerificationReportB6142';
+import VerificationReportU4827 from './VerificationReportU4827';
 
 // ── shared helpers ────────────────────────────────────────────────────────────
 
@@ -369,7 +370,24 @@ export default function NightwatchVerificationReport() {
 
       <div className="space-y-4">
 
-        {/* B6142 — most recent */}
+        {/* U4827 — most recent */}
+        <ReportCard
+          id="U4827"
+          name="Library Review Dashboard — Risk and Control Proposal Management"
+          date="2026-03-10"
+          scope="13-section implementation: dedicated admin workflow for reviewing proposed risks and controls, merge workflow, edit-before-approval, analyst visibility, source badges, full audit logging, summary stats dashboard."
+          statusLabel="✅ All Passed — Safe to Proceed"
+          statusColor="green"
+          badges={[
+            { label: 'Checks', value: 17, variant: 'neutral' },
+            { label: 'PASS', value: 17, variant: 'pass' },
+            { label: 'New Entities', value: 1, variant: 'neutral' },
+          ]}
+        >
+          <VerificationReportU4827 />
+        </ReportCard>
+
+        {/* B6142 */}
         <ReportCard
           id="B6142"
           name="Operational Intelligence Upgrade v1 — Reviewer Workflow, Compliance Calendar & Platform Ops"
