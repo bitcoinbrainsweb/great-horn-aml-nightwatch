@@ -109,6 +109,7 @@ import PublishNW013 from './pages/PublishNW013';
 import NW013DeliveryGateFinal from './pages/NW013DeliveryGateFinal';
 import NW014DeliveryGateSummary from './pages/NW014DeliveryGateSummary';
 import NW014ArchitectureVerification from './pages/NW014ArchitectureVerification';
+import NW014ImplementationReport from './pages/NW014ImplementationReport';
 import __Layout from './Layout.jsx';
 
 
@@ -175,6 +176,7 @@ export const PAGES = {
     "NW013DeliveryGateFinal": NW013DeliveryGateFinal,
     "NW014DeliveryGateSummary": NW014DeliveryGateSummary,
     "NW014ArchitectureVerification": NW014ArchitectureVerification,
+    "NW014ImplementationReport": NW014ImplementationReport,
 }
 
 export const pagesConfig = {
