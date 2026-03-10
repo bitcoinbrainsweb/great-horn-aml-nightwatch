@@ -170,24 +170,29 @@ export default function Clients() {
         </div>
       )}
 
-      {/* Confirm Delete Dialog */}
-      <Dialog open={!!confirmDelete} onOpenChange={() => { setConfirmDelete(null); setDeleteError(''); }}>
-        <DialogContent className="max-w-sm">
-          <DialogHeader>
-            <DialogTitle>Delete Client</DialogTitle>
-            <DialogDescription>Are you sure you want to delete <strong>{confirmDelete?.legal_name}</strong>? This action cannot be undone.</DialogDescription>
-          </DialogHeader>
-          {deleteError && (
-            <div className="text-sm text-amber-800 bg-amber-50 border border-amber-200 rounded-lg p-3 mt-2">
-              {deleteError}
-            </div>
-          )}
-          <div className="flex justify-end gap-2 pt-2">
-            <Button variant="outline" onClick={() => { setConfirmDelete(null); setDeleteError(''); }}>Cancel</Button>
-            {!deleteError && <Button onClick={() => handleDelete(confirmDelete)} className="bg-red-600 hover:bg-red-700 text-white">Delete</Button>}
-          </div>
-        </DialogContent>
-      </Dialog>
+      <ConfirmDialog
+        open={!!confirmArchive}
+        onClose={() => setConfirmArchive(null)}
+        onConfirm={() => handleArchive(confirmArchive)}
+        title="Archive Client"
+        description={<>Archive <strong>{confirmArchive?.legal_name}</strong>? The client will be set to Inactive but all data is preserved.</>}
+        confirmWord={confirmArchive?.legal_name || 'ARCHIVE'}
+        actionLabel="Archive Client"
+      />
+
+      <ConfirmDialog
+        open={!!confirmDelete}
+        onClose={() => { setConfirmDelete(null); setDeleteError(''); }}
+        onConfirm={() => handleDelete(confirmDelete)}
+        title="Permanently Delete Client"
+        description={
+          deleteError
+            ? <span className="text-amber-700">{deleteError}</span>
+            : <><strong>{confirmDelete?.legal_name}</strong> and all associated data will be permanently removed. This cannot be undone.</>
+        }
+        confirmWord={confirmDelete?.legal_name || 'DELETE'}
+        actionLabel="Delete Permanently"
+      />
 
       {/* Create Dialog */}
       <Dialog open={showCreate} onOpenChange={setShowCreate}>
