@@ -1,9 +1,10 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
+import { base44 } from '@/api/base44Client';
 import {
   BookOpen, ShieldCheck, FileText, Users, History,
-  Globe, Factory, Lightbulb, LayoutTemplate, Workflow
+  Globe, Factory, Lightbulb, FlaskConical
 } from 'lucide-react';
 import PageHeader from '../components/ui/PageHeader';
 
@@ -19,7 +20,19 @@ const ADMIN_SECTIONS = [
   { name: 'Audit Log', description: 'Track system changes', icon: History, page: 'AdminAuditLog', color: 'bg-orange-50 text-orange-600' },
 ];
 
+const SUPERADMIN_SECTIONS = [
+  { name: 'Test Scenario Generator', description: 'Generate fictional test data for internal QA', icon: FlaskConical, page: 'AdminTestScenarios', color: 'bg-rose-50 text-rose-600' },
+];
+
 export default function Admin() {
+  const [user, setUser] = useState(null);
+
+  useEffect(() => {
+    base44.auth.me().then(setUser);
+  }, []);
+
+  const isSuperAdmin = ['admin', 'super_admin', 'compliance_admin'].includes(user?.role);
+
   return (
     <div>
       <PageHeader title="Administration" subtitle="Manage system configuration and reference data" />
@@ -42,6 +55,33 @@ export default function Admin() {
           </Link>
         ))}
       </div>
+
+      {isSuperAdmin && (
+        <>
+          <div className="mt-8 mb-4">
+            <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Internal Tools</p>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {SUPERADMIN_SECTIONS.map(section => (
+              <Link
+                key={section.page}
+                to={createPageUrl(section.page)}
+                className="bg-white rounded-xl border border-rose-200/60 p-5 hover:shadow-md hover:border-rose-300 transition-all duration-200 group"
+              >
+                <div className="flex items-start gap-4">
+                  <div className={`p-2.5 rounded-lg ${section.color}`}>
+                    <section.icon className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-semibold text-slate-900 group-hover:text-rose-600 transition-colors">{section.name}</h3>
+                    <p className="text-xs text-slate-500 mt-1">{section.description}</p>
+                  </div>
+                </div>
+              </Link>
+            ))}
+          </div>
+        </>
+      )}
     </div>
   );
 }

@@ -64,6 +64,7 @@ import AdminAuditLog from './pages/AdminAuditLog';
 import AdminJurisdictions from './pages/AdminJurisdictions';
 import AdminIndustries from './pages/AdminIndustries';
 import AdminSuggestions from './pages/AdminSuggestions';
+import AdminTestScenarios from './pages/AdminTestScenarios';
 import __Layout from './Layout.jsx';
 
 
@@ -85,6 +86,7 @@ export const PAGES = {
     "AdminJurisdictions": AdminJurisdictions,
     "AdminIndustries": AdminIndustries,
     "AdminSuggestions": AdminSuggestions,
+    "AdminTestScenarios": AdminTestScenarios,
 }
 
 export const pagesConfig = {
