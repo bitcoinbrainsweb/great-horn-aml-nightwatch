@@ -171,7 +171,12 @@ export default function Engagements() {
                   <tr key={e.id} className="hover:bg-slate-50/50 transition-colors">
                     <td className="px-5 py-3">
                       <Link to={createPageUrl(`EngagementDetail?id=${e.id}`)} className="group">
-                        <p className="font-medium text-slate-900 group-hover:text-blue-600 transition-colors">{e.client_name || 'Unnamed'}</p>
+                        <div className="flex items-center gap-2">
+                          <p className="font-medium text-slate-900 group-hover:text-blue-600 transition-colors">{e.client_name || 'Unnamed'}</p>
+                          {e.notes?.includes('[TEST DATA') && (
+                            <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-bold bg-rose-100 text-rose-700 border border-rose-200 uppercase tracking-wider">TEST</span>
+                          )}
+                        </div>
                         <p className="text-xs text-slate-500">{e.assigned_analyst || 'Unassigned'}</p>
                       </Link>
                     </td>
