@@ -115,6 +115,7 @@ import AdminGovernanceDocumentation from './pages/AdminGovernanceDocumentation';
 import HistoricalNormalizationSummary from './pages/HistoricalNormalizationSummary';
 import ReportPublicationDebug from './pages/ReportPublicationDebug';
 import OutputClassificationDebug from './pages/OutputClassificationDebug';
+import OutputClassificationSummary from './pages/OutputClassificationSummary';
 import __Layout from './Layout.jsx';
 
 
@@ -187,6 +188,7 @@ export const PAGES = {
     "HistoricalNormalizationSummary": HistoricalNormalizationSummary,
     "ReportPublicationDebug": ReportPublicationDebug,
     "OutputClassificationDebug": OutputClassificationDebug,
+    "OutputClassificationSummary": OutputClassificationSummary,
 }
 
 export const pagesConfig = {
