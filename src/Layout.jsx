@@ -190,7 +190,7 @@ export default function Layout({ children, currentPageName }) {
               (item.page === 'Clients' && currentPageName === 'ClientDetail') ||
               (item.page === 'Engagements' && currentPageName === 'EngagementDetail') ||
               (item.page === 'Feedback' && ['Feedback'].includes(currentPageName)) ||
-              (item.page === 'Admin' && ['AdminRiskLibrary', 'AdminControlLibrary', 'AdminMethodologies', 'AdminNarratives', 'AdminUsers', 'AdminAuditLog', 'AdminJurisdictions', 'AdminIndustries', 'AdminSuggestions', 'AdminTestScenarios', 'AdminInvitations', 'AdminRiskProposals', 'VerificationReportA1847', 'AdminFeatureFlags', 'AdminReleaseLog', 'LibraryReviewDashboard', 'AdminGovernance', 'GovernanceDeliveryGateSummary', 'AdminGovernanceDocumentation', 'HistoricalNormalizationSummary'].includes(currentPageName));
+              (item.page === 'Admin' && ['AdminRiskLibrary', 'AdminControlLibrary', 'AdminMethodologies', 'AdminNarratives', 'AdminUsers', 'AdminAuditLog', 'AdminJurisdictions', 'AdminIndustries', 'AdminSuggestions', 'AdminTestScenarios', 'AdminInvitations', 'AdminRiskProposals', 'VerificationReportA1847', 'AdminFeatureFlags', 'AdminReleaseLog', 'LibraryReviewDashboard', 'AdminGovernance', 'GovernanceDeliveryGateSummary', 'AdminGovernanceDocumentation', 'HistoricalNormalizationSummary', 'ReportPublicationDebug'].includes(currentPageName));
             return (
               <Link
                 key={item.page}

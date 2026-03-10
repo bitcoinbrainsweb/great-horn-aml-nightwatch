@@ -29,6 +29,7 @@ const SUPERADMIN_SECTIONS = [
   { name: 'NW-011 Delivery Gate', description: 'View governance upgrade delivery report', icon: ShieldCheck, page: 'GovernanceDeliveryGateSummary', color: 'bg-indigo-50 text-indigo-600' },
   { name: 'NW-011 Documentation', description: 'Complete governance reference guide', icon: FileText, page: 'AdminGovernanceDocumentation', color: 'bg-cyan-50 text-cyan-600' },
   { name: 'NW-011A Normalization', description: 'Historical versioning and naming normalization', icon: FileText, page: 'HistoricalNormalizationSummary', color: 'bg-purple-50 text-purple-600' },
+  { name: 'NW-010A Report Publication', description: 'Monitor and debug generated report publication', icon: FileText, page: 'ReportPublicationDebug', color: 'bg-orange-50 text-orange-600' },
 ];
 
 export default function Admin() {
