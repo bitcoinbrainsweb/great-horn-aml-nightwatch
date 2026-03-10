@@ -103,6 +103,10 @@ import VerificationReportH7314 from './pages/VerificationReportH7314';
 import VerificationReportM4827 from './pages/VerificationReportM4827';
 import VerificationReportNW11 from './pages/VerificationReportNW11';
 import VerificationReportU4827 from './pages/VerificationReportU4827';
+import NightwatchV09Summary from './pages/NightwatchV09Summary';
+import NightwatchV09VerificationReport from './pages/NightwatchV09VerificationReport';
+import NightwatchV09InternalAudit from './pages/NightwatchV09InternalAudit';
+import NightwatchV09DeliveryGateSummary from './pages/NightwatchV09DeliveryGateSummary';
 import __Layout from './Layout.jsx';
 
 
@@ -163,6 +167,10 @@ export const PAGES = {
     "VerificationReportM4827": VerificationReportM4827,
     "VerificationReportNW11": VerificationReportNW11,
     "VerificationReportU4827": VerificationReportU4827,
+    "NightwatchV09Summary": NightwatchV09Summary,
+    "NightwatchV09VerificationReport": NightwatchV09VerificationReport,
+    "NightwatchV09InternalAudit": NightwatchV09InternalAudit,
+    "NightwatchV09DeliveryGateSummary": NightwatchV09DeliveryGateSummary,
 }
 
 export const pagesConfig = {
