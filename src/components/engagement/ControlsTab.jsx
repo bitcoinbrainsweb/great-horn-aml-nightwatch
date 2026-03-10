@@ -7,7 +7,8 @@ import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { RiskBadge } from '../ui/RiskBadge';
 import { calculateControlEffectiveness, calculateResidualRisk } from '../scoring/riskScoringEngine';
-import { ChevronDown, ChevronRight, Save } from 'lucide-react';
+import { ChevronDown, ChevronRight, Save, Paperclip } from 'lucide-react';
+import InfoTooltip from '../ui/InfoTooltip';
 
 export default function ControlsTab({ engagement }) {
   const [engRisks, setEngRisks] = useState([]);
@@ -197,6 +198,34 @@ export default function ControlsTab({ engagement }) {
                           )}
                           {ctrl.control_rating && ctrl.control_rating !== 'Not Assessed' && (
                             <p className="text-xs"><span className="text-slate-500">Overall:</span> <span className="font-semibold">{ctrl.control_rating}</span></p>
+                          )}
+                          {/* Evidence & Testing */}
+                          {ctrl.control_present && (
+                            <div className="border-t border-slate-200/60 pt-3 space-y-2 mt-1">
+                              <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider flex items-center gap-1.5"><Paperclip className="w-3 h-3" /> Evidence & Testing</p>
+                              <div className="grid grid-cols-2 gap-2">
+                                <div>
+                                  <Label className="text-xs">Evidence Reference</Label>
+                                  <Textarea rows={2} className="text-xs mt-0.5" placeholder="Document title, file reference..." value={ctrl.evidence_reference || ''} onChange={e => updateControl(ctrl.id, { evidence_reference: e.target.value })} />
+                                </div>
+                                <div>
+                                  <Label className="text-xs">Sample Size</Label>
+                                  <input className="flex h-8 w-full rounded-md border border-input bg-transparent px-3 py-1 text-xs shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring mt-0.5" placeholder="e.g. 25 transactions" value={ctrl.sample_size || ''} onChange={e => updateControl(ctrl.id, { sample_size: e.target.value })} />
+                                </div>
+                              </div>
+                              <div>
+                                <Label className="text-xs">Testing Notes</Label>
+                                <Textarea rows={2} className="text-xs mt-0.5" placeholder="Testing approach and methodology..." value={ctrl.testing_notes || ''} onChange={e => updateControl(ctrl.id, { testing_notes: e.target.value })} />
+                              </div>
+                              <div>
+                                <Label className="text-xs">Sample Results</Label>
+                                <Textarea rows={2} className="text-xs mt-0.5" placeholder="Summary of sample testing results..." value={ctrl.sample_results || ''} onChange={e => updateControl(ctrl.id, { sample_results: e.target.value })} />
+                              </div>
+                              <div>
+                                <Label className="text-xs">Reviewer Notes</Label>
+                                <Textarea rows={2} className="text-xs mt-0.5" placeholder="Reviewer comments on this control..." value={ctrl.reviewer_notes || ''} onChange={e => updateControl(ctrl.id, { reviewer_notes: e.target.value })} />
+                              </div>
+                            </div>
                           )}
                         </div>
                       ))}
