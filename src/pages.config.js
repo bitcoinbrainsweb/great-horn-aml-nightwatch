@@ -66,6 +66,7 @@ import Dashboard from './pages/Dashboard';
 import EngagementDetail from './pages/EngagementDetail';
 import Engagements from './pages/Engagements';
 import Help from './pages/Help';
+import LibraryReviewDashboard from './pages/LibraryReviewDashboard';
 import NightwatchVerificationReport from './pages/NightwatchVerificationReport';
 import Reports from './pages/Reports';
 import ReviewerDashboard from './pages/ReviewerDashboard';
@@ -73,10 +74,9 @@ import Tasks from './pages/Tasks';
 import VerificationReportA1847 from './pages/VerificationReportA1847';
 import VerificationReportA7364 from './pages/VerificationReportA7364';
 import VerificationReportB6142 from './pages/VerificationReportB6142';
-import VerificationReportM4827 from './pages/VerificationReportM4827';
-import LibraryReviewDashboard from './pages/LibraryReviewDashboard';
-import VerificationReportU4827 from './pages/VerificationReportU4827';
 import VerificationReportC4186 from './pages/VerificationReportC4186';
+import VerificationReportM4827 from './pages/VerificationReportM4827';
+import VerificationReportU4827 from './pages/VerificationReportU4827';
 import __Layout from './Layout.jsx';
 
 
@@ -100,6 +100,7 @@ export const PAGES = {
     "EngagementDetail": EngagementDetail,
     "Engagements": Engagements,
     "Help": Help,
+    "LibraryReviewDashboard": LibraryReviewDashboard,
     "NightwatchVerificationReport": NightwatchVerificationReport,
     "Reports": Reports,
     "ReviewerDashboard": ReviewerDashboard,
@@ -107,10 +108,9 @@ export const PAGES = {
     "VerificationReportA1847": VerificationReportA1847,
     "VerificationReportA7364": VerificationReportA7364,
     "VerificationReportB6142": VerificationReportB6142,
-    "VerificationReportM4827": VerificationReportM4827,
-    "LibraryReviewDashboard": LibraryReviewDashboard,
-    "VerificationReportU4827": VerificationReportU4827,
     "VerificationReportC4186": VerificationReportC4186,
+    "VerificationReportM4827": VerificationReportM4827,
+    "VerificationReportU4827": VerificationReportU4827,
 }
 
 export const pagesConfig = {
