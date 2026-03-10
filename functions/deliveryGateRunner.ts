@@ -17,6 +17,7 @@ Deno.serve(async (req) => {
     }
 
     const runId = `DGR-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    const upgradeId = payload.upgradeId || 'NW-UPGRADE-UNIDENTIFIED';
 
     // 1. Implementation Summary
     const implementationSummary = {
@@ -96,7 +97,7 @@ Deno.serve(async (req) => {
     };
 
     // Store Delivery Gate Run
-    await base44.asServiceRole.entities.DeliveryGateRun.create({
+    const gateRun = await base44.asServiceRole.entities.DeliveryGateRun.create({
       runId,
       upgradeName,
       version,
@@ -106,6 +107,30 @@ Deno.serve(async (req) => {
       documentationUpdateSummary: JSON.stringify(documentationSummary),
       completedAt: new Date().toISOString()
     });
+
+    // Update or create UpgradeRegistry entry
+    try {
+      const existing = await base44.asServiceRole.entities.UpgradeRegistry.filter({ upgradeId });
+      if (existing && existing.length > 0) {
+        await base44.asServiceRole.entities.UpgradeRegistry.update(existing[0].id, {
+          relatedDeliveryGateRunId: gateRun.id,
+          status: 'deployed',
+          implementedAt: new Date().toISOString()
+        });
+      } else {
+        await base44.asServiceRole.entities.UpgradeRegistry.create({
+          upgradeId,
+          upgradeName,
+          version,
+          description: payload.description || upgradeName,
+          status: 'deployed',
+          relatedDeliveryGateRunId: gateRun.id,
+          implementedAt: new Date().toISOString()
+        });
+      }
+    } catch (e) {
+      console.error('Failed to update UpgradeRegistry:', e.message);
+    }
 
     return Response.json({
       success: true,
