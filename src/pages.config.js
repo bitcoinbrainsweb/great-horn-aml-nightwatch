@@ -63,6 +63,9 @@ import AdminUsers from './pages/AdminUsers';
 import ClientDetail from './pages/ClientDetail';
 import Clients from './pages/Clients';
 import Dashboard from './pages/Dashboard';
+import DeterministicEngineArchitecture from './pages/DeterministicEngineArchitecture';
+import DeterministicEngineUpgradeSummary from './pages/DeterministicEngineUpgradeSummary';
+import DeterministicEngineVerification from './pages/DeterministicEngineVerification';
 import EngagementDetail from './pages/EngagementDetail';
 import Engagements from './pages/Engagements';
 import Feedback from './pages/Feedback';
@@ -70,8 +73,23 @@ import FeedbackImplementationSummary from './pages/FeedbackImplementationSummary
 import FeedbackTestingReport from './pages/FeedbackTestingReport';
 import Help from './pages/Help';
 import ImplementationSummary from './pages/ImplementationSummary';
+import InfrastructureLayerOverview from './pages/InfrastructureLayerOverview';
 import LibraryReviewDashboard from './pages/LibraryReviewDashboard';
+import NightwatchAuditReport from './pages/NightwatchAuditReport';
+import NightwatchV14FinalSummary from './pages/NightwatchV14FinalSummary';
+import NightwatchV15InternalAudit from './pages/NightwatchV15InternalAudit';
+import NightwatchV15Summary from './pages/NightwatchV15Summary';
+import NightwatchV15VerificationReport from './pages/NightwatchV15VerificationReport';
+import NightwatchV17DeliveryGateSummary from './pages/NightwatchV17DeliveryGateSummary';
+import NightwatchV17InternalAudit from './pages/NightwatchV17InternalAudit';
+import NightwatchV17Summary from './pages/NightwatchV17Summary';
+import NightwatchV17VerificationReport from './pages/NightwatchV17VerificationReport';
+import NightwatchV18DeliveryGateSummary from './pages/NightwatchV18DeliveryGateSummary';
+import NightwatchV18InternalAudit from './pages/NightwatchV18InternalAudit';
+import NightwatchV18Summary from './pages/NightwatchV18Summary';
+import NightwatchV18VerificationReport from './pages/NightwatchV18VerificationReport';
 import NightwatchVerificationReport from './pages/NightwatchVerificationReport';
+import PromptTemplateSystemSummary from './pages/PromptTemplateSystemSummary';
 import Reports from './pages/Reports';
 import ReviewerDashboard from './pages/ReviewerDashboard';
 import SystemAuditReportH7314 from './pages/SystemAuditReportH7314';
@@ -85,24 +103,6 @@ import VerificationReportH7314 from './pages/VerificationReportH7314';
 import VerificationReportM4827 from './pages/VerificationReportM4827';
 import VerificationReportNW11 from './pages/VerificationReportNW11';
 import VerificationReportU4827 from './pages/VerificationReportU4827';
-import PromptTemplateSystemSummary from './pages/PromptTemplateSystemSummary';
-import DeterministicEngineVerification from './pages/DeterministicEngineVerification';
-import DeterministicEngineArchitecture from './pages/DeterministicEngineArchitecture';
-import DeterministicEngineUpgradeSummary from './pages/DeterministicEngineUpgradeSummary';
-import InfrastructureLayerOverview from './pages/InfrastructureLayerOverview';
-import NightwatchV14FinalSummary from './pages/NightwatchV14FinalSummary';
-import NightwatchAuditReport from './pages/NightwatchAuditReport';
-import NightwatchV15Summary from './pages/NightwatchV15Summary';
-import NightwatchV15VerificationReport from './pages/NightwatchV15VerificationReport';
-import NightwatchV15InternalAudit from './pages/NightwatchV15InternalAudit';
-import NightwatchV17Summary from './pages/NightwatchV17Summary';
-import NightwatchV17VerificationReport from './pages/NightwatchV17VerificationReport';
-import NightwatchV17InternalAudit from './pages/NightwatchV17InternalAudit';
-import NightwatchV17DeliveryGateSummary from './pages/NightwatchV17DeliveryGateSummary';
-import NightwatchV18Summary from './pages/NightwatchV18Summary';
-import NightwatchV18VerificationReport from './pages/NightwatchV18VerificationReport';
-import NightwatchV18InternalAudit from './pages/NightwatchV18InternalAudit';
-import NightwatchV18DeliveryGateSummary from './pages/NightwatchV18DeliveryGateSummary';
 import __Layout from './Layout.jsx';
 
 
@@ -123,6 +123,9 @@ export const PAGES = {
     "ClientDetail": ClientDetail,
     "Clients": Clients,
     "Dashboard": Dashboard,
+    "DeterministicEngineArchitecture": DeterministicEngineArchitecture,
+    "DeterministicEngineUpgradeSummary": DeterministicEngineUpgradeSummary,
+    "DeterministicEngineVerification": DeterministicEngineVerification,
     "EngagementDetail": EngagementDetail,
     "Engagements": Engagements,
     "Feedback": Feedback,
@@ -130,8 +133,23 @@ export const PAGES = {
     "FeedbackTestingReport": FeedbackTestingReport,
     "Help": Help,
     "ImplementationSummary": ImplementationSummary,
+    "InfrastructureLayerOverview": InfrastructureLayerOverview,
     "LibraryReviewDashboard": LibraryReviewDashboard,
+    "NightwatchAuditReport": NightwatchAuditReport,
+    "NightwatchV14FinalSummary": NightwatchV14FinalSummary,
+    "NightwatchV15InternalAudit": NightwatchV15InternalAudit,
+    "NightwatchV15Summary": NightwatchV15Summary,
+    "NightwatchV15VerificationReport": NightwatchV15VerificationReport,
+    "NightwatchV17DeliveryGateSummary": NightwatchV17DeliveryGateSummary,
+    "NightwatchV17InternalAudit": NightwatchV17InternalAudit,
+    "NightwatchV17Summary": NightwatchV17Summary,
+    "NightwatchV17VerificationReport": NightwatchV17VerificationReport,
+    "NightwatchV18DeliveryGateSummary": NightwatchV18DeliveryGateSummary,
+    "NightwatchV18InternalAudit": NightwatchV18InternalAudit,
+    "NightwatchV18Summary": NightwatchV18Summary,
+    "NightwatchV18VerificationReport": NightwatchV18VerificationReport,
     "NightwatchVerificationReport": NightwatchVerificationReport,
+    "PromptTemplateSystemSummary": PromptTemplateSystemSummary,
     "Reports": Reports,
     "ReviewerDashboard": ReviewerDashboard,
     "SystemAuditReportH7314": SystemAuditReportH7314,
@@ -145,24 +163,6 @@ export const PAGES = {
     "VerificationReportM4827": VerificationReportM4827,
     "VerificationReportNW11": VerificationReportNW11,
     "VerificationReportU4827": VerificationReportU4827,
-    "PromptTemplateSystemSummary": PromptTemplateSystemSummary,
-    "DeterministicEngineVerification": DeterministicEngineVerification,
-    "DeterministicEngineArchitecture": DeterministicEngineArchitecture,
-    "DeterministicEngineUpgradeSummary": DeterministicEngineUpgradeSummary,
-    "InfrastructureLayerOverview": InfrastructureLayerOverview,
-    "NightwatchV14FinalSummary": NightwatchV14FinalSummary,
-    "NightwatchAuditReport": NightwatchAuditReport,
-    "NightwatchV15Summary": NightwatchV15Summary,
-    "NightwatchV15VerificationReport": NightwatchV15VerificationReport,
-    "NightwatchV15InternalAudit": NightwatchV15InternalAudit,
-    "NightwatchV17Summary": NightwatchV17Summary,
-    "NightwatchV17VerificationReport": NightwatchV17VerificationReport,
-    "NightwatchV17InternalAudit": NightwatchV17InternalAudit,
-    "NightwatchV17DeliveryGateSummary": NightwatchV17DeliveryGateSummary,
-    "NightwatchV18Summary": NightwatchV18Summary,
-    "NightwatchV18VerificationReport": NightwatchV18VerificationReport,
-    "NightwatchV18InternalAudit": NightwatchV18InternalAudit,
-    "NightwatchV18DeliveryGateSummary": NightwatchV18DeliveryGateSummary,
 }
 
 export const pagesConfig = {
