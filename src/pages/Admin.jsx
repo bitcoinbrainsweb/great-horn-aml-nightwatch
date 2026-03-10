@@ -26,7 +26,6 @@ const ADMIN_SECTIONS = [
 ];
 
 const SUPERADMIN_SECTIONS = [
-  { name: 'NW-UPGRADE-014 Delivery Gate', description: 'Change control architecture redesign verification', icon: FlaskConical, page: 'NW014DeliveryGateSummary', color: 'bg-emerald-50 text-emerald-600' },
   { name: 'Test Scenario Generator', description: 'Generate fictional test data for internal QA', icon: FlaskConical, page: 'AdminTestScenarios', color: 'bg-rose-50 text-rose-600' },
 ];
 
