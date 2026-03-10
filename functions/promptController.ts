@@ -5,6 +5,26 @@ Deno.serve(async (req) => {
     const base44 = createClientFromRequest(req);
     const { contractId, inputData, assessmentId } = await req.json();
 
+    // GUARDRAIL: Enforce strict payload rules
+    const forbiddenKeys = ['RiskLibrary', 'ControlLibrary', 'AssessmentState', 'fullContext', 'allRisks'];
+    for (const key of forbiddenKeys) {
+      if (inputData && inputData[key]) {
+        console.warn(`[PROMPT_GUARDRAIL] Rejected payload containing ${key}`);
+        return Response.json({ 
+          error: `Payload contains forbidden key: ${key}. Only contract fields allowed.` 
+        }, { status: 400 });
+      }
+    }
+
+    // Check payload size (max 10KB for small prompts)
+    const payloadSize = JSON.stringify(inputData).length;
+    if (payloadSize > 10000) {
+      console.warn(`[PROMPT_GUARDRAIL] Payload too large: ${payloadSize} bytes`);
+      return Response.json({ 
+        error: `Payload too large (${payloadSize} bytes). Max 10KB.` 
+      }, { status: 400 });
+    }
+
     if (!contractId || !inputData || !assessmentId) {
       return Response.json(
         { error: 'contractId, inputData, and assessmentId required' },
