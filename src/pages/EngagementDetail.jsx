@@ -122,15 +122,26 @@ export default function EngagementDetail() {
   }
 
   async function updateTaskStatus(taskId, status) {
+    const task = tasks.find(t => t.id === taskId);
     const updates = { status };
     if (status === 'Completed') updates.completed_date = new Date().toISOString().split('T')[0];
     await base44.entities.Task.update(taskId, updates);
+    await logAudit({
+      userEmail: user?.email,
+      objectType: 'Task',
+      objectId: taskId,
+      action: 'status_changed',
+      fieldChanged: 'status',
+      oldValue: task?.status,
+      newValue: status,
+      details: `Task "${task?.task_name}" status changed to ${status}`,
+    });
     await loadData();
   }
 
   async function addTask(e) {
     e.preventDefault();
-    await base44.entities.Task.create({
+    const newTask = await base44.entities.Task.create({
       ...taskForm,
       engagement_id: engId,
       engagement_name: `${engagement.client_name} - ${engagement.engagement_type}`,
@@ -138,13 +149,28 @@ export default function EngagementDetail() {
       status: 'Not Started',
       sort_order: tasks.length + 1
     });
+    await logAudit({
+      userEmail: user?.email,
+      objectType: 'Task',
+      objectId: newTask.id,
+      action: 'created',
+      details: `Task "${taskForm.task_name}" created on engagement ${engId}`,
+    });
     setShowAddTask(false);
     setTaskForm({});
     await loadData();
   }
 
   async function deleteTask(taskId) {
+    const task = tasks.find(t => t.id === taskId);
     await base44.entities.Task.delete(taskId);
+    await logAudit({
+      userEmail: user?.email,
+      objectType: 'Task',
+      objectId: taskId,
+      action: 'deleted',
+      details: `Task "${task?.task_name}" deleted from engagement ${engId}`,
+    });
     await loadData();
   }
 
