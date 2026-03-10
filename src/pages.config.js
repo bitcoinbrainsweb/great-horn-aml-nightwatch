@@ -51,10 +51,12 @@ import Admin from './pages/Admin';
 import AdminAuditLog from './pages/AdminAuditLog';
 import AdminControlLibrary from './pages/AdminControlLibrary';
 import AdminIndustries from './pages/AdminIndustries';
+import AdminInvitations from './pages/AdminInvitations';
 import AdminJurisdictions from './pages/AdminJurisdictions';
 import AdminMethodologies from './pages/AdminMethodologies';
 import AdminNarratives from './pages/AdminNarratives';
 import AdminRiskLibrary from './pages/AdminRiskLibrary';
+import AdminRiskProposals from './pages/AdminRiskProposals';
 import AdminSuggestions from './pages/AdminSuggestions';
 import AdminTestScenarios from './pages/AdminTestScenarios';
 import AdminUsers from './pages/AdminUsers';
@@ -67,8 +69,6 @@ import Help from './pages/Help';
 import NightwatchVerificationReport from './pages/NightwatchVerificationReport';
 import Reports from './pages/Reports';
 import Tasks from './pages/Tasks';
-import AdminInvitations from './pages/AdminInvitations';
-import AdminRiskProposals from './pages/AdminRiskProposals';
 import VerificationReportA1847 from './pages/VerificationReportA1847';
 import __Layout from './Layout.jsx';
 
@@ -78,10 +78,12 @@ export const PAGES = {
     "AdminAuditLog": AdminAuditLog,
     "AdminControlLibrary": AdminControlLibrary,
     "AdminIndustries": AdminIndustries,
+    "AdminInvitations": AdminInvitations,
     "AdminJurisdictions": AdminJurisdictions,
     "AdminMethodologies": AdminMethodologies,
     "AdminNarratives": AdminNarratives,
     "AdminRiskLibrary": AdminRiskLibrary,
+    "AdminRiskProposals": AdminRiskProposals,
     "AdminSuggestions": AdminSuggestions,
     "AdminTestScenarios": AdminTestScenarios,
     "AdminUsers": AdminUsers,
@@ -94,8 +96,6 @@ export const PAGES = {
     "NightwatchVerificationReport": NightwatchVerificationReport,
     "Reports": Reports,
     "Tasks": Tasks,
-    "AdminInvitations": AdminInvitations,
-    "AdminRiskProposals": AdminRiskProposals,
     "VerificationReportA1847": VerificationReportA1847,
 }
 

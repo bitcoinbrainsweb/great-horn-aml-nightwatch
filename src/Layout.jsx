@@ -35,6 +35,14 @@ export default function Layout({ children, currentPageName }) {
       return;
     }
     const me = await base44.auth.me();
+    // Platform admin (app builder/owner) always gets through as Technical Admin
+    if (me.role === 'admin') {
+      await base44.auth.updateMe({ role: 'super_admin' });
+      const updated = await base44.auth.me();
+      setUser(updated);
+      return;
+    }
+
     const domain = me.email?.split('@')[1];
     const allowed = ['greathornaml.com', 'libertylabs.ca', 'bitcoinbrains.com'];
     if (!allowed.includes(domain)) {
