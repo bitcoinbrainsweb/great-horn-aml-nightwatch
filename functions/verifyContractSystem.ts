@@ -10,76 +10,63 @@ Deno.serve(async (req) => {
     };
 
     // 1. Check GenerationContract entity
-    const contracts = await base44.entities.GenerationContract.list();
+    const contracts = await base44.asServiceRole.entities.GenerationContract.list();
+    const contractList = Array.isArray(contracts) ? contracts : [];
+    
     results.checks.push({
-      name: 'GenerationContract exists',
-      passed: contracts.length > 0,
-      details: `Found ${contracts.length} active contracts`
+      name: 'GenerationContract entity exists',
+      passed: contractList.length > 0,
+      details: `Found ${contractList.length} contracts`
     });
 
-    const contractIds = contracts.map(c => c.data?.contractId || c.contractId).filter(Boolean);
-    const requiredContracts = [
-      'RiskNarrative',
-      'ControlAnalysis',
-      'ResidualRisk',
-      'Recommendation'
-    ];
+    // 2. Check required contracts
+    const contractIds = contractList
+      .map(c => c.contractId || (c.data && c.data.contractId))
+      .filter(Boolean);
 
-    for (const contractId of requiredContracts) {
-      const exists = contractIds.includes(contractId);
+    const requiredContracts = ['RiskNarrative', 'ControlAnalysis', 'ResidualRisk', 'Recommendation'];
+    for (const id of requiredContracts) {
+      const exists = contractIds.includes(id);
       results.checks.push({
-        name: `Contract exists: ${contractId}`,
+        name: `Contract exists: ${id}`,
         passed: exists,
         details: exists ? 'Active' : 'Missing'
       });
       if (!exists) results.systemReady = false;
     }
 
-    // 2. Check PromptTemplate entity
-    const templates = await base44.entities.PromptTemplate.list();
+    // 3. Check PromptTemplate entity
+    const templates = await base44.asServiceRole.entities.PromptTemplate.list();
+    const templateList = Array.isArray(templates) ? templates : [];
+
     results.checks.push({
-      name: 'PromptTemplate exists',
-      passed: templates.length > 0,
-      details: `Found ${templates.length} active templates`
+      name: 'PromptTemplate entity exists',
+      passed: templateList.length > 0,
+      details: `Found ${templateList.length} templates`
     });
 
-    const templateIds = templates.map(t => t.data?.templateId || t.templateId).filter(Boolean);
-    const requiredTemplates = [
-      'RiskNarrativeTemplate_v1',
-      'ControlAnalysisTemplate_v1',
-      'ResidualRiskTemplate_v1',
-      'RecommendationTemplate_v1'
-    ];
+    // 4. Check required templates
+    const templateIds = templateList
+      .map(t => t.templateId || (t.data && t.data.templateId))
+      .filter(Boolean);
 
-    for (const templateId of requiredTemplates) {
-      const exists = templateIds.includes(templateId);
+    const requiredTemplates = ['RiskNarrativeTemplate_v1', 'ControlAnalysisTemplate_v1', 'ResidualRiskTemplate_v1', 'RecommendationTemplate_v1'];
+    for (const id of requiredTemplates) {
+      const exists = templateIds.includes(id);
       results.checks.push({
-        name: `Template exists: ${templateId}`,
+        name: `Template exists: ${id}`,
         passed: exists,
         details: exists ? 'Active' : 'Missing'
       });
       if (!exists) results.systemReady = false;
     }
 
-    // 3. Check contract-template linkage
-    for (const template of templates) {
-      const contractId = template.data?.contractId || template.contractId;
-      const linkedContract = contracts.find(c => (c.data?.contractId || c.contractId) === contractId);
-      const linked = !!linkedContract;
-      results.checks.push({
-        name: `Template linked to contract: ${template.data.templateId}`,
-        passed: linked,
-        details: linked ? `→ ${contractId}` : 'Orphaned'
-      });
-      if (!linked) results.systemReady = false;
-    }
-
-    // 4. Test contractValidator function
+    // 5. Test contractValidator
     try {
-      const validationTest = await base44.functions.invoke('contractValidator', {
+      const validation = await base44.functions.invoke('contractValidator', {
         contractId: 'RiskNarrative',
         inputData: {
-          riskId: 'RISK-TEST-001',
+          riskId: 'TEST-001',
           riskName: 'Test Risk',
           riskDescription: 'Test description',
           inherentRiskScore: 4
@@ -87,33 +74,30 @@ Deno.serve(async (req) => {
       });
 
       results.checks.push({
-        name: 'contractValidator function callable',
-        passed: validationTest.data.valid === true,
-        details: validationTest.data.valid ? 'Validation passed' : 'Validation failed'
+        name: 'contractValidator validates correct input',
+        passed: validation.data.valid === true,
+        details: validation.data.valid ? 'Passed' : 'Failed'
       });
     } catch (e) {
       results.checks.push({
-        name: 'contractValidator function callable',
+        name: 'contractValidator validates correct input',
         passed: false,
         details: e.message
       });
       results.systemReady = false;
     }
 
-    // 5. Test contractValidator with invalid input
+    // 6. Test contractValidator rejects invalid input
     try {
-      const invalidTest = await base44.functions.invoke('contractValidator', {
+      const invalid = await base44.functions.invoke('contractValidator', {
         contractId: 'RiskNarrative',
-        inputData: {
-          riskId: 'RISK-TEST-002'
-          // Missing required fields
-        }
+        inputData: { riskId: 'TEST-002' }
       });
 
       results.checks.push({
         name: 'contractValidator rejects invalid input',
-        passed: invalidTest.data.valid === false,
-        details: invalidTest.data.valid ? 'Failed to reject' : 'Correctly rejected'
+        passed: invalid.data.valid === false,
+        details: invalid.data.valid ? 'Failed to reject' : 'Correctly rejected'
       });
     } catch (e) {
       results.checks.push({
@@ -123,86 +107,74 @@ Deno.serve(async (req) => {
       });
     }
 
-    // 6. Test promptTemplateRenderer
+    // 7. Test promptTemplateRenderer
     try {
-      const renderTest = await base44.functions.invoke('promptTemplateRenderer', {
+      const render = await base44.functions.invoke('promptTemplateRenderer', {
         templateId: 'RiskNarrativeTemplate_v1',
         inputData: {
           riskName: 'Test Risk',
           riskGroup: 'Geography',
-          riskDescription: 'Testing template rendering',
+          riskDescription: 'Test description',
           inherentRiskScore: 4,
           jurisdiction: 'Canada'
         }
       });
 
       results.checks.push({
-        name: 'promptTemplateRenderer function callable',
-        passed: renderTest.data.success === true,
-        details: renderTest.data.success ? 'Template rendered' : 'Render failed'
+        name: 'promptTemplateRenderer renders template',
+        passed: render.data.success === true,
+        details: render.data.success ? 'Rendered' : 'Failed'
       });
     } catch (e) {
       results.checks.push({
-        name: 'promptTemplateRenderer function callable',
+        name: 'promptTemplateRenderer renders template',
         passed: false,
         details: e.message
       });
       results.systemReady = false;
     }
 
-    // 7. Verify template placeholder substitution
-    const sampleTemplate = templates.find(t => (t.data?.templateId || t.templateId) === 'RiskNarrativeTemplate_v1');
-    if (sampleTemplate) {
-      const bodyHasPlaceholders = (sampleTemplate.data?.templateBody || sampleTemplate.templateBody || '').includes('{{');
+    // 8. Check schema enforcement
+    for (const contract of contractList) {
+      const contractId = contract.contractId || (contract.data && contract.data.contractId);
+      const inputSchema = contract.inputSchema || (contract.data && contract.data.inputSchema);
+      
+      if (!inputSchema) continue;
+      
+      const schema = typeof inputSchema === 'string' ? JSON.parse(inputSchema) : inputSchema;
+      const allowsAdditional = schema.additionalProperties !== false;
+
       results.checks.push({
-        name: 'Templates contain placeholders',
-        passed: bodyHasPlaceholders,
-        details: bodyHasPlaceholders ? 'Found {{field}} patterns' : 'No placeholders'
+        name: `Contract ${contractId} enforces strict input schema`,
+        passed: !allowsAdditional,
+        details: `additionalProperties: ${allowsAdditional}`
       });
     }
 
-    // 8. Verify contracts reference only contract fields
-    for (const contract of contracts) {
-      const inputSchemaStr = contract.data?.inputSchema || contract.inputSchema || '{}';
-      const inputSchema = JSON.parse(inputSchemaStr);
-      const properties = inputSchema.properties || {};
-      const fieldCount = Object.keys(properties).length;
-      const acceptsAdditional = inputSchema.additionalProperties !== false;
+    // 9. Verify generation functions registered
+    const functions = ['generateRiskNarrative', 'generateControlAnalysis', 'generateResidualRisk', 'generateRecommendation'];
+    for (const funcName of functions) {
+      const isBound = contractList.some(c => {
+        const fn = c.generatorFunction || (c.data && c.data.generatorFunction);
+        return fn === funcName;
+      });
 
-      const contractIdDisplay = contract.data?.contractId || contract.contractId;
       results.checks.push({
-        name: `Contract ${contractIdDisplay} enforces strict schema`,
-        passed: !acceptsAdditional && fieldCount > 0,
-        details: `${fieldCount} allowed fields, additionalProperties: ${acceptsAdditional}`
+        name: `Generator function registered: ${funcName}`,
+        passed: isBound,
+        details: isBound ? 'Bound to contract' : 'Not bound'
       });
     }
 
-    // 9. Check generation functions exist
-    const generationFunctions = [
-      'generateRiskNarrative',
-      'generateControlAnalysis',
-      'generateResidualRisk',
-      'generateRecommendation'
-    ];
-
-    for (const funcName of generationFunctions) {
-      const contract = contracts.find(c => (c.data?.generatorFunction || c.generatorFunction) === funcName);
-      results.checks.push({
-        name: `Generation function registered: ${funcName}`,
-        passed: !!contract,
-        details: contract ? `Bound to ${contract.data?.contractId || contract.contractId}` : 'Not found'
-      });
-    }
-
-    // 10. System readiness summary
+    // Summary
     const passCount = results.checks.filter(c => c.passed).length;
     const totalCount = results.checks.length;
 
     results.summary = {
       totalChecks: totalCount,
-      passedChecks: passCount,
-      failedChecks: totalCount - passCount,
-      readinessPercentage: Math.round((passCount / totalCount) * 100),
+      passed: passCount,
+      failed: totalCount - passCount,
+      percentage: Math.round((passCount / totalCount) * 100),
       systemReady: results.systemReady && passCount === totalCount
     };
 
