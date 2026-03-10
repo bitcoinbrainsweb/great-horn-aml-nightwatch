@@ -8,6 +8,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Label } from '@/components/ui/label';
 import { RiskBadge, StatusBadge } from '../ui/RiskBadge';
 import { suggestRisksFromIntake, calculateInherentRisk, LIKELIHOOD_SCALE, IMPACT_SCALE } from '../scoring/riskScoringEngine';
+import { logAudit } from '../util/auditLog';
 import { Lightbulb, Plus, Trash2, ChevronDown, ChevronRight, AlertTriangle, CheckCircle2 } from 'lucide-react';
 import InfoTooltip from '../ui/InfoTooltip';
 
@@ -41,7 +42,7 @@ export default function RisksTab({ engagement }) {
 
   async function acceptSuggestion(suggestion) {
     const libRisk = riskLibrary.find(r => r.risk_name === suggestion.risk_name);
-    await base44.entities.EngagementRisk.create({
+    const newRisk = await base44.entities.EngagementRisk.create({
       engagement_id: engagement.id,
       risk_id: libRisk?.id || '',
       risk_name: suggestion.risk_name,
@@ -51,6 +52,7 @@ export default function RisksTab({ engagement }) {
       suggestion_reason: suggestion.reason,
       status: 'Draft'
     });
+    await logAudit({ objectType: 'EngagementRisk', objectId: newRisk.id, action: 'risk_accepted', details: `Accepted risk: ${suggestion.risk_name}` });
     await loadData();
   }
 
@@ -73,6 +75,7 @@ export default function RisksTab({ engagement }) {
   }
 
   async function removeRisk(riskId) {
+    await logAudit({ objectType: 'EngagementRisk', objectId: riskId, action: 'risk_removed' });
     await base44.entities.EngagementRisk.delete(riskId);
     await loadData();
   }
