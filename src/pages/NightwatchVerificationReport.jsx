@@ -484,6 +484,148 @@ export default function NightwatchVerificationReport() {
         </Button>
       </div>
 
+      {/* V2 Section */}
+      <div className="mt-10">
+        <h2 className="text-base font-bold text-slate-900 mb-4 flex items-center gap-2">
+          <span className="px-2 py-0.5 rounded bg-blue-100 text-blue-700 text-xs font-bold">V2</span>
+          Workspace Architecture &amp; Multi-Tenancy Update Verification
+          <span className="text-xs text-slate-400 font-normal ml-1">2026-03-10</span>
+        </h2>
+
+        {/* V2 Scorecard */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4">
+          {[
+            { label: 'Total Checked', value: '5', color: 'bg-slate-50 text-slate-700 border-slate-200' },
+            { label: 'PASS', value: '4', color: 'bg-emerald-50 text-emerald-700 border-emerald-200' },
+            { label: 'PARTIAL', value: '1', color: 'bg-amber-50 text-amber-700 border-amber-200' },
+            { label: 'FAIL', value: '0', color: 'bg-red-50 text-red-700 border-red-200' },
+          ].map(({ label, value, color }) => (
+            <div key={label} className={`rounded-xl border p-4 text-center ${color}`}>
+              <p className="text-3xl font-bold">{value}</p>
+              <p className="text-xs font-semibold mt-1 opacity-70 uppercase tracking-wider">{label}</p>
+            </div>
+          ))}
+        </div>
+
+        <div className="space-y-4">
+          <Section number="V2.1" title="Workspace & Multi-tenancy Schema" result="PASS">
+            <p className="text-xs text-slate-500 mt-3 mb-2">New <code className="bg-slate-100 px-1 rounded font-mono">Workspace</code> entity introduced. <code className="bg-slate-100 px-1 rounded font-mono">workspace_id</code> field added to all scoped entities. Default workspace "Great Horn AML" created in production database.</p>
+            <Table
+              headers={['Entity', 'workspace_id Added', 'Status']}
+              rows={[
+                ['Workspace (new)', 'N/A — root entity', <><Tick /> Created with name, slug, allowed_domains, is_default</>],
+                ['WorkspaceLibraryOverride (new)', 'N/A — workspace-scoped by design', <><Tick /> Allows per-workspace core library item disabling</>],
+                ['Client', 'Yes', <><Tick /> Added</>],
+                ['Engagement', 'Yes', <><Tick /> Added</>],
+                ['Report', 'Yes', <><Tick /> Added</>],
+                ['Document', 'Yes', <><Tick /> Added</>],
+                ['Task', 'Yes', <><Tick /> Added</>],
+                ['RiskLibrary', 'Yes + is_core', <><Tick /> Hybrid model supported</>],
+                ['ControlLibrary', 'Yes + is_core', <><Tick /> Hybrid model supported</>],
+                ['ControlAssessment', 'Yes', <><Tick /> Added</>],
+                ['NarrativeTemplate', 'Yes', <><Tick /> Added</>],
+                ['AuditLog', 'Yes + user_name', <><Tick /> Added</>],
+              ]}
+            />
+            <p className="text-xs text-emerald-700 mt-3 font-medium">No remaining issues.</p>
+          </Section>
+
+          <Section number="V2.2" title="Control Testing Extensions" result="PASS">
+            <p className="text-xs text-slate-500 mt-3 mb-2">ControlAssessment entity extended with testing lifecycle fields. ControlEvidence entity created for structured evidence uploads. ControlsTab UI updated with Testing Conclusion field and Reviewer Sign-Off toggle.</p>
+            <Table
+              headers={['Item', 'Status']}
+              rows={[
+                ['ControlAssessment: testing_conclusion field', <><Tick /> Added to entity schema</>],
+                ['ControlAssessment: reviewer_sign_off (boolean)', <><Tick /> Added to entity schema</>],
+                ['ControlAssessment: reviewer_sign_off_date', <><Tick /> Added to entity schema</>],
+                ['ControlEvidence entity (new)', <><Tick /> Created with evidence_type, file_url, is_sufficient, uploaded_by</>],
+                ['ControlsTab: Testing Conclusion textarea', <><Tick /> Added to UI</>],
+                ['ControlsTab: Reviewer Sign-Off toggle', <><Tick /> Added with date stamp on activation</>],
+              ]}
+            />
+            <p className="text-xs text-emerald-700 mt-3 font-medium">No remaining issues.</p>
+          </Section>
+
+          <Section number="V2.3" title="Build Error — ControlsTab JSX Fix" result="PASS">
+            <p className="text-xs text-slate-500 mt-3 mb-2">A JSX syntax error was introduced during the reviewer sign-off block insertion (nested block outside a parent container). Corrected by restructuring the reviewer sign-off <code className="bg-slate-100 px-1 rounded font-mono">&lt;div&gt;</code> inside the Evidence &amp; Testing container. Build confirmed clean post-fix.</p>
+            <Table
+              headers={['Error', 'File', 'Resolution']}
+              rows={[
+                ['Unexpected token at line 270 col 28', 'components/engagement/ControlsTab.jsx', <><Tick /> JSX block nesting corrected; build passes</>],
+              ]}
+            />
+            <p className="text-xs text-emerald-700 mt-3 font-medium">No remaining issues.</p>
+          </Section>
+
+          <Section number="V2.4" title="Help Documentation — New Sections" result="PASS">
+            <p className="text-xs text-slate-500 mt-3 mb-2">Five new Help topics added covering all new platform capabilities. All icons verified present in lucide-react. Existing 9 sections confirmed untouched.</p>
+            <Table
+              headers={['New Topic', 'Status']}
+              rows={[
+                ['Workspace Architecture', <><Tick /> Added; covers workspace model, default workspace, scoped data, roles</>],
+                ['Hybrid Library Model', <><Tick /> Added; covers core vs custom, workspace admin controls, protections</>],
+                ['Control Testing Program', <><Tick /> Added; covers testing model, all assessment fields, evidence uploads</>],
+                ['Compliance Overview', <><Tick /> Added; covers summary cards, data sources, residual risk dependency</>],
+                ['Audit Trail', <><Tick /> Added; covers AuditLog fields, all logged actions, ActivityLog distinction</>],
+              ]}
+            />
+            <p className="text-xs text-emerald-700 mt-3 font-medium">No remaining issues.</p>
+          </Section>
+
+          <Section number="V2.5" title="V1 Open Issues Status" result="PARTIAL">
+            <p className="text-xs text-slate-500 mt-3 mb-2">Three open issues carried forward from V1. ControlsTab audit coverage is now resolved; the remaining two are still open.</p>
+            <Table
+              headers={['Issue', 'Status']}
+              rows={[
+                ['[AUDIT COVERAGE] pages/Clients.js + ClientDetail.js — logAudit on client CRUD', <><span className="text-amber-500 font-bold">⚠️</span> Still open — not verified in this pass</>],
+                ['[AUDIT GAP] EngagementDetail.js addTask() / deleteTask() — no logAudit calls', <><span className="text-amber-500 font-bold">⚠️</span> Still open — not addressed in this update</>],
+                ['[AUDIT COVERAGE] ControlsTab — logAudit on control assessment updates', <><Tick /> Resolved — logAudit confirmed present in ControlsTab (verified in V2 file read)</>],
+              ]}
+            />
+            <div className="mt-3 p-3 bg-amber-50 border border-amber-200 rounded-lg text-xs text-amber-800">
+              <strong>2 of 3 V1 open issues remain unresolved.</strong> Client CRUD audit coverage and task lifecycle audit logging are still outstanding follow-up items.
+            </div>
+          </Section>
+        </div>
+      </div>
+
+      {/* Verification History */}
+      <div className="mt-10">
+        <h2 className="text-base font-bold text-slate-900 mb-4">Verification History</h2>
+        <div className="bg-white rounded-xl border border-slate-200/60 overflow-hidden">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="bg-slate-50 border-b border-slate-200">
+                {['Run', 'Date', 'Scope', 'Checked', 'Pass', 'Partial', 'Fail', 'Open Issues'].map(h => (
+                  <th key={h} className="text-left px-4 py-2.5 text-xs font-semibold text-slate-500 uppercase tracking-wider">{h}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-100">
+              {VERIFICATION_HISTORY.map(v => (
+                <tr key={v.id} className="hover:bg-slate-50/50">
+                  <td className="px-4 py-3 text-xs font-semibold text-slate-900">{v.label}</td>
+                  <td className="px-4 py-3 text-xs text-slate-500">{v.date}</td>
+                  <td className="px-4 py-3 text-xs text-slate-600 max-w-xs">{v.scope}</td>
+                  <td className="px-4 py-3 text-xs font-bold text-slate-700">{v.checked}</td>
+                  <td className="px-4 py-3 text-xs font-bold text-emerald-600">{v.pass}</td>
+                  <td className="px-4 py-3 text-xs font-bold text-amber-600">{v.partial}</td>
+                  <td className="px-4 py-3 text-xs font-bold text-red-600">{v.fail}</td>
+                  <td className="px-4 py-3 text-xs font-bold text-slate-500">{v.openIssues}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div className="mt-6 flex justify-end">
+        <Button onClick={downloadReport} className="bg-slate-900 hover:bg-slate-800 gap-2">
+          <Download className="w-4 h-4" />
+          Download Nightwatch_Verification_Report.md
+        </Button>
+      </div>
+
       <p className="text-xs text-slate-400 text-center mt-4 pb-6">
         Report generated by Base44 AI automated code review · {REPORT_DATE}
       </p>
