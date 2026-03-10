@@ -18,7 +18,12 @@ export default function Reports() {
 
   useEffect(() => {
     // Load from canonical PublishedOutput entity, reports only
-    base44.entities.PublishedOutput.filter({ classification: 'report', status: 'published' })
+    // STRICT FILTER: classification = "report" AND status = "published"
+    // This ensures only compliance/engagement reports appear, not verification/audit records
+    base44.entities.PublishedOutput.filter({ 
+      classification: 'report', 
+      status: 'published' 
+    })
       .then(r => { 
         const mapped = r.map(o => ({
           id: o.id,
