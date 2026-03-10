@@ -6,7 +6,7 @@ import { Plus, Search, Building2, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import PageHeader from '../components/ui/PageHeader';
 import { StatusBadge } from '../components/ui/RiskBadge';
@@ -21,17 +21,29 @@ export default function Clients() {
   const [form, setForm] = useState({});
   const [saving, setSaving] = useState(false);
   const [users, setUsers] = useState([]);
+  const [user, setUser] = useState(null);
+  const [confirmDelete, setConfirmDelete] = useState(null);
 
   useEffect(() => { loadData(); }, []);
 
   async function loadData() {
-    const [c, u] = await Promise.all([
+    const [c, u, me] = await Promise.all([
       base44.entities.Client.list('-created_date', 100),
-      base44.entities.User.list()
+      base44.entities.User.list(),
+      base44.auth.me(),
     ]);
     setClients(c);
     setUsers(u);
+    setUser(me);
     setLoading(false);
+  }
+
+  const isAdmin = ['admin', 'super_admin', 'compliance_admin'].includes(user?.role);
+
+  async function handleDelete(client) {
+    await base44.entities.Client.delete(client.id);
+    setConfirmDelete(null);
+    await loadData();
   }
 
   async function handleCreate(e) {
@@ -95,10 +107,11 @@ export default function Clients() {
                   <th className="text-left px-5 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider hidden lg:table-cell">Jurisdiction</th>
                   <th className="text-left px-5 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider hidden lg:table-cell">Analyst</th>
                   <th className="text-left px-5 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Status</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
-                {filtered.map(c => (
+                  {isAdmin && <th className="w-12"></th>}
+                  </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100">
+                  {filtered.map(c => (
                   <tr key={c.id} className="hover:bg-slate-50/50 transition-colors">
                     <td className="px-5 py-3">
                       <Link to={createPageUrl(`ClientDetail?id=${c.id}`)} className="group">
@@ -112,13 +125,34 @@ export default function Clients() {
                     <td className="px-5 py-3 text-slate-600 hidden lg:table-cell">{c.primary_jurisdiction || '—'}</td>
                     <td className="px-5 py-3 text-slate-600 hidden lg:table-cell">{c.assigned_analyst || '—'}</td>
                     <td className="px-5 py-3"><StatusBadge status={c.status} /></td>
+                    {isAdmin && (
+                      <td className="px-3 py-3">
+                        <Button variant="ghost" size="icon" onClick={() => setConfirmDelete(c)} className="h-7 w-7 text-slate-400 hover:text-red-600">
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </Button>
+                      </td>
+                    )}
                   </tr>
-                ))}
+                  ))}
               </tbody>
             </table>
           </div>
         </div>
       )}
+
+      {/* Confirm Delete Dialog */}
+      <Dialog open={!!confirmDelete} onOpenChange={() => setConfirmDelete(null)}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle>Delete Client</DialogTitle>
+            <DialogDescription>Are you sure you want to delete <strong>{confirmDelete?.legal_name}</strong>? This action cannot be undone.</DialogDescription>
+          </DialogHeader>
+          <div className="flex justify-end gap-2 pt-2">
+            <Button variant="outline" onClick={() => setConfirmDelete(null)}>Cancel</Button>
+            <Button onClick={() => handleDelete(confirmDelete)} className="bg-red-600 hover:bg-red-700 text-white">Delete</Button>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* Create Dialog */}
       <Dialog open={showCreate} onOpenChange={setShowCreate}>

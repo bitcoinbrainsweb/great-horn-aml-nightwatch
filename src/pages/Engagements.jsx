@@ -6,7 +6,7 @@ import { Plus, Search, FileStack, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import PageHeader from '../components/ui/PageHeader';
 import { StatusBadge, RiskBadge } from '../components/ui/RiskBadge';
@@ -26,21 +26,33 @@ export default function Engagements() {
   const [showCreate, setShowCreate] = useState(false);
   const [form, setForm] = useState({});
   const [saving, setSaving] = useState(false);
+  const [user, setUser] = useState(null);
+  const [confirmDelete, setConfirmDelete] = useState(null);
 
   useEffect(() => { loadData(); }, []);
 
   async function loadData() {
-    const [e, c, m, u] = await Promise.all([
+    const [e, c, m, u, me] = await Promise.all([
       base44.entities.Engagement.list('-created_date', 100),
       base44.entities.Client.list('-legal_name', 200),
       base44.entities.Methodology.list(),
-      base44.entities.User.list()
+      base44.entities.User.list(),
+      base44.auth.me(),
     ]);
     setEngagements(e);
     setClients(c);
     setMethodologies(m);
     setUsers(u);
+    setUser(me);
     setLoading(false);
+  }
+
+  const isAdmin = ['admin', 'super_admin', 'compliance_admin'].includes(user?.role);
+
+  async function handleDelete(engagement) {
+    await base44.entities.Engagement.delete(engagement.id);
+    setConfirmDelete(null);
+    await loadData();
   }
 
   async function handleCreate(e) {
@@ -136,10 +148,11 @@ export default function Engagements() {
                   <th className="text-left px-5 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider hidden lg:table-cell">Target Date</th>
                   <th className="text-left px-5 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Risk</th>
                   <th className="text-left px-5 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Status</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
-                {filtered.map(e => (
+                  {isAdmin && <th className="w-12"></th>}
+                  </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100">
+                  {filtered.map(e => (
                   <tr key={e.id} className="hover:bg-slate-50/50 transition-colors">
                     <td className="px-5 py-3">
                       <Link to={createPageUrl(`EngagementDetail?id=${e.id}`)} className="group">
@@ -154,13 +167,34 @@ export default function Engagements() {
                     </td>
                     <td className="px-5 py-3"><RiskBadge rating={e.overall_risk_rating} /></td>
                     <td className="px-5 py-3"><StatusBadge status={e.status} /></td>
+                    {isAdmin && (
+                      <td className="px-3 py-3">
+                        <Button variant="ghost" size="icon" onClick={() => setConfirmDelete(e)} className="h-7 w-7 text-slate-400 hover:text-red-600">
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </Button>
+                      </td>
+                    )}
                   </tr>
-                ))}
+                  ))}
               </tbody>
             </table>
           </div>
         </div>
       )}
+
+      {/* Confirm Delete Dialog */}
+      <Dialog open={!!confirmDelete} onOpenChange={() => setConfirmDelete(null)}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle>Delete Engagement</DialogTitle>
+            <DialogDescription>Are you sure you want to delete the <strong>{confirmDelete?.engagement_type}</strong> engagement for <strong>{confirmDelete?.client_name}</strong>? This cannot be undone.</DialogDescription>
+          </DialogHeader>
+          <div className="flex justify-end gap-2 pt-2">
+            <Button variant="outline" onClick={() => setConfirmDelete(null)}>Cancel</Button>
+            <Button onClick={() => handleDelete(confirmDelete)} className="bg-red-600 hover:bg-red-700 text-white">Delete</Button>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       <Dialog open={showCreate} onOpenChange={setShowCreate}>
         <DialogContent className="max-w-lg">
