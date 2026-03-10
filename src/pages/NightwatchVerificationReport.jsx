@@ -7,6 +7,7 @@ import VerificationReportM4827 from './VerificationReportM4827';
 import VerificationReportA7364 from './VerificationReportA7364';
 import VerificationReportB6142 from './VerificationReportB6142';
 import VerificationReportU4827 from './VerificationReportU4827';
+import VerificationReportC4186 from './VerificationReportC4186';
 
 // ── shared helpers ────────────────────────────────────────────────────────────
 
@@ -370,7 +371,23 @@ export default function NightwatchVerificationReport() {
 
       <div className="space-y-4">
 
-        {/* U4827 — most recent */}
+        {/* C4186 — most recent */}
+        <ReportCard
+          id="C4186"
+          name="Manual Control Attachment for Risks — Analyst Workflow Enhancement"
+          date="2026-03-10"
+          scope="8-section implementation: manual control attachment in Risks and Controls tabs, searchable ControlLibrary modal, duplicate prevention, visual separation (Recommended vs. Additional), manual control badge, audit logging, removal workflow."
+          statusLabel="✅ All Passed — Safe to Proceed"
+          statusColor="green"
+          badges={[
+            { label: 'Checks', value: 12, variant: 'neutral' },
+            { label: 'PASS', value: 12, variant: 'pass' },
+          ]}
+        >
+          <VerificationReportC4186 />
+        </ReportCard>
+
+        {/* U4827 */}
         <ReportCard
           id="U4827"
           name="Library Review Dashboard — Risk and Control Proposal Management"
