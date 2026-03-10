@@ -489,6 +489,19 @@ export default function NightwatchVerificationReport() {
           </div>
         )}
 
+      </div>
+    </div>
+  );
+}
+
+// ── REMOVED: Hard-coded historical report cards (NW-UPGRADE-010, 009, 008, etc.)
+// These are now sourced from canonical PublishedOutput entity.
+// Hard-coded cards included: NW-UPGRADE-010, NW-UPGRADE-009, NW-UPGRADE-008, NW-UPGRADE-007,
+// NW-UPGRADE-006, NW-UPGRADE-005, NW-UPGRADE-004, and legacy cards A1847, M4827, A7364, etc.
+// See functions/NormalizeVerificationReports.js for historical migration.
+
+// Note: Below code retained for reference but not rendered:
+/*
         {/* NW-UPGRADE-010 — Regression Testing Framework (HISTORICAL) */}
         <ReportCard
           id="NW-UPGRADE-010"
