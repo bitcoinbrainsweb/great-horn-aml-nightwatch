@@ -67,6 +67,8 @@ import Help from './pages/Help';
 import NightwatchVerificationReport from './pages/NightwatchVerificationReport';
 import Reports from './pages/Reports';
 import Tasks from './pages/Tasks';
+import AdminInvitations from './pages/AdminInvitations';
+import AdminRiskProposals from './pages/AdminRiskProposals';
 import __Layout from './Layout.jsx';
 
 
@@ -91,6 +93,8 @@ export const PAGES = {
     "NightwatchVerificationReport": NightwatchVerificationReport,
     "Reports": Reports,
     "Tasks": Tasks,
+    "AdminInvitations": AdminInvitations,
+    "AdminRiskProposals": AdminRiskProposals,
 }
 
 export const pagesConfig = {
