@@ -9,7 +9,7 @@ import { Label } from '@/components/ui/label';
 import { RiskBadge, StatusBadge } from '../ui/RiskBadge';
 import { suggestRisksFromIntake, calculateInherentRisk, LIKELIHOOD_SCALE, IMPACT_SCALE } from '../scoring/riskScoringEngine';
 import { logAudit } from '../util/auditLog';
-import { Lightbulb, Plus, Trash2, ChevronDown, ChevronRight, AlertTriangle, CheckCircle2, Lock, Info, Search, X } from 'lucide-react';
+import { Lightbulb, Plus, Trash2, ChevronDown, ChevronRight, AlertTriangle, CheckCircle2, Lock, Info, Search, X, Sparkles, Edit3 } from 'lucide-react';
 import InfoTooltip from '../ui/InfoTooltip';
 import { Badge } from '../ui/badge';
 
@@ -27,6 +27,8 @@ export default function RisksTab({ engagement, isLocked }) {
   const [explainRisk, setExplainRisk] = useState(null);
   const [addControlToRisk, setAddControlToRisk] = useState(null);
   const [controlSearchQuery, setControlSearchQuery] = useState('');
+  const [generatingNarrative, setGeneratingNarrative] = useState(null);
+  const [editNarrative, setEditNarrative] = useState(null);
 
   useEffect(() => { loadData(); }, [engagement.id]);
 
@@ -169,6 +171,63 @@ export default function RisksTab({ engagement, isLocked }) {
     );
   }
 
+  async function generateRiskNarrative(risk) {
+    setGeneratingNarrative(risk.id);
+    const controls = getControlsForRisk(risk);
+    const controlsText = controls.length > 0 
+      ? controls.map(c => `${c.control_name} (${c.control_rating || 'Not Assessed'})`).join(', ')
+      : 'No controls attached';
+    
+    const prompt = `Generate a professional AML risk consulting narrative for the following risk at ${engagement.client_name}:
+
+Risk: ${risk.risk_name}
+Category: ${risk.risk_category}
+Inherent Likelihood: ${risk.inherent_likelihood_rating || 'Not Rated'} (score ${risk.inherent_likelihood_score || 'N/A'})
+Inherent Impact: ${risk.inherent_impact_rating || 'Not Rated'} (score ${risk.inherent_impact_score || 'N/A'})
+Inherent Risk: ${risk.inherent_risk_rating || 'Not Rated'}
+Controls: ${controlsText}
+Overall Control Effectiveness: ${risk.overall_control_effectiveness || 'Not Assessed'}
+Residual Risk: ${risk.residual_risk_rating || 'Not Calculated'}
+${risk.analyst_rationale ? `Analyst Rationale: ${risk.analyst_rationale}` : ''}
+${risk.score_justification ? `Score Justification: ${risk.score_justification}` : ''}
+
+Generate a structured narrative using this exact format:
+
+Context
+[2-3 sentences explaining what this risk is and why it matters for ${engagement.client_name}]
+
+Observations
+[2-3 sentences on specific observations about ${engagement.client_name}'s exposure to this risk]
+
+Risk Implication
+[2-3 sentences on what could happen if this risk materializes and the potential consequences]
+
+Controls and Mitigation
+[2-3 sentences describing the controls in place and their effectiveness]
+
+Conclusion
+[1-2 sentences summarizing the residual risk and overall assessment]
+
+Use professional AML consulting language. Reference ${engagement.client_name} by name, not "the organization".`;
+
+    try {
+      const result = await base44.integrations.Core.InvokeLLM({ prompt });
+      await base44.entities.EngagementRisk.update(risk.id, { analyst_rationale: result });
+      await logAudit({ objectType: 'EngagementRisk', objectId: risk.id, action: 'analyst_narrative_generated', details: `AI-generated narrative for risk "${risk.risk_name}"` });
+      await loadData();
+    } catch (error) {
+      alert('Failed to generate narrative: ' + error.message);
+    }
+    setGeneratingNarrative(null);
+  }
+
+  async function saveEditedNarrative(risk, narrative) {
+    await base44.entities.EngagementRisk.update(risk.id, { analyst_rationale: narrative });
+    await logAudit({ objectType: 'EngagementRisk', objectId: risk.id, action: 'analyst_narrative_edited', details: `Narrative edited for risk "${risk.risk_name}"` });
+    setEditNarrative(null);
+    await loadData();
+  }
+
   // Group by category
   const groupedRisks = engRisks.reduce((acc, r) => {
     const cat = r.risk_category || 'Uncategorized';
@@ -269,8 +328,33 @@ export default function RisksTab({ engagement, isLocked }) {
                         </div>
                       </div>
                       <div className="mb-3">
-                        <Label className="text-xs">Analyst Rationale</Label>
-                        <Textarea value={risk.analyst_rationale || ''} rows={2} disabled={isLocked} onChange={e => !isLocked && base44.entities.EngagementRisk.update(risk.id, { analyst_rationale: e.target.value })} />
+                        <div className="flex items-center justify-between mb-1">
+                          <Label className="text-xs">Analyst Rationale</Label>
+                          {!isLocked && (
+                            <div className="flex gap-1">
+                              {risk.analyst_rationale && (
+                                <Button 
+                                  variant="ghost" 
+                                  size="sm" 
+                                  onClick={() => setEditNarrative({ risk, narrative: risk.analyst_rationale })}
+                                  className="h-6 px-2 text-xs gap-1"
+                                >
+                                  <Edit3 className="w-3 h-3" /> Edit
+                                </Button>
+                              )}
+                              <Button 
+                                variant="ghost" 
+                                size="sm" 
+                                onClick={() => generateRiskNarrative(risk)}
+                                disabled={generatingNarrative === risk.id}
+                                className="h-6 px-2 text-xs gap-1"
+                              >
+                                <Sparkles className="w-3 h-3" /> {generatingNarrative === risk.id ? 'Generating...' : 'Generate Narrative'}
+                              </Button>
+                            </div>
+                          )}
+                        </div>
+                        <Textarea value={risk.analyst_rationale || ''} rows={6} disabled={isLocked} onChange={e => !isLocked && base44.entities.EngagementRisk.update(risk.id, { analyst_rationale: e.target.value })} placeholder="Professional consulting narrative for this risk..." />
                       </div>
                       <div className="mb-3">
                         <Label className="text-xs flex items-center gap-1">
@@ -441,6 +525,27 @@ export default function RisksTab({ engagement, isLocked }) {
                 <Button size="sm" variant="outline" onClick={() => addManualRisk(r)}>Add</Button>
               </div>
             ))}
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Narrative Dialog */}
+      <Dialog open={!!editNarrative} onOpenChange={() => setEditNarrative(null)}>
+        <DialogContent className="max-w-3xl">
+          <DialogHeader>
+            <DialogTitle>Edit Risk Narrative — {editNarrative?.risk?.risk_name}</DialogTitle>
+          </DialogHeader>
+          <Textarea 
+            value={editNarrative?.narrative || ''} 
+            onChange={e => setEditNarrative({ ...editNarrative, narrative: e.target.value })}
+            rows={16}
+            className="font-serif text-sm leading-relaxed"
+          />
+          <div className="flex justify-end gap-2">
+            <Button variant="outline" onClick={() => setEditNarrative(null)}>Cancel</Button>
+            <Button onClick={() => saveEditedNarrative(editNarrative.risk, editNarrative.narrative)}>
+              Save Narrative
+            </Button>
           </div>
         </DialogContent>
       </Dialog>
