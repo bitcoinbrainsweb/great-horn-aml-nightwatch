@@ -291,6 +291,7 @@ export default function EngagementDetail() {
                 {[
                   ['Client', engagement.client_name],
                   ['Type', engagement.engagement_type],
+                  ['Cycle Year', engagement.engagement_cycle_year || new Date().getFullYear()],
                   ['Methodology', engagement.methodology_name],
                   ['Priority', engagement.priority],
                   ['Analyst', engagement.assigned_analyst],
@@ -475,6 +476,10 @@ export default function EngagementDetail() {
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>{['Low', 'Medium', 'High', 'Critical'].map(p => <SelectItem key={p} value={p}>{p}</SelectItem>)}</SelectContent>
                 </Select>
+              </div>
+              <div>
+                <Label>Cycle Year</Label>
+                <Input type="number" value={form.engagement_cycle_year || new Date().getFullYear()} onChange={e => setForm({...form, engagement_cycle_year: Number(e.target.value)})} placeholder={String(new Date().getFullYear())} />
               </div>
               <div>
                 <Label>Methodology</Label>
