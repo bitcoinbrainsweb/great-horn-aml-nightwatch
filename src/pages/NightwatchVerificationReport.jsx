@@ -8,6 +8,7 @@ import VerificationReportA7364 from './VerificationReportA7364';
 import VerificationReportB6142 from './VerificationReportB6142';
 import VerificationReportU4827 from './VerificationReportU4827';
 import VerificationReportC4186 from './VerificationReportC4186';
+import VerificationReportH7314 from './VerificationReportH7314';
 
 // ── shared helpers ────────────────────────────────────────────────────────────
 
@@ -371,7 +372,24 @@ export default function NightwatchVerificationReport() {
 
       <div className="space-y-4">
 
-        {/* C4186 — most recent */}
+        {/* H7314 — most recent */}
+        <ReportCard
+          id="H7314"
+          name="Narrative Engine & Template Population — Consulting-Grade Report Quality"
+          date="2026-03-10"
+          scope="9-section implementation: 13 consulting-grade NarrativeTemplate records, structured narrative framework (Context/Observations/Risk Implication/Controls/Conclusion), Generate Narrative button for risks, template-anchored report generation, {{client_name}} placeholders, Evidence Considered blocks, AdminNarratives search/filter/preview UX."
+          statusLabel="✅ All Passed — Safe to Proceed"
+          statusColor="green"
+          badges={[
+            { label: 'Checks', value: 12, variant: 'neutral' },
+            { label: 'PASS', value: 12, variant: 'pass' },
+            { label: 'Templates', value: 13, variant: 'neutral' },
+          ]}
+        >
+          <VerificationReportH7314 />
+        </ReportCard>
+
+        {/* C4186 */}
         <ReportCard
           id="C4186"
           name="Manual Control Attachment for Risks — Analyst Workflow Enhancement"
