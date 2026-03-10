@@ -58,25 +58,79 @@ export default function ReportTab({ engagement }) {
   async function generateDraft() {
     setGenerating(true);
     setActionError('');
-    const [risks] = await Promise.all([
+    const [risks, controls, templates, intake] = await Promise.all([
       base44.entities.EngagementRisk.filter({ engagement_id: engagement.id }),
+      base44.entities.ControlAssessment.filter({ engagement_id: engagement.id }),
+      base44.entities.NarrativeTemplate.filter({ status: 'Active' }),
+      base44.entities.IntakeResponse.filter({ engagement_id: engagement.id })
     ]);
+    
     const highRisks = risks.filter(r => r.residual_risk_rating === 'High');
     const modRisks = risks.filter(r => r.residual_risk_rating === 'Moderate');
     const lowRisks = risks.filter(r => r.residual_risk_rating === 'Low');
-    const riskSummary = risks.map(r =>
-      `- ${r.risk_name} (${r.risk_category}): Inherent ${r.inherent_risk_rating || 'Not Rated'}, Controls ${r.overall_control_effectiveness || 'Not Assessed'}, Residual ${r.residual_risk_rating || 'Not Rated'}`
+    
+    const risksByCategory = risks.reduce((acc, r) => {
+      const cat = r.risk_category || 'Other';
+      if (!acc[cat]) acc[cat] = [];
+      acc[cat].push(r);
+      return acc;
+    }, {});
+
+    const riskNarratives = risks.filter(r => r.analyst_rationale).map(r =>
+      `${r.risk_name}: ${r.analyst_rationale}`
+    ).join('\n\n');
+
+    const controlEvidence = controls.filter(c => c.evidence_reference || c.testing_conclusion).map(c =>
+      `${c.control_name}: ${c.evidence_reference || ''} ${c.testing_conclusion || ''}`
     ).join('\n');
 
+    // Get templates by section
+    const templateMap = new Map(templates.map(t => [t.section, t]));
+    const getTemplate = (section) => templateMap.get(section)?.template_text?.replace(/{{client_name}}/g, engagement.client_name) || '';
+
     const prompt = `Generate a professional AML ${engagement.engagement_type} report for ${engagement.client_name}. 
-Methodology: ${engagement.methodology_name || 'Standard AML EWRA'}. 
-Total risks assessed: ${risks.length}. High residual: ${highRisks.length}. Moderate: ${modRisks.length}. Low: ${lowRisks.length}.
 
-Risk details:
-${riskSummary}
+IMPORTANT: Use the provided baseline templates as the foundation. Expand and customize based on engagement data, but maintain the professional consulting structure and tone.
 
-Generate these sections in JSON format with keys: "Executive Summary", "Methodology", "Risk Analysis", "Control Assessment", "Residual Risk Summary", "Recommendations".
-Each should be 2-4 paragraphs of professional compliance language. Use the client name and specific risk data provided.`;
+Methodology: ${engagement.methodology_name || 'Standard AML EWRA'}
+Total risks: ${risks.length} (High: ${highRisks.length}, Moderate: ${modRisks.length}, Low: ${lowRisks.length})
+
+Risk Categories Assessed: ${Object.keys(risksByCategory).join(', ')}
+
+${riskNarratives ? `Analyst Risk Narratives:\n${riskNarratives}\n` : ''}
+
+${controlEvidence ? `Evidence Considered:\n${controlEvidence}\n` : ''}
+
+Baseline Templates to Use and Expand:
+
+Executive Summary Template:
+${getTemplate('Executive Summary')}
+
+Methodology Template:
+${getTemplate('Methodology')}
+
+Risk Analysis Template:
+${getTemplate('Risk Analysis')}
+
+Control Assessment Template:
+${getTemplate('Control Assessment')}
+
+Residual Risk Summary Template:
+${getTemplate('Residual Risk Summary')}
+
+Recommendations Template:
+${getTemplate('Recommendations') || 'Provide recommendations based on residual risk findings.'}
+
+Generate each section by starting with the template content, then expanding with specific data about ${engagement.client_name}'s risk profile, control environment, and residual risks. Use the structured format:
+- Context
+- Observations
+- Risk Implication
+- Controls and Mitigation  
+- Conclusion
+
+Reference ${engagement.client_name} by name throughout, not "the organization".
+
+Return JSON with keys: "Executive Summary", "Methodology", "Risk Analysis", "Control Assessment", "Residual Risk Summary", "Recommendations".`;
 
     const result = await base44.integrations.Core.InvokeLLM({
       prompt,
