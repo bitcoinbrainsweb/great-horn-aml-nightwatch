@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
-import { Search, BookOpen, Shield, Users, FileStack, BarChart2, Settings, FileText, Cog, ClipboardList, HelpCircle, Zap, ChevronRight, FlaskConical } from 'lucide-react';
+import { Search, BookOpen, Shield, Users, FileStack, BarChart2, Settings, FileText, Cog, ClipboardList, HelpCircle, Zap, ChevronRight, FlaskConical, Building, Library, Activity } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import PageHeader from '../components/ui/PageHeader';
 
