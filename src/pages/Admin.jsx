@@ -26,7 +26,7 @@ const ADMIN_SECTIONS = [
 ];
 
 const SUPERADMIN_SECTIONS = [
-  { name: 'Publish NW-UPGRADE-013 Record', description: 'Generate and publish verification record', icon: FlaskConical, page: 'PublishNW013', color: 'bg-purple-50 text-purple-600' },
+  { name: 'NW-UPGRADE-014 Delivery Gate', description: 'Change control architecture redesign verification', icon: FlaskConical, page: 'NW014DeliveryGateSummary', color: 'bg-emerald-50 text-emerald-600' },
   { name: 'Test Scenario Generator', description: 'Generate fictional test data for internal QA', icon: FlaskConical, page: 'AdminTestScenarios', color: 'bg-rose-50 text-rose-600' },
 ];
 
