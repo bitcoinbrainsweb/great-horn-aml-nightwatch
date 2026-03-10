@@ -49,6 +49,7 @@
  */
 import Admin from './pages/Admin';
 import AdminAuditLog from './pages/AdminAuditLog';
+import AdminChangeManagement from './pages/AdminChangeManagement';
 import AdminControlLibrary from './pages/AdminControlLibrary';
 import AdminGovernance from './pages/AdminGovernance';
 import AdminGovernanceDocumentation from './pages/AdminGovernanceDocumentation';
@@ -80,6 +81,7 @@ import ImplementationSummary from './pages/ImplementationSummary';
 import InfrastructureLayerOverview from './pages/InfrastructureLayerOverview';
 import LibraryReviewDashboard from './pages/LibraryReviewDashboard';
 import NW010DeliveryGateSummary from './pages/NW010DeliveryGateSummary';
+import NW013DeliveryGateFinal from './pages/NW013DeliveryGateFinal';
 import NightwatchAuditReport from './pages/NightwatchAuditReport';
 import NightwatchV09DeliveryGateSummary from './pages/NightwatchV09DeliveryGateSummary';
 import NightwatchV09InternalAudit from './pages/NightwatchV09InternalAudit';
@@ -97,22 +99,21 @@ import NightwatchV18DeliveryGateSummary from './pages/NightwatchV18DeliveryGateS
 import NightwatchV18InternalAudit from './pages/NightwatchV18InternalAudit';
 import NightwatchV18Summary from './pages/NightwatchV18Summary';
 import NightwatchV18VerificationReport from './pages/NightwatchV18VerificationReport';
+import PageInventoryAudit from './pages/PageInventoryAudit';
 import PromptTemplateSystemSummary from './pages/PromptTemplateSystemSummary';
+import PublishNW013 from './pages/PublishNW013';
 import RegressionTestDashboard from './pages/RegressionTestDashboard';
 import ReportPublicationDebug from './pages/ReportPublicationDebug';
 import Reports from './pages/Reports';
 import ReviewerDashboard from './pages/ReviewerDashboard';
 import Tasks from './pages/Tasks';
-import PageInventoryAudit from './pages/PageInventoryAudit';
-import AdminChangeManagement from './pages/AdminChangeManagement';
-import PublishNW013 from './pages/PublishNW013';
-import NW013DeliveryGateFinal from './pages/NW013DeliveryGateFinal';
 import __Layout from './Layout.jsx';
 
 
 export const PAGES = {
     "Admin": Admin,
     "AdminAuditLog": AdminAuditLog,
+    "AdminChangeManagement": AdminChangeManagement,
     "AdminControlLibrary": AdminControlLibrary,
     "AdminGovernance": AdminGovernance,
     "AdminGovernanceDocumentation": AdminGovernanceDocumentation,
@@ -144,6 +145,7 @@ export const PAGES = {
     "InfrastructureLayerOverview": InfrastructureLayerOverview,
     "LibraryReviewDashboard": LibraryReviewDashboard,
     "NW010DeliveryGateSummary": NW010DeliveryGateSummary,
+    "NW013DeliveryGateFinal": NW013DeliveryGateFinal,
     "NightwatchAuditReport": NightwatchAuditReport,
     "NightwatchV09DeliveryGateSummary": NightwatchV09DeliveryGateSummary,
     "NightwatchV09InternalAudit": NightwatchV09InternalAudit,
@@ -161,16 +163,14 @@ export const PAGES = {
     "NightwatchV18InternalAudit": NightwatchV18InternalAudit,
     "NightwatchV18Summary": NightwatchV18Summary,
     "NightwatchV18VerificationReport": NightwatchV18VerificationReport,
+    "PageInventoryAudit": PageInventoryAudit,
     "PromptTemplateSystemSummary": PromptTemplateSystemSummary,
+    "PublishNW013": PublishNW013,
     "RegressionTestDashboard": RegressionTestDashboard,
     "ReportPublicationDebug": ReportPublicationDebug,
     "Reports": Reports,
     "ReviewerDashboard": ReviewerDashboard,
     "Tasks": Tasks,
-    "PageInventoryAudit": PageInventoryAudit,
-    "AdminChangeManagement": AdminChangeManagement,
-    "PublishNW013": PublishNW013,
-    "NW013DeliveryGateFinal": NW013DeliveryGateFinal,
 }
 
 export const pagesConfig = {

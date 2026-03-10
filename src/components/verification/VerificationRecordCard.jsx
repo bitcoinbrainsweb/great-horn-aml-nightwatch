@@ -56,7 +56,7 @@ export default function VerificationRecordCard({ record }) {
             <span className="font-mono">{record.upgrade_id}</span>
             <span className="font-mono">{record.product_version}</span>
             <span>
-              {record.published_at ? format(new Date(record.published_at), 'MMM d, yyyy') : '—'}
+              Published: {record.published_at ? format(new Date(record.published_at), 'MMM d, yyyy HH:mm') : '—'}
             </span>
             {totalTests > 0 && (
               <span className={isPassed ? 'text-emerald-700 font-semibold' : 'text-red-700 font-semibold'}>
