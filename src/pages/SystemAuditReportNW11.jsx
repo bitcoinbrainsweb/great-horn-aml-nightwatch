@@ -6,6 +6,68 @@ import { AlertTriangle, CheckCircle2, AlertCircle, Zap } from 'lucide-react';
  * Generated: 2026-03-10 11:45 AM
  */
 
+function Section({ children, accent }) {
+  const colors = {
+    amber: 'border-amber-200 bg-amber-50',
+    blue: 'border-blue-200 bg-blue-50'
+  };
+  const accentClass = accent ? colors[accent] : 'border-slate-200 bg-white';
+  
+  return (
+    <div className={`rounded-xl border ${accentClass} p-6`}>
+      {children}
+    </div>
+  );
+}
+
+function DetailedFinding({ title, children }) {
+  return (
+    <div className="rounded-xl border border-slate-200 bg-white p-6">
+      <h2 className="text-lg font-bold text-slate-900 mb-4 flex items-center gap-2">
+        <Zap className="w-5 h-5 text-blue-600" />
+        {title}
+      </h2>
+      <div className="space-y-4">
+        {children}
+      </div>
+    </div>
+  );
+}
+
+function DetailSection({ title, children }) {
+  return (
+    <div>
+      <h3 className="text-sm font-semibold text-slate-900 mb-2">{title}</h3>
+      {children}
+    </div>
+  );
+}
+
+function RemediationItem({ issue, fix, impact }) {
+  return (
+    <div className="p-4 bg-slate-50 rounded-lg border border-slate-200">
+      <div className="font-semibold text-slate-900 mb-1">❌ {issue}</div>
+      <div className="text-sm text-slate-700 mb-2">✅ {fix}</div>
+      <div className="text-xs text-green-700 font-medium">Impact: {impact}</div>
+    </div>
+  );
+}
+
+function FixCard({ priority, fix, effort, timeline, impact }) {
+  return (
+    <div className="p-4 bg-slate-50 rounded-lg border border-slate-200">
+      <div className="flex items-start justify-between mb-2">
+        <div className="font-semibold text-slate-900">#{priority} {fix}</div>
+      </div>
+      <div className="text-xs text-slate-700 space-y-1">
+        <div><strong>Effort:</strong> {effort}</div>
+        <div><strong>Timeline:</strong> {timeline}</div>
+        <div><strong>Impact:</strong> {impact}</div>
+      </div>
+    </div>
+  );
+}
+
 export default function SystemAuditReportNW11() {
   return (
     <div className="max-w-6xl mx-auto space-y-6">
@@ -249,68 +311,6 @@ export default function SystemAuditReportNW11() {
         <p className="text-green-800 leading-relaxed">
           <strong>Recommendation:</strong> Proceed with expanded testing and performance evaluation. Target 1-2 weeks to full production readiness with completion of remaining priority fixes.
         </p>
-      </div>
-    </div>
-  );
-}
-
-function Section({ children, accent }) {
-  const colors = {
-    amber: 'border-amber-200 bg-amber-50',
-    blue: 'border-blue-200 bg-blue-50'
-  };
-  const accentClass = accent ? colors[accent] : 'border-slate-200 bg-white';
-  
-  return (
-    <div className={`rounded-xl border ${accentClass} p-6`}>
-      {children}
-    </div>
-  );
-}
-
-function DetailedFinding({ title, children }) {
-  return (
-    <div className="rounded-xl border border-slate-200 bg-white p-6">
-      <h2 className="text-lg font-bold text-slate-900 mb-4 flex items-center gap-2">
-        <Zap className="w-5 h-5 text-blue-600" />
-        {title}
-      </h2>
-      <div className="space-y-4">
-        {children}
-      </div>
-    </div>
-  );
-}
-
-function DetailSection({ title, children }) {
-  return (
-    <div>
-      <h3 className="text-sm font-semibold text-slate-900 mb-2">{title}</h3>
-      {children}
-    </div>
-  );
-}
-
-function RemediationItem({ issue, fix, impact }) {
-  return (
-    <div className="p-4 bg-slate-50 rounded-lg border border-slate-200">
-      <div className="font-semibold text-slate-900 mb-1">❌ {issue}</div>
-      <div className="text-sm text-slate-700 mb-2">✅ {fix}</div>
-      <div className="text-xs text-green-700 font-medium">Impact: {impact}</div>
-    </div>
-  );
-}
-
-function FixCard({ priority, fix, effort, timeline, impact }) {
-  return (
-    <div className="p-4 bg-slate-50 rounded-lg border border-slate-200">
-      <div className="flex items-start justify-between mb-2">
-        <div className="font-semibold text-slate-900">#{priority} {fix}</div>
-      </div>
-      <div className="text-xs text-slate-700 space-y-1">
-        <div><strong>Effort:</strong> {effort}</div>
-        <div><strong>Timeline:</strong> {timeline}</div>
-        <div><strong>Impact:</strong> {impact}</div>
       </div>
     </div>
   );
