@@ -15,10 +15,18 @@ export default function VerificationRecordCard({ record }) {
     content = {};
   }
 
+  let metadata = {};
+  try {
+    metadata = record.metadata && typeof record.metadata === 'string' ? JSON.parse(record.metadata) : (record.metadata || {});
+  } catch (e) {
+    metadata = {};
+  }
+
   const gateResults = content.delivery_gate_results || {};
   const passedTests = Object.values(gateResults).filter(t => t.status === 'pass').length;
   const totalTests = Object.keys(gateResults).length;
   const isPassed = passedTests === totalTests && totalTests > 0;
+  const isLegacy = metadata.is_legacy || false;
 
   const downloadRecord = async () => {
     const markdown = generateMarkdown(record, content, passedTests, totalTests);
@@ -51,12 +59,18 @@ export default function VerificationRecordCard({ record }) {
 
         {/* Main Content */}
         <div className="flex-1 text-left min-w-0">
-          <h3 className="font-semibold text-slate-900 text-sm">{content.title || record.outputName}</h3>
+          <div className="flex items-center gap-2 mb-1">
+            <h3 className="font-semibold text-slate-900 text-sm">{content.title || record.outputName}</h3>
+            {isLegacy && (
+              <span className="px-2 py-0.5 bg-amber-100 text-amber-800 text-[10px] font-semibold rounded">Legacy</span>
+            )}
+          </div>
           <div className="flex flex-wrap items-center gap-3 mt-2 text-xs text-slate-600">
             <span className="font-mono">{record.upgrade_id}</span>
             <span className="font-mono">{record.product_version}</span>
             <span>
               Published: {record.published_at ? format(new Date(record.published_at), 'MMM d, yyyy HH:mm') : '—'}
+              {isLegacy && metadata.timestamp_source === 'backfill' && <span className="text-slate-400 ml-1">(backfilled)</span>}
             </span>
             {totalTests > 0 && (
               <span className={isPassed ? 'text-emerald-700 font-semibold' : 'text-red-700 font-semibold'}>
@@ -143,10 +157,16 @@ export default function VerificationRecordCard({ record }) {
           )}
 
           {/* Metadata */}
-          <div className="text-xs text-slate-500 pt-2 border-t border-slate-200">
+          <div className="text-xs text-slate-500 pt-2 border-t border-slate-200 space-y-1">
             <p><strong>Source Module:</strong> {record.source_module}</p>
             <p><strong>Classification:</strong> {record.classification}</p>
             <p><strong>Status:</strong> {record.status}</p>
+            {isLegacy && (
+              <>
+                <p className="text-amber-700 font-semibold">⚠ Legacy: {metadata.legacy_note || 'Historical backfilled artifact'}</p>
+                <p><strong>Timestamp Source:</strong> {metadata.timestamp_source || 'unknown'}</p>
+              </>
+            )}
           </div>
         </div>
       )}
