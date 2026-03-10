@@ -40,10 +40,23 @@ export default function Layout({ children, currentPageName }) {
       setAccessDenied(true);
       return;
     }
+    // Check invitation
+    const invitations = await base44.entities.UserInvitation.filter({ email: me.email });
+    const validInvite = invitations.find(i => ['Pending', 'Active'].includes(i.status));
+    if (!validInvite) {
+      setAccessDenied(true);
+      setNeedsInvite(true);
+      return;
+    }
+    // Activate invite if pending
+    if (validInvite.status === 'Pending') {
+      await base44.entities.UserInvitation.update(validInvite.id, { status: 'Active' });
+    }
     // Auto-assign role on first login
     if (!me.role || me.role === 'user') {
-      let newRole = 'reviewer';
-      if (me.email === 'amanda@greathornaml.com') newRole = 'super_admin';
+      let newRole = validInvite.role || 'reviewer';
+      // Amanda auto-maps to compliance_admin
+      if (me.email === 'amanda@greathornaml.com' && newRole === 'reviewer') newRole = 'compliance_admin';
       await base44.auth.updateMe({ role: newRole });
       const updated = await base44.auth.me();
       setUser(updated);
@@ -87,11 +100,11 @@ export default function Layout({ children, currentPageName }) {
   }
 
   const roleName = {
-    super_admin: 'Super Admin',
+    super_admin: 'Technical Admin',
     compliance_admin: 'Compliance Admin',
     analyst: 'Analyst',
     reviewer: 'Reviewer',
-    admin: 'Super Admin',
+    admin: 'Technical Admin',
     user: 'Analyst'
   }[user.role] || 'Analyst';
 
