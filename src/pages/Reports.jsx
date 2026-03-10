@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
-import { Search, FileBarChart, Zap } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { Search, FileBarChart } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import PageHeader from '../components/ui/PageHeader';
@@ -33,17 +32,9 @@ export default function Reports() {
     return <div className="flex items-center justify-center h-64"><div className="w-8 h-8 border-2 border-slate-300 border-t-slate-800 rounded-full animate-spin" /></div>;
   }
 
-  const viewDiagnostic = () => {
-    window.location.href = createPageUrl('NW010BRoutingDiagnostic');
-  };
-
   return (
     <div>
-      <PageHeader title="Reports" subtitle={`${reports.length} published reports`}>
-        <Button onClick={viewDiagnostic} variant="outline" size="sm" className="gap-2">
-          <Zap className="w-4 h-4" /> Why Reports Route Here
-        </Button>
-      </PageHeader>
+      <PageHeader title="Reports" subtitle={`${reports.length} published reports`} />
 
       <div className="flex flex-col sm:flex-row gap-3 mb-6">
         <div className="relative flex-1 max-w-sm">

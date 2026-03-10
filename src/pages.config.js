@@ -98,8 +98,6 @@ import NightwatchV18InternalAudit from './pages/NightwatchV18InternalAudit';
 import NightwatchV18Summary from './pages/NightwatchV18Summary';
 import NightwatchV18VerificationReport from './pages/NightwatchV18VerificationReport';
 import NightwatchVerificationReport from './pages/NightwatchVerificationReport';
-import OutputClassificationDebug from './pages/OutputClassificationDebug';
-import OutputClassificationSummary from './pages/OutputClassificationSummary';
 import PromptTemplateSystemSummary from './pages/PromptTemplateSystemSummary';
 import RegressionTestDashboard from './pages/RegressionTestDashboard';
 import ReportPublicationDebug from './pages/ReportPublicationDebug';
@@ -116,7 +114,6 @@ import VerificationReportH7314 from './pages/VerificationReportH7314';
 import VerificationReportM4827 from './pages/VerificationReportM4827';
 import VerificationReportNW11 from './pages/VerificationReportNW11';
 import VerificationReportU4827 from './pages/VerificationReportU4827';
-import NW010BRoutingDiagnostic from './pages/NW010BRoutingDiagnostic';
 import __Layout from './Layout.jsx';
 
 
@@ -172,8 +169,6 @@ export const PAGES = {
     "NightwatchV18Summary": NightwatchV18Summary,
     "NightwatchV18VerificationReport": NightwatchV18VerificationReport,
     "NightwatchVerificationReport": NightwatchVerificationReport,
-    "OutputClassificationDebug": OutputClassificationDebug,
-    "OutputClassificationSummary": OutputClassificationSummary,
     "PromptTemplateSystemSummary": PromptTemplateSystemSummary,
     "RegressionTestDashboard": RegressionTestDashboard,
     "ReportPublicationDebug": ReportPublicationDebug,
@@ -190,7 +185,6 @@ export const PAGES = {
     "VerificationReportM4827": VerificationReportM4827,
     "VerificationReportNW11": VerificationReportNW11,
     "VerificationReportU4827": VerificationReportU4827,
-    "NW010BRoutingDiagnostic": NW010BRoutingDiagnostic,
 }
 
 export const pagesConfig = {
