@@ -525,7 +525,6 @@ export default function VerificationReportA1847() {
         </div>
       </div>
 
-      <p className="text-xs text-slate-400 text-center pb-4">Nightwatch Post-Upgrade Verification Suite A1847 · Great Horn AML · 2026-03-10</p>
     </div>
   );
 }
