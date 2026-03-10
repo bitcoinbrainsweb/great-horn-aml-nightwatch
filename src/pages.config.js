@@ -68,12 +68,13 @@ import Engagements from './pages/Engagements';
 import Help from './pages/Help';
 import NightwatchVerificationReport from './pages/NightwatchVerificationReport';
 import Reports from './pages/Reports';
+import ReviewerDashboard from './pages/ReviewerDashboard';
 import Tasks from './pages/Tasks';
 import VerificationReportA1847 from './pages/VerificationReportA1847';
-import VerificationReportM4827 from './pages/VerificationReportM4827';
 import VerificationReportA7364 from './pages/VerificationReportA7364';
-import ReviewerDashboard from './pages/ReviewerDashboard';
 import VerificationReportB6142 from './pages/VerificationReportB6142';
+import VerificationReportM4827 from './pages/VerificationReportM4827';
+import LibraryReviewDashboard from './pages/LibraryReviewDashboard';
 import __Layout from './Layout.jsx';
 
 
@@ -99,12 +100,13 @@ export const PAGES = {
     "Help": Help,
     "NightwatchVerificationReport": NightwatchVerificationReport,
     "Reports": Reports,
+    "ReviewerDashboard": ReviewerDashboard,
     "Tasks": Tasks,
     "VerificationReportA1847": VerificationReportA1847,
-    "VerificationReportM4827": VerificationReportM4827,
     "VerificationReportA7364": VerificationReportA7364,
-    "ReviewerDashboard": ReviewerDashboard,
     "VerificationReportB6142": VerificationReportB6142,
+    "VerificationReportM4827": VerificationReportM4827,
+    "LibraryReviewDashboard": LibraryReviewDashboard,
 }
 
 export const pagesConfig = {
