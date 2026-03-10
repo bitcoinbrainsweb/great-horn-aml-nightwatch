@@ -17,7 +17,7 @@ Deno.serve(async (req) => {
       details: `Found ${contracts.length} active contracts`
     });
 
-    const contractIds = contracts.map(c => c.data.contractId);
+    const contractIds = contracts.map(c => c.data?.contractId || c.contractId).filter(Boolean);
     const requiredContracts = [
       'RiskNarrative',
       'ControlAnalysis',
@@ -43,7 +43,7 @@ Deno.serve(async (req) => {
       details: `Found ${templates.length} active templates`
     });
 
-    const templateIds = templates.map(t => t.data.templateId);
+    const templateIds = templates.map(t => t.data?.templateId || t.templateId).filter(Boolean);
     const requiredTemplates = [
       'RiskNarrativeTemplate_v1',
       'ControlAnalysisTemplate_v1',
@@ -63,8 +63,8 @@ Deno.serve(async (req) => {
 
     // 3. Check contract-template linkage
     for (const template of templates) {
-      const contractId = template.data.contractId;
-      const linkedContract = contracts.find(c => c.data.contractId === contractId);
+      const contractId = template.data?.contractId || template.contractId;
+      const linkedContract = contracts.find(c => (c.data?.contractId || c.contractId) === contractId);
       const linked = !!linkedContract;
       results.checks.push({
         name: `Template linked to contract: ${template.data.templateId}`,
@@ -151,9 +151,9 @@ Deno.serve(async (req) => {
     }
 
     // 7. Verify template placeholder substitution
-    const sampleTemplate = templates.find(t => t.data.templateId === 'RiskNarrativeTemplate_v1');
+    const sampleTemplate = templates.find(t => (t.data?.templateId || t.templateId) === 'RiskNarrativeTemplate_v1');
     if (sampleTemplate) {
-      const bodyHasPlaceholders = sampleTemplate.data.templateBody.includes('{{');
+      const bodyHasPlaceholders = (sampleTemplate.data?.templateBody || sampleTemplate.templateBody || '').includes('{{');
       results.checks.push({
         name: 'Templates contain placeholders',
         passed: bodyHasPlaceholders,
@@ -163,13 +163,15 @@ Deno.serve(async (req) => {
 
     // 8. Verify contracts reference only contract fields
     for (const contract of contracts) {
-      const inputSchema = JSON.parse(contract.data.inputSchema || '{}');
+      const inputSchemaStr = contract.data?.inputSchema || contract.inputSchema || '{}';
+      const inputSchema = JSON.parse(inputSchemaStr);
       const properties = inputSchema.properties || {};
       const fieldCount = Object.keys(properties).length;
       const acceptsAdditional = inputSchema.additionalProperties !== false;
 
+      const contractIdDisplay = contract.data?.contractId || contract.contractId;
       results.checks.push({
-        name: `Contract ${contract.data.contractId} enforces strict schema`,
+        name: `Contract ${contractIdDisplay} enforces strict schema`,
         passed: !acceptsAdditional && fieldCount > 0,
         details: `${fieldCount} allowed fields, additionalProperties: ${acceptsAdditional}`
       });
@@ -184,11 +186,11 @@ Deno.serve(async (req) => {
     ];
 
     for (const funcName of generationFunctions) {
-      const contract = contracts.find(c => c.data.generatorFunction === funcName);
+      const contract = contracts.find(c => (c.data?.generatorFunction || c.generatorFunction) === funcName);
       results.checks.push({
         name: `Generation function registered: ${funcName}`,
         passed: !!contract,
-        details: contract ? `Bound to ${contract.data.contractId}` : 'Not found'
+        details: contract ? `Bound to ${contract.data?.contractId || contract.contractId}` : 'Not found'
       });
     }
 
