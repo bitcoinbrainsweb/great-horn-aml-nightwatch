@@ -10,6 +10,7 @@ import { RiskBadge } from '../ui/RiskBadge';
 import { calculateControlEffectiveness, calculateResidualRisk } from '../scoring/riskScoringEngine';
 import { ChevronDown, ChevronRight, Save, Paperclip } from 'lucide-react';
 import InfoTooltip from '../ui/InfoTooltip';
+import { logAudit } from '../util/auditLog';
 
 export default function ControlsTab({ engagement }) {
   const [engRisks, setEngRisks] = useState([]);
@@ -18,6 +19,7 @@ export default function ControlsTab({ engagement }) {
   const [riskLibrary, setRiskLibrary] = useState([]);
   const [expandedRisk, setExpandedRisk] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [user, setUser] = useState(null);
 
   useEffect(() => { loadData(); }, [engagement.id]);
 

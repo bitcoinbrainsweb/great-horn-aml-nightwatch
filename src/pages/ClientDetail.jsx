@@ -13,6 +13,7 @@ import PageHeader from '../components/ui/PageHeader';
 import { StatusBadge, RiskBadge } from '../components/ui/RiskBadge';
 import EmptyState from '../components/ui/EmptyState';
 import { format } from 'date-fns';
+import { logAudit } from '../components/util/auditLog';
 
 export default function ClientDetail() {
   const urlParams = new URLSearchParams(window.location.search);
@@ -26,6 +27,7 @@ export default function ClientDetail() {
   const [editing, setEditing] = useState(false);
   const [form, setForm] = useState({});
   const [users, setUsers] = useState([]);
+  const [user, setUser] = useState(null);
 
   useEffect(() => { if (clientId) loadData(); }, [clientId]);
 
