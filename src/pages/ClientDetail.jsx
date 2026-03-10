@@ -111,7 +111,7 @@ export default function ClientDetail() {
         </Button>
       </div>
 
-      <Tabs defaultValue="overview" className="space-y-6">
+      <Tabs defaultValue="compliance" className="space-y-6">
         <TabsList>
           <TabsTrigger value="compliance">Compliance Overview</TabsTrigger>
           <TabsTrigger value="overview">Details</TabsTrigger>
