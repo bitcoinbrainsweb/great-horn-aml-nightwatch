@@ -166,12 +166,36 @@ Each should be 2-4 paragraphs of professional compliance language. Use the clien
       integrity_seal: seal,
     });
     setReport(r => ({ ...r, status: 'Finalized', integrity_seal: seal }));
+
+    // Create immutable engagement snapshot
+    await base44.entities.EngagementSnapshot.create({
+      engagement_id: engagement.id,
+      snapshot_date: new Date().toISOString().split('T')[0],
+      created_by: user?.email,
+      client_name: engagement.client_name,
+      engagement_type: engagement.engagement_type,
+      methodology_name: engagement.methodology_name,
+      overall_risk_rating: engagement.overall_risk_rating,
+      reviewer_email: engagement.assigned_reviewer,
+      integrity_seal: seal,
+      risks_json: JSON.stringify(risks.map(r => ({ name: r.risk_name, category: r.risk_category, inherent: r.inherent_risk_rating, residual: r.residual_risk_rating, justification: r.score_justification }))),
+      controls_json: JSON.stringify(controls.map(c => ({ name: c.control_name, category: c.control_category, rating: c.control_rating, present: c.control_present }))),
+      report_sections_json: JSON.stringify(sections),
+    });
+
     await logAudit({
       userEmail: user?.email,
       objectType: 'Report',
       objectId: report.id,
       action: 'report_finalized',
-      details: `Report finalized for ${engagement.client_name}. Integrity seal: ${seal}. Engagement locked.`,
+      details: `Report finalized for ${engagement.client_name}. Integrity seal: ${seal}. Engagement locked. Snapshot created.`,
+    });
+    await logAudit({
+      userEmail: user?.email,
+      objectType: 'EngagementSnapshot',
+      objectId: engagement.id,
+      action: 'snapshot_created',
+      details: `Immutable snapshot created on finalization for ${engagement.client_name}. Seal: ${seal}.`,
     });
   }
 
