@@ -102,17 +102,7 @@ import RegressionTestDashboard from './pages/RegressionTestDashboard';
 import ReportPublicationDebug from './pages/ReportPublicationDebug';
 import Reports from './pages/Reports';
 import ReviewerDashboard from './pages/ReviewerDashboard';
-import SystemAuditReportH7314 from './pages/SystemAuditReportH7314';
-import SystemAuditReportNW11 from './pages/SystemAuditReportNW11';
 import Tasks from './pages/Tasks';
-import VerificationReportA1847 from './pages/VerificationReportA1847';
-import VerificationReportA7364 from './pages/VerificationReportA7364';
-import VerificationReportB6142 from './pages/VerificationReportB6142';
-import VerificationReportC4186 from './pages/VerificationReportC4186';
-import VerificationReportH7314 from './pages/VerificationReportH7314';
-import VerificationReportM4827 from './pages/VerificationReportM4827';
-import VerificationReportNW11 from './pages/VerificationReportNW11';
-import VerificationReportU4827 from './pages/VerificationReportU4827';
 import PageInventoryAudit from './pages/PageInventoryAudit';
 import __Layout from './Layout.jsx';
 
@@ -173,17 +163,7 @@ export const PAGES = {
     "ReportPublicationDebug": ReportPublicationDebug,
     "Reports": Reports,
     "ReviewerDashboard": ReviewerDashboard,
-    "SystemAuditReportH7314": SystemAuditReportH7314,
-    "SystemAuditReportNW11": SystemAuditReportNW11,
     "Tasks": Tasks,
-    "VerificationReportA1847": VerificationReportA1847,
-    "VerificationReportA7364": VerificationReportA7364,
-    "VerificationReportB6142": VerificationReportB6142,
-    "VerificationReportC4186": VerificationReportC4186,
-    "VerificationReportH7314": VerificationReportH7314,
-    "VerificationReportM4827": VerificationReportM4827,
-    "VerificationReportNW11": VerificationReportNW11,
-    "VerificationReportU4827": VerificationReportU4827,
     "PageInventoryAudit": PageInventoryAudit,
 }
 
