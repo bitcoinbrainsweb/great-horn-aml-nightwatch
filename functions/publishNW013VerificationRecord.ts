@@ -142,7 +142,7 @@ Deno.serve(async (req) => {
 
     return Response.json({
       success: true,
-      recordId: record.id,
+      recordId: publishedRecord.id,
       recordName: recordName,
       message: 'NW-UPGRADE-013 verification record published successfully',
       location: 'Admin -> Change Management'
