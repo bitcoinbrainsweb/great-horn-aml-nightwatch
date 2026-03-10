@@ -90,6 +90,21 @@ export default function ControlsTab({ engagement }) {
     }
     
     await base44.entities.ControlAssessment.update(controlId, data);
+
+    const changedFields = Object.keys(updates);
+    const oldValues = changedFields.map(k => `${k}: ${ctrl?.[k] ?? ''}`).join('; ');
+    const newValues = changedFields.map(k => `${k}: ${updates[k]}`).join('; ');
+    await logAudit({
+      userEmail: user?.email,
+      objectType: 'ControlAssessment',
+      objectId: controlId,
+      action: 'updated',
+      fieldChanged: changedFields.join(', '),
+      oldValue: oldValues,
+      newValue: newValues,
+      details: `Control "${ctrl?.control_name}" updated on risk in engagement ${engagement.id}`,
+    });
+
     await loadData();
   }
 
@@ -111,6 +126,16 @@ export default function ControlsTab({ engagement }) {
       design_adequacy_rating: overallCtrl,
       overall_control_effectiveness: overallCtrl,
       residual_risk_rating: residual
+    });
+    await logAudit({
+      userEmail: user?.email,
+      objectType: 'EngagementRisk',
+      objectId: risk.id,
+      action: 'residual_calculated',
+      fieldChanged: 'residual_risk_rating, overall_control_effectiveness',
+      oldValue: `residual: ${risk.residual_risk_rating ?? 'unset'}`,
+      newValue: `residual: ${residual}, controls: ${overallCtrl}`,
+      details: `Residual risk calculated for "${risk.risk_name}": inherent ${risk.inherent_risk_rating} + controls ${overallCtrl} = ${residual}`,
     });
     await loadData();
   }
