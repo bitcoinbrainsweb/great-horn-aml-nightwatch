@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Textarea } from '@/components/ui/textarea';
 import { CheckCircle2, Circle, Save, Lock } from 'lucide-react';
 
-export default function IntakeTab({ engagement }) {
+export default function IntakeTab({ engagement, isLocked }) {
   const [sections, setSections] = useState({});
   const [savedSections, setSavedSections] = useState({});
   const [activeSection, setActiveSection] = useState(null);
@@ -67,6 +67,13 @@ export default function IntakeTab({ engagement }) {
   const currentSection = filteredSections.find(s => s.id === activeSection);
 
   return (
+    <div className="space-y-4">
+    {isLocked && (
+      <div className="flex items-center gap-2 p-3 bg-slate-100 border border-slate-300 rounded-lg text-sm text-slate-600">
+        <Lock className="w-4 h-4 flex-shrink-0 text-slate-500" />
+        This engagement is locked. Intake responses are read-only.
+      </div>
+    )}
     <div className="flex gap-6">
       {/* Section nav */}
       <div className="w-64 flex-shrink-0 hidden lg:block">
@@ -109,9 +116,11 @@ export default function IntakeTab({ engagement }) {
           <div className="bg-white rounded-xl border border-slate-200/60 p-6">
             <div className="flex items-center justify-between mb-6">
               <h3 className="text-lg font-semibold text-slate-900">{currentSection.title}</h3>
-              <Button onClick={() => saveSection(currentSection.id)} disabled={saving} className="gap-2 bg-slate-900 hover:bg-slate-800">
-                <Save className="w-4 h-4" /> {saving ? 'Saving...' : 'Save Section'}
-              </Button>
+              {!isLocked && (
+                <Button onClick={() => saveSection(currentSection.id)} disabled={saving} className="gap-2 bg-slate-900 hover:bg-slate-800">
+                  <Save className="w-4 h-4" /> {saving ? 'Saving...' : 'Save Section'}
+                </Button>
+              )}
             </div>
             <div className="space-y-4">
               {currentSection.questions.map(q => {
@@ -121,22 +130,22 @@ export default function IntakeTab({ engagement }) {
                     <Label className="text-sm">{q.label}</Label>
                     {q.type === 'boolean' ? (
                       <div className="flex items-center gap-3">
-                        <Switch checked={value === true || value === 'yes'} onCheckedChange={v => updateField(currentSection.id, q.key, v)} />
+                        <Switch checked={value === true || value === 'yes'} onCheckedChange={v => !isLocked && updateField(currentSection.id, q.key, v)} disabled={isLocked} />
                         <span className="text-sm text-slate-600">{value === true || value === 'yes' ? 'Yes' : 'No'}</span>
                       </div>
                     ) : q.type === 'select' ? (
-                      <Select value={value || ''} onValueChange={v => updateField(currentSection.id, q.key, v)}>
+                      <Select value={value || ''} onValueChange={v => updateField(currentSection.id, q.key, v)} disabled={isLocked}>
                         <SelectTrigger><SelectValue placeholder="Select..." /></SelectTrigger>
                         <SelectContent>
                           {q.options.map(o => <SelectItem key={o} value={o}>{o}</SelectItem>)}
                         </SelectContent>
                       </Select>
                     ) : q.type === 'textarea' ? (
-                      <Textarea value={value || ''} onChange={e => updateField(currentSection.id, q.key, e.target.value)} rows={3} />
+                      <Textarea value={value || ''} onChange={e => updateField(currentSection.id, q.key, e.target.value)} rows={3} disabled={isLocked} />
                     ) : q.type === 'number' ? (
-                      <Input type="number" value={value || ''} onChange={e => updateField(currentSection.id, q.key, e.target.value)} />
+                      <Input type="number" value={value || ''} onChange={e => updateField(currentSection.id, q.key, e.target.value)} disabled={isLocked} />
                     ) : (
-                      <Input value={value || ''} onChange={e => updateField(currentSection.id, q.key, e.target.value)} />
+                      <Input value={value || ''} onChange={e => updateField(currentSection.id, q.key, e.target.value)} disabled={isLocked} />
                     )}
                   </div>
                 );
