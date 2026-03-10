@@ -1,8 +1,8 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.20';
-import crypto from 'crypto';
 
 function generateHash(inputs) {
-  return crypto.createHash('sha256').update(JSON.stringify(inputs)).digest('hex').slice(0, 16);
+  const str = JSON.stringify(inputs);
+  return btoa(String.fromCharCode.apply(null, new TextEncoder().encode(str))).slice(0, 16);
 }
 
 Deno.serve(async (req) => {

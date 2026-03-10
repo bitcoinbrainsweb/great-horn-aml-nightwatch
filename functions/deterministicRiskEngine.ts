@@ -1,5 +1,4 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.20';
-import crypto from 'crypto';
 
 function generateHash(inputs, rulesApplied, dependencies) {
   const data = JSON.stringify({
@@ -7,7 +6,8 @@ function generateHash(inputs, rulesApplied, dependencies) {
     rulesApplied: rulesApplied.sort(),
     dependencies: (dependencies || []).sort()
   });
-  return crypto.createHash('sha256').update(data).digest('hex').slice(0, 16);
+  const hash = new TextEncoder().encode(data);
+  return btoa(String.fromCharCode.apply(null, hash)).slice(0, 16);
 }
 
 async function recordFinding(base44, finding) {
@@ -145,13 +145,13 @@ Deno.serve(async (req) => {
         calculationSteps: [{ step: 'effectiveness_calculation', formula: 'implemented_controls / mapped_controls' }],
         result: { effectivenessScore: 2, effectivenessLevel: 'Low' },
         decisionTraceRefs: [],
-        dependsOnFindingIds: [gapFinding.id]
+        dependsOnFindingIds: [gapFinding?.id].filter(Boolean)
       });
       findings.push(effectivenessFinding);
 
       // 7. Compute residual risk
       const inherentScore = riskData.default_inherent_risk || 3;
-      const residualScore = Math.max(1, inherentScore - (effectivenessFinding.result ? JSON.parse(effectivenessFinding.result).effectivenessScore : 0) / 2);
+      const residualScore = Math.max(1, inherentScore - (JSON.parse(effectivenessFinding.result)?.effectivenessScore || 0) / 2);
 
       const residualFinding = await recordFinding(base44, {
         assessmentId,
