@@ -262,12 +262,35 @@ export default function ControlsTab({ engagement }) {
                                 <Label className="text-xs">Reviewer Notes</Label>
                                 <Textarea rows={2} className="text-xs mt-0.5" placeholder="Reviewer comments on this control..." value={ctrl.reviewer_notes || ''} onChange={e => updateControl(ctrl.id, { reviewer_notes: e.target.value })} />
                               </div>
+                              <div>
+                                <Label className="text-xs">Testing Conclusion</Label>
+                                <Textarea rows={2} className="text-xs mt-0.5" placeholder="Overall conclusion on control effectiveness based on evidence and testing..." value={ctrl.testing_conclusion || ''} onChange={e => updateControl(ctrl.id, { testing_conclusion: e.target.value })} />
+                              </div>
                             </div>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                  )}
+                            {/* Reviewer Sign-Off */}
+                            <div className="flex items-center justify-between border-t border-slate-200/60 pt-3 mt-1">
+                              <div>
+                                <p className="text-xs font-medium text-slate-700">Reviewer Sign-Off</p>
+                                <p className="text-[10px] text-slate-400 mt-0.5">
+                                  {ctrl.reviewer_sign_off
+                                    ? `Signed off${ctrl.reviewer_sign_off_date ? ` on ${ctrl.reviewer_sign_off_date}` : ''}`
+                                    : 'Not yet signed off by reviewer'}
+                                </p>
+                              </div>
+                              <Switch
+                                checked={!!ctrl.reviewer_sign_off}
+                                onCheckedChange={v => updateControl(ctrl.id, {
+                                  reviewer_sign_off: v,
+                                  reviewer_sign_off_date: v ? new Date().toISOString().split('T')[0] : null,
+                                })}
+                              />
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
                 </div>
               )}
             </div>
