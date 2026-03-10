@@ -17,11 +17,16 @@ export default function NightwatchV15Summary() {
         upgradeName: 'Nightwatch v1.5 - UX Rollout + Delivery Gate Framework',
         version: '1.5'
       });
-      setGateResults(response.data);
+      if (response && response.data) {
+        setGateResults(response.data);
+      }
     } catch (error) {
       console.error('Delivery gate failed:', error);
-    } finally {
       setLoading(false);
+    } finally {
+      if (!loading) {
+        setLoading(false);
+      }
     }
   }
 
