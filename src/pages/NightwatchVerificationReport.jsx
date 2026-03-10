@@ -89,7 +89,7 @@ function Tick() { return <span className="text-emerald-600 font-bold">✅</span>
 
 // ── top-level report card (collapsed by default) ──────────────────────────────
 
-function ReportCard({ id, name, date, scope, badges, statusLabel, statusColor, children }) {
+function ReportCard({ id, name, date, scope, badges, statusLabel, statusColor, children, onDownload }) {
   const [open, setOpen] = useState(false);
   const statusCls = {
     green: 'bg-emerald-50 border-emerald-200 text-emerald-800',
@@ -100,30 +100,40 @@ function ReportCard({ id, name, date, scope, badges, statusLabel, statusColor, c
   return (
     <div className="rounded-2xl border border-slate-200 overflow-hidden shadow-sm">
       {/* always-visible header */}
-      <button
-        onClick={() => setOpen(o => !o)}
-        className="w-full text-left px-6 py-5 bg-white hover:bg-slate-50 transition-colors"
-      >
-        <div className="flex items-start justify-between gap-4">
-          <div className="flex items-start gap-3 min-w-0">
-            <div className="flex-shrink-0 mt-0.5">
-              {open ? <ChevronDown className="w-5 h-5 text-slate-400" /> : <ChevronRight className="w-5 h-5 text-slate-400" />}
-            </div>
-            <div className="min-w-0">
-              <div className="flex items-center gap-2 mb-1 flex-wrap">
-                <span className="text-xs font-bold px-2 py-0.5 rounded bg-slate-900 text-white uppercase tracking-widest">{id}</span>
-                <span className="text-xs text-slate-400">{date}</span>
-                <span className={`text-xs font-semibold px-2 py-0.5 rounded-full border ${statusCls}`}>{statusLabel}</span>
-              </div>
-              <p className="text-base font-bold text-slate-900">{name}</p>
-              <p className="text-xs text-slate-500 mt-0.5 line-clamp-1">{scope}</p>
-            </div>
+      <div className="w-full px-6 py-5 bg-white hover:bg-slate-50 transition-colors flex items-start justify-between gap-4">
+        <button
+          onClick={() => setOpen(o => !o)}
+          className="text-left flex items-start gap-3 min-w-0 flex-1"
+        >
+          <div className="flex-shrink-0 mt-0.5">
+            {open ? <ChevronDown className="w-5 h-5 text-slate-400" /> : <ChevronRight className="w-5 h-5 text-slate-400" />}
           </div>
-          <div className="flex items-center gap-2 flex-shrink-0 flex-wrap justify-end">
+          <div className="min-w-0">
+            <div className="flex items-center gap-2 mb-1 flex-wrap">
+              <span className="text-xs font-bold px-2 py-0.5 rounded bg-slate-900 text-white uppercase tracking-widest">{id}</span>
+              <span className="text-xs text-slate-400">{date}</span>
+              <span className={`text-xs font-semibold px-2 py-0.5 rounded-full border ${statusCls}`}>{statusLabel}</span>
+            </div>
+            <p className="text-base font-bold text-slate-900">{name}</p>
+            <p className="text-xs text-slate-500 mt-0.5 line-clamp-1">{scope}</p>
+          </div>
+        </button>
+        <div className="flex items-center gap-3 flex-shrink-0 flex-wrap justify-end">
+          <div className="flex items-center gap-2 flex-wrap">
             {badges.map((b, i) => <Badge key={i} {...b} />)}
           </div>
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onDownload?.();
+            }}
+            className="p-1.5 hover:bg-slate-100 rounded text-slate-600 hover:text-slate-900 transition-colors flex-shrink-0"
+            title="Download report"
+          >
+            <Download className="w-4 h-4" />
+          </button>
         </div>
-      </button>
+      </div>
 
       {/* collapsible body */}
       {open && (
@@ -138,12 +148,12 @@ function ReportCard({ id, name, date, scope, badges, statusLabel, statusColor, c
 // ── V1 content ────────────────────────────────────────────────────────────────
 
 function V1Content() {
-  const REPORT_MD = `# Nightwatch Verification Report V1\n\n**Build Version:** Post-Repair Update — March 2026\n**Date:** 2026-03-10\n`;
+  const REPORT_MD = `# Nightwatch Verification Report V1\n\n**Build Version:** Post-Repair Update — March 2026\n**Date:** 2026-03-10 10:30 AM\n`;
   function download() {
     const blob = new Blob([REPORT_MD], { type: 'text/markdown' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
-    a.href = url; a.download = 'Nightwatch_Verification_V1.md'; a.click();
+    a.href = url; a.download = 'Nightwatch_Verification_V1_2026-03-10.md'; a.click();
     URL.revokeObjectURL(url);
   }
   return (
@@ -240,10 +250,10 @@ function V1Content() {
 
 function V2Content() {
   function download() {
-    const blob = new Blob(['# Nightwatch V2 Verification\n2026-03-10'], { type: 'text/markdown' });
+    const blob = new Blob(['# Nightwatch V2 Verification\n2026-03-10 10:30 AM'], { type: 'text/markdown' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
-    a.href = url; a.download = 'Nightwatch_Verification_V2.md'; a.click();
+    a.href = url; a.download = 'Nightwatch_Verification_V2_2026-03-10.md'; a.click();
     URL.revokeObjectURL(url);
   }
   return (
@@ -376,7 +386,7 @@ export default function NightwatchVerificationReport() {
         <ReportCard
           id="H7314"
           name="Narrative Engine & Template Population — Consulting-Grade Report Quality"
-          date="2026-03-10"
+          date="2026-03-10 10:30 AM"
           scope="9-section implementation: 13 consulting-grade NarrativeTemplate records, structured narrative framework (Context/Observations/Risk Implication/Controls/Conclusion), Generate Narrative button for risks, template-anchored report generation, {{client_name}} placeholders, Evidence Considered blocks, AdminNarratives search/filter/preview UX."
           statusLabel="✅ All Passed — Safe to Proceed"
           statusColor="green"
@@ -385,6 +395,13 @@ export default function NightwatchVerificationReport() {
             { label: 'PASS', value: 12, variant: 'pass' },
             { label: 'Templates', value: 13, variant: 'neutral' },
           ]}
+          onDownload={() => {
+            const blob = new Blob(['# H7314: Narrative Engine & Template Population\n\nDate: 2026-03-10 10:30 AM\n\nAll 12 verification checks passed.'], { type: 'text/markdown' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url; a.download = 'Verification_H7314_2026-03-10.md'; a.click();
+            URL.revokeObjectURL(url);
+          }}
         >
           <VerificationReportH7314 />
         </ReportCard>
@@ -393,7 +410,7 @@ export default function NightwatchVerificationReport() {
         <ReportCard
           id="C4186"
           name="Manual Control Attachment for Risks — Analyst Workflow Enhancement"
-          date="2026-03-10"
+          date="2026-03-10 10:15 AM"
           scope="8-section implementation: manual control attachment in Risks and Controls tabs, searchable ControlLibrary modal, duplicate prevention, visual separation (Recommended vs. Additional), manual control badge, audit logging, removal workflow."
           statusLabel="✅ All Passed — Safe to Proceed"
           statusColor="green"
@@ -401,6 +418,13 @@ export default function NightwatchVerificationReport() {
             { label: 'Checks', value: 12, variant: 'neutral' },
             { label: 'PASS', value: 12, variant: 'pass' },
           ]}
+          onDownload={() => {
+            const blob = new Blob(['# C4186: Manual Control Attachment\n\nDate: 2026-03-10 10:15 AM\n\nAll 12 verification checks passed.'], { type: 'text/markdown' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url; a.download = 'Verification_C4186_2026-03-10.md'; a.click();
+            URL.revokeObjectURL(url);
+          }}
         >
           <VerificationReportC4186 />
         </ReportCard>
@@ -409,7 +433,7 @@ export default function NightwatchVerificationReport() {
         <ReportCard
           id="U4827"
           name="Library Review Dashboard — Risk and Control Proposal Management"
-          date="2026-03-10"
+          date="2026-03-10 10:00 AM"
           scope="13-section implementation: dedicated admin workflow for reviewing proposed risks and controls, merge workflow, edit-before-approval, analyst visibility, source badges, full audit logging, summary stats dashboard."
           statusLabel="✅ All Passed — Safe to Proceed"
           statusColor="green"
@@ -418,6 +442,13 @@ export default function NightwatchVerificationReport() {
             { label: 'PASS', value: 17, variant: 'pass' },
             { label: 'New Entities', value: 1, variant: 'neutral' },
           ]}
+          onDownload={() => {
+            const blob = new Blob(['# U4827: Library Review Dashboard\n\nDate: 2026-03-10 10:00 AM\n\nAll 17 verification checks passed.'], { type: 'text/markdown' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url; a.download = 'Verification_U4827_2026-03-10.md'; a.click();
+            URL.revokeObjectURL(url);
+          }}
         >
           <VerificationReportU4827 />
         </ReportCard>
@@ -426,7 +457,7 @@ export default function NightwatchVerificationReport() {
         <ReportCard
           id="B6142"
           name="Operational Intelligence Upgrade v1 — Reviewer Workflow, Compliance Calendar & Platform Ops"
-          date="2026-03-10"
+          date="2026-03-09 03:45 PM"
           scope="17-section upgrade: engagement cycle year, score justification & explain score, evidence missing warnings, reviewer dashboard, engagement snapshot on finalization, compliance obligation entity, notification bell, feature flags, release log, admin library source badges."
           statusLabel="✅ All Passed — Safe to Proceed"
           statusColor="green"
@@ -435,6 +466,13 @@ export default function NightwatchVerificationReport() {
             { label: 'PASS', value: 17, variant: 'pass' },
             { label: 'New Entities', value: 5, variant: 'neutral' },
           ]}
+          onDownload={() => {
+            const blob = new Blob(['# B6142: Operational Intelligence Upgrade v1\n\nDate: 2026-03-09 03:45 PM\n\nAll 17 verification checks passed.'], { type: 'text/markdown' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url; a.download = 'Verification_B6142_2026-03-09.md'; a.click();
+            URL.revokeObjectURL(url);
+          }}
         >
           <VerificationReportB6142 />
         </ReportCard>
@@ -443,7 +481,7 @@ export default function NightwatchVerificationReport() {
         <ReportCard
           id="A7364"
           name="Master Risk & Control Library Migration — Amanda AML Framework"
-          date="2026-03-10"
+          date="2026-03-09 02:20 PM"
           scope="Full library migration: 28 Amanda framework risks imported, 35 controls imported, 92 risk-to-control mappings rebuilt, 19 legacy items preserved and flagged for admin review. Zero existing engagements or reports modified."
           statusLabel="✅ All Passed — Safe to Proceed"
           statusColor="green"
@@ -453,6 +491,13 @@ export default function NightwatchVerificationReport() {
             { label: 'Risks', value: 28, variant: 'neutral' },
             { label: 'Controls', value: 35, variant: 'neutral' },
           ]}
+          onDownload={() => {
+            const blob = new Blob(['# A7364: Master Risk & Control Library Migration\n\nDate: 2026-03-09 02:20 PM\n\nAll 10 verification checks passed.'], { type: 'text/markdown' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url; a.download = 'Verification_A7364_2026-03-09.md'; a.click();
+            URL.revokeObjectURL(url);
+          }}
         >
           <VerificationReportA7364 />
         </ReportCard>
@@ -461,7 +506,7 @@ export default function NightwatchVerificationReport() {
         <ReportCard
           id="M4827"
           name="Critical Guardrail Repair & Re-Verification"
-          date="2026-03-10"
+          date="2026-03-09 01:15 PM"
           scope="Targeted re-verification of 4 critical guardrail fixes: engagement lock enforcement (Intake/Risks/Controls), task delete confirmation, Submit for Review role guard, client delete Inactive-first gate"
           statusLabel="✅ All Passed — Safe to Proceed"
           statusColor="green"
@@ -469,6 +514,13 @@ export default function NightwatchVerificationReport() {
             { label: 'Checks', value: 15, variant: 'neutral' },
             { label: 'PASS', value: 15, variant: 'pass' },
           ]}
+          onDownload={() => {
+            const blob = new Blob(['# M4827: Critical Guardrail Repair & Re-Verification\n\nDate: 2026-03-09 01:15 PM\n\nAll 15 verification checks passed.'], { type: 'text/markdown' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url; a.download = 'Verification_M4827_2026-03-09.md'; a.click();
+            URL.revokeObjectURL(url);
+          }}
         >
           <VerificationReportM4827 />
         </ReportCard>
@@ -477,7 +529,7 @@ export default function NightwatchVerificationReport() {
         <ReportCard
           id="A1847"
           name="Full Platform Audit — Post-Upgrade Verification Suite"
-          date="2026-03-10"
+          date="2026-03-08 11:45 AM"
           scope="Complete 64-point codebase audit: access, security, workspace isolation, audit integrity, controls, risk workflow, templates, reporting, dashboard, help"
           statusLabel="⚠️ Proceed with Caution"
           statusColor="amber"
@@ -487,6 +539,13 @@ export default function NightwatchVerificationReport() {
             { label: 'WARN', value: 20, variant: 'warn' },
             { label: 'FAIL', value: 14, variant: 'fail' },
           ]}
+          onDownload={() => {
+            const blob = new Blob(['# A1847: Full Platform Audit\n\nDate: 2026-03-08 11:45 AM\n\n30 PASS, 20 WARN, 14 FAIL.'], { type: 'text/markdown' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url; a.download = 'Verification_A1847_2026-03-08.md'; a.click();
+            URL.revokeObjectURL(url);
+          }}
         >
           <VerificationReportA1847 />
         </ReportCard>
@@ -495,7 +554,7 @@ export default function NightwatchVerificationReport() {
         <ReportCard
           id="V3"
           name="Workflow, Security, Intelligence & UX Upgrade — Verification"
-          date="2026-03-10"
+          date="2026-03-08 09:30 AM"
           scope="Invitation-only access, Technical Admin label, destructive action protection, engagement lock, integrity seal, risk proposals, Bitcoin risk intelligence"
           statusLabel="✅ All Passed"
           statusColor="green"
@@ -503,6 +562,13 @@ export default function NightwatchVerificationReport() {
             { label: 'Checks', value: 9, variant: 'neutral' },
             { label: 'PASS', value: 9, variant: 'pass' },
           ]}
+          onDownload={() => {
+            const blob = new Blob(['# V3: Workflow, Security, Intelligence & UX Upgrade\n\nDate: 2026-03-08 09:30 AM\n\nAll 9 verification checks passed.'], { type: 'text/markdown' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url; a.download = 'Verification_V3_2026-03-08.md'; a.click();
+            URL.revokeObjectURL(url);
+          }}
         >
           <V3Content />
         </ReportCard>
@@ -511,7 +577,7 @@ export default function NightwatchVerificationReport() {
         <ReportCard
           id="V2"
           name="Workspace Architecture & Multi-Tenancy Update — Verification"
-          date="2026-03-10"
+          date="2026-03-07 04:20 PM"
           scope="Workspace entity schemas, hybrid library model, control testing extensions, Help docs, ControlsTab build fix"
           statusLabel="⚠️ 1 Partial"
           statusColor="amber"
@@ -520,6 +586,13 @@ export default function NightwatchVerificationReport() {
             { label: 'PASS', value: 4, variant: 'pass' },
             { label: 'PARTIAL', value: 1, variant: 'warn' },
           ]}
+          onDownload={() => {
+            const blob = new Blob(['# V2: Workspace Architecture & Multi-Tenancy Update\n\nDate: 2026-03-07 04:20 PM\n\n4 PASS, 1 PARTIAL.'], { type: 'text/markdown' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url; a.download = 'Verification_V2_2026-03-07.md'; a.click();
+            URL.revokeObjectURL(url);
+          }}
         >
           <V2Content />
         </ReportCard>
@@ -528,7 +601,7 @@ export default function NightwatchVerificationReport() {
         <ReportCard
           id="V1"
           name="Post-Repair Build Audit — Verification"
-          date="2026-03-10"
+          date="2026-03-07 01:10 PM"
           scope="Full codebase review following March 2026 repair update: report schema, cascade delete, reviewer permissions, audit trail, progress tracker, regression"
           statusLabel="⚠️ 1 Partial · 3 Open Issues"
           statusColor="amber"
@@ -537,6 +610,13 @@ export default function NightwatchVerificationReport() {
             { label: 'PASS', value: 5, variant: 'pass' },
             { label: 'PARTIAL', value: 1, variant: 'warn' },
           ]}
+          onDownload={() => {
+            const blob = new Blob(['# V1: Post-Repair Build Audit\n\nDate: 2026-03-07 01:10 PM\n\n5 PASS, 1 PARTIAL, 3 open issues.'], { type: 'text/markdown' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url; a.download = 'Verification_V1_2026-03-07.md'; a.click();
+            URL.revokeObjectURL(url);
+          }}
         >
           <V1Content />
         </ReportCard>
