@@ -89,6 +89,7 @@ import PromptTemplateSystemSummary from './pages/PromptTemplateSystemSummary';
 import DeterministicEngineVerification from './pages/DeterministicEngineVerification';
 import DeterministicEngineArchitecture from './pages/DeterministicEngineArchitecture';
 import DeterministicEngineUpgradeSummary from './pages/DeterministicEngineUpgradeSummary';
+import InfrastructureLayerOverview from './pages/InfrastructureLayerOverview';
 import __Layout from './Layout.jsx';
 
 
@@ -135,6 +136,7 @@ export const PAGES = {
     "DeterministicEngineVerification": DeterministicEngineVerification,
     "DeterministicEngineArchitecture": DeterministicEngineArchitecture,
     "DeterministicEngineUpgradeSummary": DeterministicEngineUpgradeSummary,
+    "InfrastructureLayerOverview": InfrastructureLayerOverview,
 }
 
 export const pagesConfig = {
