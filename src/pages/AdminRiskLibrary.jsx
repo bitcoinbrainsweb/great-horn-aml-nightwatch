@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
-import { ArrowLeft, Plus, Search, Edit2, Trash2 } from 'lucide-react';
+import { ArrowLeft, Plus, Search, Edit2, BookOpen } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -78,7 +78,7 @@ export default function AdminRiskLibrary() {
             <thead><tr className="border-b border-slate-100 bg-slate-50/50">
               <th className="text-left px-5 py-3 text-xs font-semibold text-slate-500 uppercase">Risk</th>
               <th className="text-left px-5 py-3 text-xs font-semibold text-slate-500 uppercase hidden md:table-cell">Category</th>
-              <th className="text-left px-5 py-3 text-xs font-semibold text-slate-500 uppercase hidden lg:table-cell">Source</th>
+              <th className="text-left px-5 py-3 text-xs font-semibold text-slate-500 uppercase hidden lg:table-cell">Library Source</th>
               <th className="text-left px-5 py-3 text-xs font-semibold text-slate-500 uppercase">Status</th>
               <th className="text-left px-5 py-3 text-xs font-semibold text-slate-500 uppercase w-20">Actions</th>
             </tr></thead>
@@ -90,7 +90,22 @@ export default function AdminRiskLibrary() {
                     <p className="text-xs text-slate-500 truncate max-w-md">{r.description}</p>
                   </td>
                   <td className="px-5 py-3 text-slate-600 hidden md:table-cell">{r.risk_category}</td>
-                  <td className="px-5 py-3 text-slate-600 hidden lg:table-cell">{r.source}</td>
+                  <td className="px-5 py-3 hidden lg:table-cell">
+                    {r.library_source === 'amanda_framework' ? (
+                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold bg-indigo-100 text-indigo-700 border border-indigo-200">
+                        <BookOpen className="w-3 h-3" /> Amanda Framework
+                      </span>
+                    ) : r.library_source === 'legacy' ? (
+                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold bg-amber-100 text-amber-700 border border-amber-200">Legacy</span>
+                    ) : r.library_source === 'proposed' ? (
+                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold bg-purple-100 text-purple-700 border border-purple-200">Proposed</span>
+                    ) : (
+                      <span className="text-xs text-slate-400">{r.source || '—'}</span>
+                    )}
+                    {r.status === 'needs_review' && (
+                      <span className="ml-1 inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold bg-amber-50 text-amber-700 border border-amber-200">⚑ Needs Review</span>
+                    )}
+                  </td>
                   <td className="px-5 py-3"><StatusBadge status={r.status} /></td>
                   <td className="px-5 py-3">
                     <Button variant="ghost" size="icon" onClick={() => openEdit(r)} className="h-7 w-7"><Edit2 className="w-3.5 h-3.5" /></Button>
