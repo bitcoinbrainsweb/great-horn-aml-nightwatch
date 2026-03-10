@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
-import { Plus, Search, FileStack, Trash2 } from 'lucide-react';
+import { Plus, Search, FileStack, Trash2, Archive } from 'lucide-react';
+import ConfirmDialog from '../components/ui/ConfirmDialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -29,6 +30,7 @@ export default function Engagements() {
   const [saving, setSaving] = useState(false);
   const [user, setUser] = useState(null);
   const [confirmDelete, setConfirmDelete] = useState(null);
+  const [confirmArchive, setConfirmArchive] = useState(null);
 
   useEffect(() => { loadData(); }, []);
 
@@ -49,6 +51,13 @@ export default function Engagements() {
   }
 
   const isAdmin = ['admin', 'super_admin', 'compliance_admin'].includes(user?.role);
+
+  async function handleArchive(engagement) {
+    await base44.entities.Engagement.update(engagement.id, { status: 'Archived' });
+    await logAudit({ userEmail: user?.email, objectType: 'Engagement', objectId: engagement.id, action: 'archived', details: `Engagement for ${engagement.client_name} archived` });
+    setConfirmArchive(null);
+    await loadData();
+  }
 
   async function handleDelete(engagement) {
     const [tasks, intake, risks, controls, reports, docs, reviews, actLogs] = await Promise.all([
