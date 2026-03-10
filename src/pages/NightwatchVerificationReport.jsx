@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { CheckCircle2, AlertTriangle, XCircle, ChevronDown, ChevronRight, Download, Zap } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { base44 } from '@/api/base44Client';
 import PageHeader from '../components/ui/PageHeader';
 import VerificationReportA1847 from './VerificationReportA1847';
 import VerificationReportM4827 from './VerificationReportM4827';
@@ -452,7 +454,6 @@ export default function NightwatchVerificationReport() {
         </ReportCard>
 
         {/* V1.8 — Evidence & Control Testing Framework */}
-        <ReportCard
         <ReportCard
           id="V1.8"
           name="Nightwatch v1.8 — Evidence & Control Testing Framework"
