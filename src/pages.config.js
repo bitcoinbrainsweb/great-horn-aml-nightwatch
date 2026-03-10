@@ -104,6 +104,7 @@ import Reports from './pages/Reports';
 import ReviewerDashboard from './pages/ReviewerDashboard';
 import Tasks from './pages/Tasks';
 import PageInventoryAudit from './pages/PageInventoryAudit';
+import AdminChangeManagement from './pages/AdminChangeManagement';
 import __Layout from './Layout.jsx';
 
 
@@ -165,6 +166,7 @@ export const PAGES = {
     "ReviewerDashboard": ReviewerDashboard,
     "Tasks": Tasks,
     "PageInventoryAudit": PageInventoryAudit,
+    "AdminChangeManagement": AdminChangeManagement,
 }
 
 export const pagesConfig = {
