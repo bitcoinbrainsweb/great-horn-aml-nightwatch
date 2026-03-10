@@ -9,12 +9,15 @@ import { Label } from '@/components/ui/label';
 import { RiskBadge, StatusBadge } from '../ui/RiskBadge';
 import { suggestRisksFromIntake, calculateInherentRisk, LIKELIHOOD_SCALE, IMPACT_SCALE } from '../scoring/riskScoringEngine';
 import { logAudit } from '../util/auditLog';
-import { Lightbulb, Plus, Trash2, ChevronDown, ChevronRight, AlertTriangle, CheckCircle2, Lock, Info } from 'lucide-react';
+import { Lightbulb, Plus, Trash2, ChevronDown, ChevronRight, AlertTriangle, CheckCircle2, Lock, Info, Search, X } from 'lucide-react';
 import InfoTooltip from '../ui/InfoTooltip';
+import { Badge } from '../ui/badge';
 
 export default function RisksTab({ engagement, isLocked }) {
   const [engRisks, setEngRisks] = useState([]);
   const [riskLibrary, setRiskLibrary] = useState([]);
+  const [controlLibrary, setControlLibrary] = useState([]);
+  const [controlAssessments, setControlAssessments] = useState([]);
   const [intakeResponses, setIntakeResponses] = useState([]);
   const [suggestions, setSuggestions] = useState([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
@@ -22,18 +25,24 @@ export default function RisksTab({ engagement, isLocked }) {
   const [expandedRisk, setExpandedRisk] = useState(null);
   const [loading, setLoading] = useState(true);
   const [explainRisk, setExplainRisk] = useState(null);
+  const [addControlToRisk, setAddControlToRisk] = useState(null);
+  const [controlSearchQuery, setControlSearchQuery] = useState('');
 
   useEffect(() => { loadData(); }, [engagement.id]);
 
   async function loadData() {
-    const [risks, library, intake] = await Promise.all([
+    const [risks, library, intake, ctrlLib, ctrlAssess] = await Promise.all([
       base44.entities.EngagementRisk.filter({ engagement_id: engagement.id }),
       base44.entities.RiskLibrary.filter({ status: 'Active' }),
-      base44.entities.IntakeResponse.filter({ engagement_id: engagement.id })
+      base44.entities.IntakeResponse.filter({ engagement_id: engagement.id }),
+      base44.entities.ControlLibrary.filter({ status: 'Active' }),
+      base44.entities.ControlAssessment.filter({ engagement_id: engagement.id })
     ]);
     setEngRisks(risks);
     setRiskLibrary(library);
     setIntakeResponses(intake);
+    setControlLibrary(ctrlLib);
+    setControlAssessments(ctrlAssess);
     
     const suggested = suggestRisksFromIntake(intake);
     const existingNames = new Set(risks.map(r => r.risk_name));
@@ -105,6 +114,61 @@ export default function RisksTab({ engagement, isLocked }) {
     await logAudit({ objectType: 'EngagementRisk', objectId: risk.id, action: 'score_justification_edit', fieldChanged: 'score_justification', newValue: value, details: `Score justification updated for "${risk.risk_name}"` });
   }
 
+  async function attachManualControl(risk, control) {
+    // Check for duplicates
+    const existing = controlAssessments.find(c => c.engagement_risk_id === risk.id && c.control_name === control.control_name);
+    if (existing) {
+      alert('This control is already attached to the selected risk.');
+      return;
+    }
+
+    const newCtrl = await base44.entities.ControlAssessment.create({
+      engagement_risk_id: risk.id,
+      engagement_id: engagement.id,
+      control_id: control.id,
+      control_name: control.control_name,
+      control_category: control.control_category,
+      control_present: false,
+      design_effectiveness: 'Not Assessed',
+      operational_effectiveness: 'Not Assessed',
+      consistency_of_application: 'Not Assessed',
+      control_rating: 'Not Assessed',
+      notes: 'source=manual_add'
+    });
+
+    await logAudit({ 
+      objectType: 'ControlAssessment', 
+      objectId: newCtrl.id, 
+      action: 'control_manually_attached', 
+      details: `Manual control "${control.control_name}" attached to risk "${risk.risk_name}" on engagement ${engagement.id}` 
+    });
+
+    setAddControlToRisk(null);
+    setControlSearchQuery('');
+    await loadData();
+  }
+
+  function getControlsForRisk(risk) {
+    return controlAssessments.filter(c => c.engagement_risk_id === risk.id);
+  }
+
+  function getRecommendedControlsForRisk(risk) {
+    const libRisk = riskLibrary.find(r => r.risk_name === risk.risk_name);
+    const linkedNames = new Set(libRisk?.linked_control_names || []);
+    return controlAssessments.filter(c => 
+      c.engagement_risk_id === risk.id && 
+      linkedNames.has(c.control_name) &&
+      !c.notes?.includes('source=manual_add')
+    );
+  }
+
+  function getManualControlsForRisk(risk) {
+    return controlAssessments.filter(c => 
+      c.engagement_risk_id === risk.id && 
+      c.notes?.includes('source=manual_add')
+    );
+  }
+
   // Group by category
   const groupedRisks = engRisks.reduce((acc, r) => {
     const cat = r.risk_category || 'Uncategorized';
@@ -171,8 +235,8 @@ export default function RisksTab({ engagement, isLocked }) {
                     </div>
                   </div>
                   {expandedRisk === risk.id && (
-                    <div className="px-5 py-4 bg-slate-50/30 border-t border-slate-100">
-                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+                    <div className="px-5 py-4 bg-slate-50/30 border-t border-slate-100 space-y-4">
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                         <div>
                           <Label className="text-xs flex items-center">Likelihood (1-3)<InfoTooltip content="Likelihood reflects how probable it is that this risk could occur based on the business model, products, delivery channels, and client profile. 1 = Low, 2 = Moderate, 3 = High." /></Label>
                           <Select value={String(risk.inherent_likelihood_score || '')} onValueChange={v => updateRiskScore(risk, 'inherent_likelihood_score', v)} disabled={isLocked}>
@@ -227,10 +291,59 @@ export default function RisksTab({ engagement, isLocked }) {
                           </p>
                         )}
                       </div>
+                      {/* Controls subsection */}
+                      {(getRecommendedControlsForRisk(risk).length > 0 || getManualControlsForRisk(risk).length > 0) && (
+                        <div className="border-t border-slate-200 pt-3 space-y-3">
+                          {getRecommendedControlsForRisk(risk).length > 0 && (
+                            <div>
+                              <p className="text-xs font-semibold text-slate-600 mb-2">Recommended Controls</p>
+                              <div className="space-y-1.5">
+                                {getRecommendedControlsForRisk(risk).map(ctrl => (
+                                  <div key={ctrl.id} className="flex items-center justify-between px-3 py-2 bg-white rounded border border-slate-200">
+                                    <div>
+                                      <p className="text-xs font-medium text-slate-900">{ctrl.control_name}</p>
+                                      <p className="text-[10px] text-slate-500">{ctrl.control_category}</p>
+                                    </div>
+                                    <Badge variant="outline" className="text-[10px]">{ctrl.control_rating || 'Not Assessed'}</Badge>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+                          
+                          {getManualControlsForRisk(risk).length > 0 && (
+                            <div>
+                              <p className="text-xs font-semibold text-slate-600 mb-2">Additional Controls</p>
+                              <div className="space-y-1.5">
+                                {getManualControlsForRisk(risk).map(ctrl => (
+                                  <div key={ctrl.id} className="flex items-center justify-between px-3 py-2 bg-blue-50 rounded border border-blue-200">
+                                    <div className="flex items-center gap-2">
+                                      <div>
+                                        <p className="text-xs font-medium text-slate-900">{ctrl.control_name}</p>
+                                        <p className="text-[10px] text-slate-500">{ctrl.control_category}</p>
+                                      </div>
+                                      <Badge className="bg-blue-600 text-white text-[10px] h-4">Manual Control</Badge>
+                                    </div>
+                                    <Badge variant="outline" className="text-[10px]">{ctrl.control_rating || 'Not Assessed'}</Badge>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      )}
+
                       <div className="flex items-center justify-between">
-                        <Button variant="outline" size="sm" onClick={() => setExplainRisk(risk)} className="gap-1 text-xs h-7">
-                          <Info className="w-3 h-3" /> Explain Score
-                        </Button>
+                        <div className="flex items-center gap-2">
+                          <Button variant="outline" size="sm" onClick={() => setExplainRisk(risk)} className="gap-1 text-xs h-7">
+                            <Info className="w-3 h-3" /> Explain Score
+                          </Button>
+                          {!isLocked && (
+                            <Button variant="outline" size="sm" onClick={() => setAddControlToRisk(risk)} className="gap-1 text-xs h-7">
+                              <Plus className="w-3 h-3" /> Add Control from Library
+                            </Button>
+                          )}
+                        </div>
                         {!isLocked && (
                           <Button variant="ghost" size="sm" onClick={() => removeRisk(risk.id)} className="text-red-600 hover:text-red-700 hover:bg-red-50 gap-1">
                             <Trash2 className="w-3.5 h-3.5" /> Remove
@@ -328,6 +441,56 @@ export default function RisksTab({ engagement, isLocked }) {
                 <Button size="sm" variant="outline" onClick={() => addManualRisk(r)}>Add</Button>
               </div>
             ))}
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Add Control from Library Dialog */}
+      <Dialog open={!!addControlToRisk} onOpenChange={() => { setAddControlToRisk(null); setControlSearchQuery(''); }}>
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-hidden flex flex-col">
+          <DialogHeader>
+            <DialogTitle>Add Control from Library</DialogTitle>
+            <p className="text-xs text-slate-500 mt-1">Risk: {addControlToRisk?.risk_name}</p>
+          </DialogHeader>
+          <div className="relative mb-3">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+            <Input 
+              placeholder="Search by control name, category, or regulatory reference..." 
+              value={controlSearchQuery}
+              onChange={e => setControlSearchQuery(e.target.value)}
+              className="pl-9"
+            />
+            {controlSearchQuery && (
+              <button onClick={() => setControlSearchQuery('')} className="absolute right-3 top-1/2 -translate-y-1/2">
+                <X className="w-4 h-4 text-slate-400 hover:text-slate-600" />
+              </button>
+            )}
+          </div>
+          <div className="flex-1 overflow-y-auto space-y-2">
+            {controlLibrary
+              .filter(c => {
+                if (!controlSearchQuery) return true;
+                const q = controlSearchQuery.toLowerCase();
+                return (
+                  c.control_name?.toLowerCase().includes(q) ||
+                  c.control_category?.toLowerCase().includes(q) ||
+                  c.regulatory_reference?.toLowerCase().includes(q)
+                );
+              })
+              .map(ctrl => (
+                <div key={ctrl.id} className="flex items-start justify-between p-3 rounded-lg border border-slate-200 hover:bg-slate-50 transition-colors">
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm font-medium text-slate-900">{ctrl.control_name}</p>
+                    <p className="text-xs text-slate-500 mt-0.5">{ctrl.control_category}</p>
+                    {ctrl.regulatory_reference && (
+                      <p className="text-[10px] text-slate-400 mt-1">Ref: {ctrl.regulatory_reference}</p>
+                    )}
+                  </div>
+                  <Button size="sm" variant="outline" onClick={() => attachManualControl(addControlToRisk, ctrl)} className="ml-3 flex-shrink-0">
+                    Add
+                  </Button>
+                </div>
+              ))}
           </div>
         </DialogContent>
       </Dialog>
