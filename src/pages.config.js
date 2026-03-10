@@ -107,6 +107,7 @@ import PageInventoryAudit from './pages/PageInventoryAudit';
 import AdminChangeManagement from './pages/AdminChangeManagement';
 import PublishNW013 from './pages/PublishNW013';
 import NW013DeliveryGateFinal from './pages/NW013DeliveryGateFinal';
+import NW014DeliveryGateSummary from './pages/NW014DeliveryGateSummary';
 import __Layout from './Layout.jsx';
 
 
@@ -171,6 +172,7 @@ export const PAGES = {
     "AdminChangeManagement": AdminChangeManagement,
     "PublishNW013": PublishNW013,
     "NW013DeliveryGateFinal": NW013DeliveryGateFinal,
+    "NW014DeliveryGateSummary": NW014DeliveryGateSummary,
 }
 
 export const pagesConfig = {
