@@ -84,6 +84,7 @@ import SystemAuditReportNW11 from './pages/SystemAuditReportNW11';
 import Feedback from './pages/Feedback';
 import FeedbackTestingReport from './pages/FeedbackTestingReport';
 import ImplementationSummary from './pages/ImplementationSummary';
+import FeedbackImplementationSummary from './pages/FeedbackImplementationSummary';
 import __Layout from './Layout.jsx';
 
 
@@ -125,6 +126,7 @@ export const PAGES = {
     "Feedback": Feedback,
     "FeedbackTestingReport": FeedbackTestingReport,
     "ImplementationSummary": ImplementationSummary,
+    "FeedbackImplementationSummary": FeedbackImplementationSummary,
 }
 
 export const pagesConfig = {
