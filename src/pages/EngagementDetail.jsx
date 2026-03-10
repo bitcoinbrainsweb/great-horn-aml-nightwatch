@@ -2,13 +2,14 @@ import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
-import { ArrowLeft, Edit2, FileUp, Plus, Trash2, AlertTriangle } from 'lucide-react';
+import { ArrowLeft, Edit2, FileUp, Plus, Trash2, AlertTriangle, StickyNote } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Textarea } from '@/components/ui/textarea';
 import { StatusBadge, RiskBadge, PriorityBadge } from '../components/ui/RiskBadge';
 import EmptyState from '../components/ui/EmptyState';
 import IntakeTab from '../components/engagement/IntakeTab';
@@ -17,6 +18,8 @@ import ControlsTab from '../components/engagement/ControlsTab';
 import SummaryTab from '../components/engagement/SummaryTab';
 import ReportTab from '../components/engagement/ReportTab';
 import ReviewTab from '../components/engagement/ReviewTab';
+import RiskSnapshotPanel from '../components/engagement/RiskSnapshotPanel';
+import ProgressTracker from '../components/engagement/ProgressTracker';
 import { format } from 'date-fns';
 
 const ENGAGEMENT_STATUSES = ['Not Started', 'Intake In Progress', 'Risk Analysis', 'Draft Report', 'Under Review', 'Completed', 'Archived'];
@@ -38,6 +41,9 @@ export default function EngagementDetail() {
   const [taskForm, setTaskForm] = useState({});
   const [user, setUser] = useState(null);
   const [completionError, setCompletionError] = useState('');
+  const [activeTab, setActiveTab] = useState('overview');
+  const [savingNotes, setSavingNotes] = useState(false);
+  const [engNotes, setEngNotes] = useState('');
 
   useEffect(() => { if (engId) loadData(); }, [engId]);
 
@@ -52,7 +58,9 @@ export default function EngagementDetail() {
       base44.auth.me(),
       base44.entities.Report.filter({ engagement_id: engId }),
     ]);
-    setEngagement(engs.find(e => e.id === engId));
+    const eng = engs.find(e => e.id === engId);
+    setEngagement(eng);
+    setEngNotes(eng?.engagement_notes || '');
     setTasks(t.sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0)));
     setDocuments(d);
     setActivities(a);
@@ -64,6 +72,12 @@ export default function EngagementDetail() {
   }
 
   const isAdmin = ['admin', 'super_admin', 'compliance_admin'].includes(user?.role);
+
+  async function saveNotes() {
+    setSavingNotes(true);
+    await base44.entities.Engagement.update(engId, { engagement_notes: engNotes });
+    setSavingNotes(false);
+  }
 
   async function handleSave() {
     const meth = methodologies.find(m => m.id === form.methodology_id);
