@@ -113,7 +113,8 @@ export default function ClientDetail() {
 
       <Tabs defaultValue="overview" className="space-y-6">
         <TabsList>
-          <TabsTrigger value="overview">Overview</TabsTrigger>
+          <TabsTrigger value="compliance">Compliance Overview</TabsTrigger>
+          <TabsTrigger value="overview">Details</TabsTrigger>
           <TabsTrigger value="engagements">Engagements ({engagements.length})</TabsTrigger>
           <TabsTrigger value="documents">Documents ({documents.length})</TabsTrigger>
           <TabsTrigger value="tasks">Tasks ({tasks.length})</TabsTrigger>
