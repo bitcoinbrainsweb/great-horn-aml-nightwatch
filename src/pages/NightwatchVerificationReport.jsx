@@ -391,7 +391,6 @@ function V3Content() {
 
 export default function NightwatchVerificationReport() {
   const [gateRuns, setGateRuns] = useState([]);
-  const [showReportsList, setShowReportsList] = useState(false);
 
   useEffect(() => {
     loadGateRuns();
@@ -402,150 +401,13 @@ export default function NightwatchVerificationReport() {
   }
 
   return (
-    <div className="max-w-6xl mx-auto">
-      {!showReportsList ? (
-        // Reports page view
-        <div>
-          <PageHeader
-            title="Reports"
-            subtitle="Platform audit and verification reports"
-          >
-            <button
-              onClick={() => setShowReportsList(true)}
-              className="px-3 py-1.5 text-xs font-medium bg-slate-100 hover:bg-slate-200 text-slate-700 rounded transition-colors"
-            >
-              View All Reports
-            </button>
-          </PageHeader>
+    <div className="max-w-5xl mx-auto">
+      <PageHeader
+        title="Nightwatch Verification Reports"
+        subtitle="All platform audit reports · Newest first · Click to expand"
+      />
 
-          <div className="grid gap-4 mb-8">
-            {/* Most Recent Report - NW-UPGRADE-010 */}
-            <ReportCard
-              id="NW-UPGRADE-010"
-              name="Regression Testing Framework v0.10.0"
-              date="2026-03-10 09:00 AM"
-              scope="Deterministic scenario testing, concept-based narrative checks, baseline management, release readiness gating (ready/caution/blocked), DeliveryGateRunner integration."
-              statusLabel="✅ PASS — All Verified"
-              statusColor="green"
-              isFullAudit={true}
-              badges={[
-                { label: 'Status', value: 'Pass', variant: 'pass' },
-                { label: 'Test Scenarios', value: 3, variant: 'neutral' },
-                { label: 'Verification Checks', value: 15, variant: 'pass' },
-              ]}
-              onDownload={() => {
-                const content = `# NW-UPGRADE-010: Regression Testing Framework
-Date: 2026-03-10 09:00 AM
-Status: PASS (15/15 verification checks)
-
-## Executive Summary
-
-Nightwatch v0.10.0 introduces a comprehensive Regression Testing Framework for deterministic scenario-based testing and release readiness validation. The framework captures scenario-based outputs, performs deterministic assertions, executes concept-based narrative sanity checks, and provides release readiness gating (ready/caution/blocked).
-
-## Components Delivered
-
-### Entities (4)
-✅ TestScenario - Reusable test scenarios with jurisdiction and category support
-✅ TestAssessmentRun - Test execution results with deviation tracking
-✅ ScenarioBaseline - Version-aware baseline management
-✅ RegressionTestSuite - Full test suite execution results
-
-### Functions (6)
-✅ scenarioAssertionEvaluator - Deterministic assertion evaluation
-✅ narrativeSanityChecker - Concept-based narrative checks
-✅ runRegressionScenario - Execute single scenario
-✅ runAllRegressionTests - Execute full test suite
-✅ approveScenarioBaseline - Approve baselines
-✅ deliveryGateNW010 - Delivery gate orchestration
-
-### UI Components (3)
-✅ ScenarioLibraryView - Browse and execute scenarios
-✅ RegressionRunDashboard - View test results
-✅ BaselineApprovalPanel - Approve baselines
-
-### Pages (1)
-✅ RegressionTestDashboard - Admin UI for regression testing
-
-## Verification Results: 15/15 PASSED
-
-✅ All entities operational
-✅ All functions tested and working
-✅ 3 starter scenarios seeded (basic, medium, complex)
-✅ Deterministic assertions framework validated
-✅ Concept-based narrative checks operational
-✅ Release readiness gating implemented
-✅ DeliveryGateRunner integration ready
-
-## Key Features
-
-✅ Deterministic scenario-based regression testing
-✅ Assertion evaluation (findings, risk levels, confidence, gaps, signals)
-✅ Concept-based narrative sanity checks (no LLM text matching)
-✅ Version-aware baseline management (engineVersion + productVersion)
-✅ Release readiness gating: ready/caution/blocked
-✅ Deviation tracking and reporting
-✅ Admin UI for scenario execution and approval
-
-## Architecture Assessment
-
-✅ Deterministic engine integrity preserved
-✅ No modifications to core logic
-✅ Regression framework strengthens release discipline
-✅ System ready for v0.10.0 deployment
-
-**Status: Production Ready for v0.10.0**`;
-                const blob = new Blob([content], { type: 'text/markdown' });
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url; a.download = 'Nightwatch_v0.10.0_Regression_Framework_2026-03-10.md'; a.click();
-                URL.revokeObjectURL(url);
-              }}
-            >
-              <div className="space-y-4">
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                  {[
-                    { label: 'Verification Checks', value: '15', color: 'bg-slate-50 text-slate-700 border-slate-200' },
-                    { label: 'PASS', value: '15', color: 'bg-emerald-50 text-emerald-700 border-emerald-200' },
-                    { label: 'Entities', value: '4', color: 'bg-blue-50 text-blue-700 border-blue-200' },
-                    { label: 'Scenarios', value: '3', color: 'bg-purple-50 text-purple-700 border-purple-200' },
-                  ].map(({ label, value, color }) => (
-                    <div key={label} className={`rounded-xl border p-4 text-center ${color}`}>
-                      <p className="text-3xl font-bold">{value}</p>
-                      <p className="text-xs font-semibold mt-1 opacity-70 uppercase tracking-wider">{label}</p>
-                    </div>
-                  ))}
-                </div>
-                <p className="text-xs text-slate-600">Regression Testing Framework with scenario-based testing, deterministic assertions, and release readiness gating.</p>
-              </div>
-            </ReportCard>
-          </div>
-
-          <div className="text-center py-6 border-t border-slate-200">
-            <p className="text-sm text-slate-600 mb-3">View previous reports or access detailed audit information</p>
-            <button
-              onClick={() => setShowReportsList(true)}
-              className="px-4 py-2 text-sm font-medium bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
-            >
-              View All Reports
-            </button>
-          </div>
-        </div>
-      ) : (
-        // Full reports list view
-        <div>
-          <PageHeader
-            title="Nightwatch Verification Reports"
-            subtitle="All platform audit reports · Newest first · Click to expand"
-          >
-            <button
-              onClick={() => setShowReportsList(false)}
-              className="px-3 py-1.5 text-xs font-medium bg-slate-100 hover:bg-slate-200 text-slate-700 rounded transition-colors"
-            >
-              Back to Latest
-            </button>
-          </PageHeader>
-
-          <div className="space-y-4" id="reportsList">
+      <div className="space-y-4" id="reportsList">
 
         {/* Dynamically loaded reports from DeliveryGateRun */}
         {gateRuns.map(run => (
@@ -1917,13 +1779,11 @@ The Nightwatch v1 Core Architecture is architecturally sound and ready for MVP/l
           <V1Content />
         </ReportCard>
 
-          </div>
+      </div>
 
-          <p className="text-xs text-slate-400 text-center mt-8 pb-6">
-            Nightwatch Verification Reports · Great Horn AML · Reports identified by A0000 format from A1847 onwards
-          </p>
-        </div>
-      )}
+      <p className="text-xs text-slate-400 text-center mt-8 pb-6">
+        Nightwatch Verification Reports · Great Horn AML · Reports identified by A0000 format from A1847 onwards
+      </p>
     </div>
   );
 }
