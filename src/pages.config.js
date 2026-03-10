@@ -99,6 +99,10 @@ import NightwatchV17Summary from './pages/NightwatchV17Summary';
 import NightwatchV17VerificationReport from './pages/NightwatchV17VerificationReport';
 import NightwatchV17InternalAudit from './pages/NightwatchV17InternalAudit';
 import NightwatchV17DeliveryGateSummary from './pages/NightwatchV17DeliveryGateSummary';
+import NightwatchV18Summary from './pages/NightwatchV18Summary';
+import NightwatchV18VerificationReport from './pages/NightwatchV18VerificationReport';
+import NightwatchV18InternalAudit from './pages/NightwatchV18InternalAudit';
+import NightwatchV18DeliveryGateSummary from './pages/NightwatchV18DeliveryGateSummary';
 import __Layout from './Layout.jsx';
 
 
@@ -155,6 +159,10 @@ export const PAGES = {
     "NightwatchV17VerificationReport": NightwatchV17VerificationReport,
     "NightwatchV17InternalAudit": NightwatchV17InternalAudit,
     "NightwatchV17DeliveryGateSummary": NightwatchV17DeliveryGateSummary,
+    "NightwatchV18Summary": NightwatchV18Summary,
+    "NightwatchV18VerificationReport": NightwatchV18VerificationReport,
+    "NightwatchV18InternalAudit": NightwatchV18InternalAudit,
+    "NightwatchV18DeliveryGateSummary": NightwatchV18DeliveryGateSummary,
 }
 
 export const pagesConfig = {
