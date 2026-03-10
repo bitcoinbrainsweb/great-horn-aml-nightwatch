@@ -50,6 +50,21 @@ export default function Engagements() {
   const isAdmin = ['admin', 'super_admin', 'compliance_admin'].includes(user?.role);
 
   async function handleDelete(engagement) {
+    // Cascade delete all child records
+    const [tasks, intake, risks, controls, reports] = await Promise.all([
+      base44.entities.Task.filter({ engagement_id: engagement.id }),
+      base44.entities.IntakeResponse.filter({ engagement_id: engagement.id }),
+      base44.entities.EngagementRisk.filter({ engagement_id: engagement.id }),
+      base44.entities.ControlAssessment.filter({ engagement_id: engagement.id }),
+      base44.entities.Report.filter({ engagement_id: engagement.id }),
+    ]);
+    await Promise.all([
+      ...tasks.map(r => base44.entities.Task.delete(r.id)),
+      ...intake.map(r => base44.entities.IntakeResponse.delete(r.id)),
+      ...risks.map(r => base44.entities.EngagementRisk.delete(r.id)),
+      ...controls.map(r => base44.entities.ControlAssessment.delete(r.id)),
+      ...reports.map(r => base44.entities.Report.delete(r.id)),
+    ]);
     await base44.entities.Engagement.delete(engagement.id);
     setConfirmDelete(null);
     await loadData();

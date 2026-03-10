@@ -23,6 +23,7 @@ export default function Clients() {
   const [users, setUsers] = useState([]);
   const [user, setUser] = useState(null);
   const [confirmDelete, setConfirmDelete] = useState(null);
+  const [deleteError, setDeleteError] = useState('');
 
   useEffect(() => { loadData(); }, []);
 
@@ -41,6 +42,14 @@ export default function Clients() {
   const isAdmin = ['admin', 'super_admin', 'compliance_admin'].includes(user?.role);
 
   async function handleDelete(client) {
+    // Guard: check for active engagements
+    const engagements = await base44.entities.Engagement.filter({ client_id: client.id });
+    const activeStatuses = ['Not Started', 'Intake In Progress', 'Risk Analysis', 'Draft Report', 'Under Review'];
+    const activeEngs = engagements.filter(e => activeStatuses.includes(e.status));
+    if (activeEngs.length > 0) {
+      setDeleteError('This client cannot be deleted because it has active engagements. Complete or archive the engagements first.');
+      return;
+    }
     await base44.entities.Client.delete(client.id);
     setConfirmDelete(null);
     await loadData();
@@ -141,15 +150,20 @@ export default function Clients() {
       )}
 
       {/* Confirm Delete Dialog */}
-      <Dialog open={!!confirmDelete} onOpenChange={() => setConfirmDelete(null)}>
+      <Dialog open={!!confirmDelete} onOpenChange={() => { setConfirmDelete(null); setDeleteError(''); }}>
         <DialogContent className="max-w-sm">
           <DialogHeader>
             <DialogTitle>Delete Client</DialogTitle>
             <DialogDescription>Are you sure you want to delete <strong>{confirmDelete?.legal_name}</strong>? This action cannot be undone.</DialogDescription>
           </DialogHeader>
+          {deleteError && (
+            <div className="text-sm text-amber-800 bg-amber-50 border border-amber-200 rounded-lg p-3 mt-2">
+              {deleteError}
+            </div>
+          )}
           <div className="flex justify-end gap-2 pt-2">
-            <Button variant="outline" onClick={() => setConfirmDelete(null)}>Cancel</Button>
-            <Button onClick={() => handleDelete(confirmDelete)} className="bg-red-600 hover:bg-red-700 text-white">Delete</Button>
+            <Button variant="outline" onClick={() => { setConfirmDelete(null); setDeleteError(''); }}>Cancel</Button>
+            {!deleteError && <Button onClick={() => handleDelete(confirmDelete)} className="bg-red-600 hover:bg-red-700 text-white">Delete</Button>}
           </div>
         </DialogContent>
       </Dialog>

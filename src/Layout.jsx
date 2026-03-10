@@ -4,7 +4,7 @@ import { createPageUrl } from '@/utils';
 import { base44 } from '@/api/base44Client';
 import {
   LayoutDashboard, Building2, FileStack, ListTodo, FileBarChart, Settings,
-  ChevronLeft, ChevronRight, LogOut, Shield, Menu, X, Bell
+  ChevronLeft, ChevronRight, LogOut, Shield, Menu, Bell, HelpCircle
 } from 'lucide-react';
 
 const NAV_ITEMS = [
@@ -14,6 +14,7 @@ const NAV_ITEMS = [
   { name: 'Tasks', icon: ListTodo, page: 'Tasks' },
   { name: 'Reports', icon: FileBarChart, page: 'Reports' },
   { name: 'Admin', icon: Settings, page: 'Admin' },
+  { name: 'Help', icon: HelpCircle, page: 'Help' },
 ];
 
 export default function Layout({ children, currentPageName }) {
@@ -95,7 +96,7 @@ export default function Layout({ children, currentPageName }) {
             const isActive = currentPageName === item.page || 
               (item.page === 'Clients' && currentPageName === 'ClientDetail') ||
               (item.page === 'Engagements' && currentPageName === 'EngagementDetail') ||
-              (item.page === 'Admin' && ['AdminRiskLibrary', 'AdminControlLibrary', 'AdminMethodologies', 'AdminNarratives', 'AdminUsers', 'AdminAuditLog', 'AdminJurisdictions', 'AdminIndustries', 'AdminSuggestions'].includes(currentPageName));
+              (item.page === 'Admin' && ['AdminRiskLibrary', 'AdminControlLibrary', 'AdminMethodologies', 'AdminNarratives', 'AdminUsers', 'AdminAuditLog', 'AdminJurisdictions', 'AdminIndustries', 'AdminSuggestions', 'AdminTestScenarios'].includes(currentPageName));
             return (
               <Link
                 key={item.page}
