@@ -12,16 +12,6 @@ Deno.serve(async (req) => {
     const today = new Date().toISOString().split('T')[0];
     const recordName = `Nightwatch_VerificationRecord_v0.6.0_NW-UPGRADE-013_${today}`;
 
-    // Check if record already exists for this upgrade to prevent duplication
-    const existingRecords = await base44.asServiceRole.entities.PublishedOutput.filter({
-      upgrade_id: 'NW-UPGRADE-013',
-      classification: 'verification_record'
-    });
-
-    // If record exists for today, update it; otherwise create new
-    let record;
-    const existingToday = existingRecords.find(r => r.outputName === recordName);
-
     const summary = 'NW-UPGRADE-013: Artifact Classification and Page Cleanup';
     
     const content = {
@@ -81,8 +71,32 @@ Deno.serve(async (req) => {
       conclusion: 'PASS - NW-UPGRADE-013 complete. Artifact classification and page cleanup successful.'
     };
 
-    // Create verification record in PublishedOutput
-    const record = await base44.entities.PublishedOutput.create({
+    // Check if record already exists for this upgrade to prevent duplication
+    const existingRecords = await base44.asServiceRole.entities.PublishedOutput.filter({
+      upgrade_id: 'NW-UPGRADE-013',
+      classification: 'verification_record'
+    });
+
+    let publishedRecord;
+    const existingToday = existingRecords.find(r => r.outputName === recordName);
+
+    if (existingToday) {
+      // Update existing record
+      publishedRecord = await base44.asServiceRole.entities.PublishedOutput.update(existingToday.id, {
+        status: 'published',
+        published_at: new Date().toISOString(),
+        content: JSON.stringify(content),
+        summary: summary,
+        metadata: JSON.stringify({
+          audit_trail: true,
+          pages_deleted_count: 10,
+          routes_removed_count: 10,
+          classification_rules_implemented: 8
+        })
+      });
+    } else {
+      // Create new record
+      publishedRecord = await base44.asServiceRole.entities.PublishedOutput.create({
       outputName: recordName,
       classification: 'verification_record',
       subtype: 'upgrade_verification',
