@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { Shield, AlertTriangle, TrendingUp, ClipboardCheck, FileText, CheckCircle2 } from 'lucide-react';
 
-function SnapCard({ icon: Icon, label, value, color = 'slate' }) {
+function SnapCard({ icon: IconComp, label, value, color = 'slate' }) {
+  const Icon = IconComp;
   const colors = {
     slate: 'bg-slate-50 text-slate-700',
     red: 'bg-red-50 text-red-700',
