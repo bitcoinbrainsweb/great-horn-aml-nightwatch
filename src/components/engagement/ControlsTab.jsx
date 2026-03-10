@@ -8,9 +8,11 @@ import { Switch } from '@/components/ui/switch';
 import { Input } from '@/components/ui/input';
 import { RiskBadge } from '../ui/RiskBadge';
 import { calculateControlEffectiveness, calculateResidualRisk } from '../scoring/riskScoringEngine';
-import { ChevronDown, ChevronRight, Save, Paperclip, Lock, AlertTriangle } from 'lucide-react';
+import { ChevronDown, ChevronRight, Save, Paperclip, Lock, AlertTriangle, Plus, Search, X, Trash2 } from 'lucide-react';
 import InfoTooltip from '../ui/InfoTooltip';
 import { logAudit } from '../util/auditLog';
+import { Badge } from '../ui/badge';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../ui/dialog';
 
 export default function ControlsTab({ engagement, isLocked }) {
   const [engRisks, setEngRisks] = useState([]);
@@ -20,6 +22,8 @@ export default function ControlsTab({ engagement, isLocked }) {
   const [expandedRisk, setExpandedRisk] = useState(null);
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState(null);
+  const [addControlToRisk, setAddControlToRisk] = useState(null);
+  const [controlSearchQuery, setControlSearchQuery] = useState('');
 
   useEffect(() => { loadData(); }, [engagement.id]);
 
@@ -40,9 +44,24 @@ export default function ControlsTab({ engagement, isLocked }) {
   }
 
   function getControlsForRisk(risk) {
-    const libRisk = riskLibrary.find(r => r.risk_name === risk.risk_name);
-    const linkedNames = libRisk?.linked_control_names || [];
     return controlAssessments.filter(c => c.engagement_risk_id === risk.id);
+  }
+
+  function getRecommendedControlsForRisk(risk) {
+    const libRisk = riskLibrary.find(r => r.risk_name === risk.risk_name);
+    const linkedNames = new Set(libRisk?.linked_control_names || []);
+    return controlAssessments.filter(c => 
+      c.engagement_risk_id === risk.id && 
+      linkedNames.has(c.control_name) &&
+      !c.notes?.includes('source=manual_add')
+    );
+  }
+
+  function getManualControlsForRisk(risk) {
+    return controlAssessments.filter(c => 
+      c.engagement_risk_id === risk.id && 
+      c.notes?.includes('source=manual_add')
+    );
   }
 
   async function addSuggestedControls(risk) {
@@ -140,6 +159,56 @@ export default function ControlsTab({ engagement, isLocked }) {
     await loadData();
   }
 
+  async function attachManualControl(risk, control) {
+    // Check for duplicates
+    const existing = controlAssessments.find(c => c.engagement_risk_id === risk.id && c.control_name === control.control_name);
+    if (existing) {
+      alert('This control is already attached to the selected risk.');
+      return;
+    }
+
+    const newCtrl = await base44.entities.ControlAssessment.create({
+      engagement_risk_id: risk.id,
+      engagement_id: engagement.id,
+      control_id: control.id,
+      control_name: control.control_name,
+      control_category: control.control_category,
+      control_present: false,
+      design_effectiveness: 'Not Assessed',
+      operational_effectiveness: 'Not Assessed',
+      consistency_of_application: 'Not Assessed',
+      control_rating: 'Not Assessed',
+      notes: 'source=manual_add'
+    });
+
+    await logAudit({ 
+      userEmail: user?.email,
+      objectType: 'ControlAssessment', 
+      objectId: newCtrl.id, 
+      action: 'control_manually_attached', 
+      details: `Manual control "${control.control_name}" attached to risk "${risk.risk_name}" on engagement ${engagement.id}` 
+    });
+
+    setAddControlToRisk(null);
+    setControlSearchQuery('');
+    await loadData();
+  }
+
+  async function removeManualControl(ctrl) {
+    if (!confirm(`Remove manual control "${ctrl.control_name}"?`)) return;
+    
+    await logAudit({
+      userEmail: user?.email,
+      objectType: 'ControlAssessment',
+      objectId: ctrl.id,
+      action: 'control_manually_removed',
+      details: `Manual control "${ctrl.control_name}" removed from engagement ${engagement.id}`
+    });
+
+    await base44.entities.ControlAssessment.delete(ctrl.id);
+    await loadData();
+  }
+
   if (loading) return <div className="flex justify-center py-12"><div className="w-8 h-8 border-2 border-slate-300 border-t-slate-800 rounded-full animate-spin" /></div>;
 
   return (
@@ -188,6 +257,9 @@ export default function ControlsTab({ engagement, isLocked }) {
                       <Button size="sm" variant="outline" onClick={() => addSuggestedControls(risk)}>
                         Add Suggested Controls
                       </Button>
+                      <Button size="sm" variant="outline" onClick={() => setAddControlToRisk(risk)} className="gap-1">
+                        <Plus className="w-3.5 h-3.5" /> Add Control from Library
+                      </Button>
                       <Button size="sm" variant="outline" onClick={() => calculateResiduals(risk)} className="gap-1">
                         <Save className="w-3.5 h-3.5" /> Calculate Residual
                       </Button>
@@ -195,11 +267,19 @@ export default function ControlsTab({ engagement, isLocked }) {
                   )}
 
                   {riskControls.length === 0 ? (
-                    <p className="text-xs text-slate-500 py-2">No controls added. Click "Add Suggested Controls" to begin.</p>
+                    <p className="text-xs text-slate-500 py-2">No controls added. Click "Add Suggested Controls" or "Add Control from Library" to begin.</p>
                   ) : (
-                    <div className="space-y-3">
-                      {riskControls.map(ctrl => (
-                        <div key={ctrl.id} className="p-3 rounded-lg border border-slate-200 bg-slate-50/50 space-y-3">
+                    <div className="space-y-4">
+                      {/* Recommended Controls Section */}
+                      {getRecommendedControlsForRisk(risk).length > 0 && (
+                        <div>
+                          <p className="text-xs font-semibold text-slate-600 mb-2 flex items-center gap-2">
+                            Recommended Controls
+                            <span className="text-[10px] font-normal text-slate-400">({getRecommendedControlsForRisk(risk).length})</span>
+                          </p>
+                          <div className="space-y-3">
+                            {getRecommendedControlsForRisk(risk).map(ctrl => (
+                              <div key={ctrl.id} className="p-3 rounded-lg border border-slate-200 bg-slate-50/50 space-y-3">
                           <div className="flex items-center justify-between">
                               <div>
                                 <p className="text-sm font-medium text-slate-900">{ctrl.control_name}</p>
@@ -299,9 +379,138 @@ export default function ControlsTab({ engagement, isLocked }) {
                                 />
                               </div>
                             </div>
-                          )}
+                              )}
+                            </div>
+                            ))}
+                          </div>
                         </div>
-                      ))}
+                      )}
+
+                      {/* Additional Controls Section */}
+                      {getManualControlsForRisk(risk).length > 0 && (
+                        <div>
+                          <p className="text-xs font-semibold text-slate-600 mb-2 flex items-center gap-2">
+                            Additional Controls
+                            <span className="text-[10px] font-normal text-slate-400">({getManualControlsForRisk(risk).length})</span>
+                          </p>
+                          <div className="space-y-3">
+                            {getManualControlsForRisk(risk).map(ctrl => (
+                              <div key={ctrl.id} className="p-3 rounded-lg border border-blue-200 bg-blue-50/50 space-y-3">
+                                <div className="flex items-center justify-between">
+                                  <div className="flex items-center gap-2">
+                                    <div>
+                                      <div className="flex items-center gap-2">
+                                        <p className="text-sm font-medium text-slate-900">{ctrl.control_name}</p>
+                                        <Badge className="bg-blue-600 text-white text-[10px] h-4">Manual Control</Badge>
+                                      </div>
+                                      <p className="text-xs text-slate-500">{ctrl.control_category}</p>
+                                    </div>
+                                  </div>
+                                  <div className="flex items-center gap-2">
+                                    {!isLocked && (
+                                      <Button variant="ghost" size="sm" onClick={() => removeManualControl(ctrl)} className="text-red-600 hover:text-red-700 hover:bg-red-50 h-7 px-2">
+                                        <Trash2 className="w-3 h-3" />
+                                      </Button>
+                                    )}
+                                    {ctrl.control_present && !ctrl.evidence_reference && (
+                                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-700 border border-amber-200">
+                                        <AlertTriangle className="w-2.5 h-2.5" /> Evidence Missing
+                                      </span>
+                                    )}
+                                    <Label className="text-xs">Present</Label>
+                                    <Switch checked={ctrl.control_present} onCheckedChange={v => updateControl(ctrl.id, { control_present: v })} disabled={isLocked} />
+                                  </div>
+                                </div>
+                                {ctrl.control_present && (
+                                  <div className="grid grid-cols-3 gap-3">
+                                    <div>
+                                      <Label className="text-xs flex items-center">Design<InfoTooltip content="Design adequacy: Is the control appropriately designed to mitigate the risk? Does it address the right threat vectors?" /></Label>
+                                      <Select value={ctrl.design_effectiveness || ''} onValueChange={v => updateControl(ctrl.id, { design_effectiveness: v })} disabled={isLocked}>
+                                        <SelectTrigger className="h-8 text-xs"><SelectValue placeholder="Rate..." /></SelectTrigger>
+                                        <SelectContent>
+                                          {['Strong', 'Partially Effective', 'Weak'].map(r => <SelectItem key={r} value={r}>{r}</SelectItem>)}
+                                        </SelectContent>
+                                      </Select>
+                                    </div>
+                                    <div>
+                                      <Label className="text-xs flex items-center">Operational<InfoTooltip content="Operational performance: Is the control functioning in practice? Is there evidence of effective operation?" /></Label>
+                                      <Select value={ctrl.operational_effectiveness || ''} onValueChange={v => updateControl(ctrl.id, { operational_effectiveness: v })} disabled={isLocked}>
+                                        <SelectTrigger className="h-8 text-xs"><SelectValue placeholder="Rate..." /></SelectTrigger>
+                                        <SelectContent>
+                                          {['Strong', 'Partially Effective', 'Weak'].map(r => <SelectItem key={r} value={r}>{r}</SelectItem>)}
+                                        </SelectContent>
+                                      </Select>
+                                    </div>
+                                    <div>
+                                      <Label className="text-xs flex items-center">Consistency<InfoTooltip content="Consistency of application: Is the control applied consistently across the organization, channels, and staff?" /></Label>
+                                      <Select value={ctrl.consistency_of_application || ''} onValueChange={v => updateControl(ctrl.id, { consistency_of_application: v })} disabled={isLocked}>
+                                        <SelectTrigger className="h-8 text-xs"><SelectValue placeholder="Rate..." /></SelectTrigger>
+                                        <SelectContent>
+                                          {['Strong', 'Partially Effective', 'Weak'].map(r => <SelectItem key={r} value={r}>{r}</SelectItem>)}
+                                        </SelectContent>
+                                      </Select>
+                                    </div>
+                                  </div>
+                                )}
+                                {ctrl.control_rating && ctrl.control_rating !== 'Not Assessed' && (
+                                  <p className="text-xs"><span className="text-slate-500">Overall:</span> <span className="font-semibold">{ctrl.control_rating}</span></p>
+                                )}
+                                {/* Evidence & Testing */}
+                                {ctrl.control_present && (
+                                  <div className="border-t border-blue-200/60 pt-3 space-y-2 mt-1">
+                                    <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider flex items-center gap-1.5"><Paperclip className="w-3 h-3" /> Evidence & Testing</p>
+                                    <div className="grid grid-cols-2 gap-2">
+                                      <div>
+                                        <Label className="text-xs">Evidence Reference</Label>
+                                        <Textarea rows={2} className="text-xs mt-0.5" placeholder="Document title, file reference..." value={ctrl.evidence_reference || ''} onChange={e => updateControl(ctrl.id, { evidence_reference: e.target.value })} disabled={isLocked} />
+                                      </div>
+                                      <div>
+                                        <Label className="text-xs">Sample Size</Label>
+                                        <input className="flex h-8 w-full rounded-md border border-input bg-transparent px-3 py-1 text-xs shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring mt-0.5" placeholder="e.g. 25 transactions" value={ctrl.sample_size || ''} onChange={e => updateControl(ctrl.id, { sample_size: e.target.value })} disabled={isLocked} />
+                                      </div>
+                                    </div>
+                                    <div>
+                                      <Label className="text-xs">Testing Notes</Label>
+                                      <Textarea rows={2} className="text-xs mt-0.5" placeholder="Testing approach and methodology..." value={ctrl.testing_notes || ''} onChange={e => updateControl(ctrl.id, { testing_notes: e.target.value })} disabled={isLocked} />
+                                    </div>
+                                    <div>
+                                      <Label className="text-xs">Sample Results</Label>
+                                      <Textarea rows={2} className="text-xs mt-0.5" placeholder="Summary of sample testing results..." value={ctrl.sample_results || ''} onChange={e => updateControl(ctrl.id, { sample_results: e.target.value })} disabled={isLocked} />
+                                    </div>
+                                    <div>
+                                      <Label className="text-xs">Reviewer Notes</Label>
+                                      <Textarea rows={2} className="text-xs mt-0.5" placeholder="Reviewer comments on this control..." value={ctrl.reviewer_notes || ''} onChange={e => updateControl(ctrl.id, { reviewer_notes: e.target.value })} disabled={isLocked} />
+                                    </div>
+                                    <div>
+                                      <Label className="text-xs">Testing Conclusion</Label>
+                                      <Textarea rows={2} className="text-xs mt-0.5" placeholder="Overall conclusion on control effectiveness based on evidence and testing..." value={ctrl.testing_conclusion || ''} onChange={e => updateControl(ctrl.id, { testing_conclusion: e.target.value })} disabled={isLocked} />
+                                    </div>
+                                    {/* Reviewer Sign-Off */}
+                                    <div className="flex items-center justify-between border-t border-blue-200/60 pt-3 mt-1">
+                                      <div>
+                                        <p className="text-xs font-medium text-slate-700">Reviewer Sign-Off</p>
+                                        <p className="text-[10px] text-slate-400 mt-0.5">
+                                          {ctrl.reviewer_sign_off
+                                            ? `Signed off${ctrl.reviewer_sign_off_date ? ` on ${ctrl.reviewer_sign_off_date}` : ''}`
+                                            : 'Not yet signed off by reviewer'}
+                                        </p>
+                                      </div>
+                                      <Switch
+                                        checked={!!ctrl.reviewer_sign_off}
+                                        disabled={isLocked}
+                                        onCheckedChange={v => updateControl(ctrl.id, {
+                                          reviewer_sign_off: v,
+                                          reviewer_sign_off_date: v ? new Date().toISOString().split('T')[0] : null,
+                                        })}
+                                      />
+                                    </div>
+                                  </div>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>
@@ -310,6 +519,56 @@ export default function ControlsTab({ engagement, isLocked }) {
           );
         })
       )}
+
+      {/* Add Control from Library Dialog */}
+      <Dialog open={!!addControlToRisk} onOpenChange={() => { setAddControlToRisk(null); setControlSearchQuery(''); }}>
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-hidden flex flex-col">
+          <DialogHeader>
+            <DialogTitle>Add Control from Library</DialogTitle>
+            <p className="text-xs text-slate-500 mt-1">Risk: {addControlToRisk?.risk_name}</p>
+          </DialogHeader>
+          <div className="relative mb-3">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+            <Input 
+              placeholder="Search by control name, category, or regulatory reference..." 
+              value={controlSearchQuery}
+              onChange={e => setControlSearchQuery(e.target.value)}
+              className="pl-9"
+            />
+            {controlSearchQuery && (
+              <button onClick={() => setControlSearchQuery('')} className="absolute right-3 top-1/2 -translate-y-1/2">
+                <X className="w-4 h-4 text-slate-400 hover:text-slate-600" />
+              </button>
+            )}
+          </div>
+          <div className="flex-1 overflow-y-auto space-y-2">
+            {controlLibrary
+              .filter(c => {
+                if (!controlSearchQuery) return true;
+                const q = controlSearchQuery.toLowerCase();
+                return (
+                  c.control_name?.toLowerCase().includes(q) ||
+                  c.control_category?.toLowerCase().includes(q) ||
+                  c.regulatory_reference?.toLowerCase().includes(q)
+                );
+              })
+              .map(ctrl => (
+                <div key={ctrl.id} className="flex items-start justify-between p-3 rounded-lg border border-slate-200 hover:bg-slate-50 transition-colors">
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm font-medium text-slate-900">{ctrl.control_name}</p>
+                    <p className="text-xs text-slate-500 mt-0.5">{ctrl.control_category}</p>
+                    {ctrl.regulatory_reference && (
+                      <p className="text-[10px] text-slate-400 mt-1">Ref: {ctrl.regulatory_reference}</p>
+                    )}
+                  </div>
+                  <Button size="sm" variant="outline" onClick={() => attachManualControl(addControlToRisk, ctrl)} className="ml-3 flex-shrink-0">
+                    Add
+                  </Button>
+                </div>
+              ))}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
