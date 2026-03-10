@@ -227,7 +227,7 @@ export const INTAKE_SECTIONS = [
   },
   {
     id: 'cash_business_module',
-    title: '13. Cash Business Methodology Module',
+    title: '14. Cash Business Methodology Module',
     icon: 'Banknote',
     methodology: 'Cash Business EWRA',
     questions: [
@@ -243,7 +243,7 @@ export const INTAKE_SECTIONS = [
   },
   {
     id: 'analyst_inputs',
-    title: '14. Analyst Inputs',
+    title: '15. Analyst Inputs',
     icon: 'PenTool',
     questions: [
       { key: 'risk_notes', label: 'Key business-specific risk notes', type: 'textarea' },
