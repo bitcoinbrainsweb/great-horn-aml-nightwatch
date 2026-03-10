@@ -53,6 +53,7 @@ import Engagements from './pages/Engagements';
 import Tasks from './pages/Tasks';
 import Reports from './pages/Reports';
 import Admin from './pages/Admin';
+import ClientDetail from './pages/ClientDetail';
 import __Layout from './Layout.jsx';
 
 
@@ -63,6 +64,7 @@ export const PAGES = {
     "Tasks": Tasks,
     "Reports": Reports,
     "Admin": Admin,
+    "ClientDetail": ClientDetail,
 }
 
 export const pagesConfig = {

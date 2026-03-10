@@ -1,0 +1,213 @@
+import React, { useState, useEffect } from 'react';
+import { base44 } from '@/api/base44Client';
+import { Button } from '@/components/ui/button';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
+import { Switch } from '@/components/ui/switch';
+import { RiskBadge } from '../ui/RiskBadge';
+import { calculateControlEffectiveness, calculateResidualRisk } from '../scoring/riskScoringEngine';
+import { ChevronDown, ChevronRight, Save } from 'lucide-react';
+
+export default function ControlsTab({ engagement }) {
+  const [engRisks, setEngRisks] = useState([]);
+  const [controlAssessments, setControlAssessments] = useState([]);
+  const [controlLibrary, setControlLibrary] = useState([]);
+  const [riskLibrary, setRiskLibrary] = useState([]);
+  const [expandedRisk, setExpandedRisk] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => { loadData(); }, [engagement.id]);
+
+  async function loadData() {
+    const [risks, controls, lib, rLib] = await Promise.all([
+      base44.entities.EngagementRisk.filter({ engagement_id: engagement.id }),
+      base44.entities.ControlAssessment.filter({ engagement_id: engagement.id }),
+      base44.entities.ControlLibrary.filter({ status: 'Active' }),
+      base44.entities.RiskLibrary.filter({ status: 'Active' })
+    ]);
+    setEngRisks(risks);
+    setControlAssessments(controls);
+    setControlLibrary(lib);
+    setRiskLibrary(rLib);
+    setLoading(false);
+  }
+
+  function getControlsForRisk(risk) {
+    const libRisk = riskLibrary.find(r => r.risk_name === risk.risk_name);
+    const linkedNames = libRisk?.linked_control_names || [];
+    return controlAssessments.filter(c => c.engagement_risk_id === risk.id);
+  }
+
+  async function addSuggestedControls(risk) {
+    const libRisk = riskLibrary.find(r => r.risk_name === risk.risk_name);
+    const linkedNames = libRisk?.linked_control_names || [];
+    const existingNames = controlAssessments.filter(c => c.engagement_risk_id === risk.id).map(c => c.control_name);
+    
+    const toAdd = linkedNames.filter(name => !existingNames.includes(name));
+    for (const name of toAdd) {
+      const libControl = controlLibrary.find(c => c.control_name === name);
+      await base44.entities.ControlAssessment.create({
+        engagement_risk_id: risk.id,
+        engagement_id: engagement.id,
+        control_id: libControl?.id || '',
+        control_name: name,
+        control_category: libControl?.control_category || '',
+        control_present: false,
+        design_effectiveness: 'Not Assessed',
+        operational_effectiveness: 'Not Assessed',
+        consistency_of_application: 'Not Assessed',
+        control_rating: 'Not Assessed'
+      });
+    }
+    await loadData();
+  }
+
+  async function updateControl(controlId, updates) {
+    let data = { ...updates };
+    
+    // If all three effectiveness ratings are set, calculate overall
+    const ctrl = controlAssessments.find(c => c.id === controlId);
+    const design = updates.design_effectiveness || ctrl?.design_effectiveness;
+    const operational = updates.operational_effectiveness || ctrl?.operational_effectiveness;
+    const consistency = updates.consistency_of_application || ctrl?.consistency_of_application;
+    
+    if (design && operational && consistency && design !== 'Not Assessed' && operational !== 'Not Assessed' && consistency !== 'Not Assessed') {
+      data.control_rating = calculateControlEffectiveness(design, consistency, operational);
+    }
+    
+    await base44.entities.ControlAssessment.update(controlId, data);
+    await loadData();
+  }
+
+  async function calculateResiduals(risk) {
+    const riskControls = controlAssessments.filter(c => c.engagement_risk_id === risk.id);
+    const ratings = riskControls.filter(c => c.control_rating && c.control_rating !== 'Not Assessed').map(c => c.control_rating);
+    
+    if (ratings.length === 0) return;
+    
+    // Overall control effectiveness for this risk
+    let overallCtrl;
+    if (ratings.some(r => r === 'Weak')) overallCtrl = 'Weak';
+    else if (ratings.every(r => r === 'Strong')) overallCtrl = 'Strong';
+    else overallCtrl = 'Partially Effective';
+
+    const residual = risk.inherent_risk_rating ? calculateResidualRisk(risk.inherent_risk_rating, overallCtrl) : null;
+    
+    await base44.entities.EngagementRisk.update(risk.id, {
+      design_adequacy_rating: overallCtrl,
+      overall_control_effectiveness: overallCtrl,
+      residual_risk_rating: residual
+    });
+    await loadData();
+  }
+
+  if (loading) return <div className="flex justify-center py-12"><div className="w-8 h-8 border-2 border-slate-300 border-t-slate-800 rounded-full animate-spin" /></div>;
+
+  return (
+    <div className="space-y-4">
+      <p className="text-sm text-slate-500">Assess controls for each identified risk. Controls are suggested based on the risk library mappings.</p>
+
+      {engRisks.length === 0 ? (
+        <div className="bg-white rounded-xl border border-slate-200/60 p-8 text-center">
+          <p className="text-sm text-slate-500">No risks to assess controls for. Add risks first.</p>
+        </div>
+      ) : (
+        engRisks.map(risk => {
+          const riskControls = getControlsForRisk(risk);
+          const isExpanded = expandedRisk === risk.id;
+          
+          return (
+            <div key={risk.id} className="bg-white rounded-xl border border-slate-200/60 overflow-hidden">
+              <div 
+                className="px-5 py-3 flex items-center justify-between cursor-pointer hover:bg-slate-50/50 transition-colors"
+                onClick={() => setExpandedRisk(isExpanded ? null : risk.id)}
+              >
+                <div className="flex items-center gap-3">
+                  {isExpanded ? <ChevronDown className="w-4 h-4 text-slate-400" /> : <ChevronRight className="w-4 h-4 text-slate-400" />}
+                  <div>
+                    <p className="text-sm font-medium text-slate-900">{risk.risk_name}</p>
+                    <p className="text-xs text-slate-500">{risk.risk_category} · {riskControls.length} controls</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <RiskBadge rating={risk.inherent_risk_rating} />
+                  <span className="text-xs text-slate-400">→</span>
+                  <RiskBadge rating={risk.residual_risk_rating} />
+                </div>
+              </div>
+
+              {isExpanded && (
+                <div className="px-5 py-4 border-t border-slate-100 space-y-4">
+                  <div className="flex gap-2">
+                    <Button size="sm" variant="outline" onClick={() => addSuggestedControls(risk)}>
+                      Add Suggested Controls
+                    </Button>
+                    <Button size="sm" variant="outline" onClick={() => calculateResiduals(risk)} className="gap-1">
+                      <Save className="w-3.5 h-3.5" /> Calculate Residual
+                    </Button>
+                  </div>
+
+                  {riskControls.length === 0 ? (
+                    <p className="text-xs text-slate-500 py-2">No controls added. Click "Add Suggested Controls" to begin.</p>
+                  ) : (
+                    <div className="space-y-3">
+                      {riskControls.map(ctrl => (
+                        <div key={ctrl.id} className="p-3 rounded-lg border border-slate-200 bg-slate-50/50 space-y-3">
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <p className="text-sm font-medium text-slate-900">{ctrl.control_name}</p>
+                              <p className="text-xs text-slate-500">{ctrl.control_category}</p>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <Label className="text-xs">Present</Label>
+                              <Switch checked={ctrl.control_present} onCheckedChange={v => updateControl(ctrl.id, { control_present: v })} />
+                            </div>
+                          </div>
+                          {ctrl.control_present && (
+                            <div className="grid grid-cols-3 gap-3">
+                              <div>
+                                <Label className="text-xs">Design</Label>
+                                <Select value={ctrl.design_effectiveness || ''} onValueChange={v => updateControl(ctrl.id, { design_effectiveness: v })}>
+                                  <SelectTrigger className="h-8 text-xs"><SelectValue placeholder="Rate..." /></SelectTrigger>
+                                  <SelectContent>
+                                    {['Strong', 'Partially Effective', 'Weak'].map(r => <SelectItem key={r} value={r}>{r}</SelectItem>)}
+                                  </SelectContent>
+                                </Select>
+                              </div>
+                              <div>
+                                <Label className="text-xs">Operational</Label>
+                                <Select value={ctrl.operational_effectiveness || ''} onValueChange={v => updateControl(ctrl.id, { operational_effectiveness: v })}>
+                                  <SelectTrigger className="h-8 text-xs"><SelectValue placeholder="Rate..." /></SelectTrigger>
+                                  <SelectContent>
+                                    {['Strong', 'Partially Effective', 'Weak'].map(r => <SelectItem key={r} value={r}>{r}</SelectItem>)}
+                                  </SelectContent>
+                                </Select>
+                              </div>
+                              <div>
+                                <Label className="text-xs">Consistency</Label>
+                                <Select value={ctrl.consistency_of_application || ''} onValueChange={v => updateControl(ctrl.id, { consistency_of_application: v })}>
+                                  <SelectTrigger className="h-8 text-xs"><SelectValue placeholder="Rate..." /></SelectTrigger>
+                                  <SelectContent>
+                                    {['Strong', 'Partially Effective', 'Weak'].map(r => <SelectItem key={r} value={r}>{r}</SelectItem>)}
+                                  </SelectContent>
+                                </Select>
+                              </div>
+                            </div>
+                          )}
+                          {ctrl.control_rating && ctrl.control_rating !== 'Not Assessed' && (
+                            <p className="text-xs"><span className="text-slate-500">Overall:</span> <span className="font-semibold">{ctrl.control_rating}</span></p>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          );
+        })
+      )}
+    </div>
+  );
+}
