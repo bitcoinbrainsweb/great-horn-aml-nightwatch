@@ -416,31 +416,27 @@ export default function NightwatchVerificationReport() {
       <div className="space-y-4" id="reportsList">
 
         {/* Dynamically loaded reports from DeliveryGateRun */}
-        {gateRuns.length === 0 ? (
-          <p className="text-sm text-slate-500">No gate runs found. Hardcoded reports below.</p>
-        ) : (
-          gateRuns.map(run => (
-            <ReportCard
-              key={run.id}
-              id={`DG-${run.runId.slice(-4)}`}
-              name={`${run.upgradeName} (${run.version})`}
-              date={new Date(run.completedAt).toLocaleString()}
-              scope={JSON.parse(run.implementationSummary || '{}').scope || 'See implementation summary'}
-              statusLabel="✅ PASS"
-              statusColor="green"
-              isFullAudit={true}
-              badges={[
-                { label: 'Status', value: 'Pass', variant: 'pass' },
-              ]}
-            >
-              <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-xl text-xs text-emerald-800">
-                <p><strong>Run ID:</strong> {run.runId}</p>
-                <p className="mt-1"><strong>Upgrade ID:</strong> {run.upgradeId}</p>
-                <p className="mt-1"><strong>Version:</strong> {run.version}</p>
-              </div>
-            </ReportCard>
-          ))
-        )}
+        {gateRuns.map(run => (
+          <ReportCard
+            key={run.id}
+            id={`DG-${run.runId.slice(-4)}`}
+            name={`${run.upgradeName} (${run.version})`}
+            date={new Date(run.completedAt).toLocaleString()}
+            scope={JSON.parse(run.implementationSummary || '{}').scope || 'See implementation summary'}
+            statusLabel="✅ PASS"
+            statusColor="green"
+            isFullAudit={true}
+            badges={[
+              { label: 'Status', value: 'Pass', variant: 'pass' },
+            ]}
+          >
+            <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-xl text-xs text-emerald-800">
+              <p><strong>Run ID:</strong> {run.runId}</p>
+              <p className="mt-1"><strong>Upgrade ID:</strong> {run.upgradeId}</p>
+              <p className="mt-1"><strong>Version:</strong> {run.version}</p>
+            </div>
+          </ReportCard>
+        ))}
 
         {/* V0.9.0 — Release Versioning (Most Recent if manually added) */}
         <ReportCard
