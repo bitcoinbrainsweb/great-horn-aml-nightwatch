@@ -228,19 +228,25 @@ export default function Engagements() {
         </div>
       )}
 
-      {/* Confirm Delete Dialog */}
-      <Dialog open={!!confirmDelete} onOpenChange={() => setConfirmDelete(null)}>
-        <DialogContent className="max-w-sm">
-          <DialogHeader>
-            <DialogTitle>Delete Engagement</DialogTitle>
-            <DialogDescription>Are you sure you want to delete the <strong>{confirmDelete?.engagement_type}</strong> engagement for <strong>{confirmDelete?.client_name}</strong>? This cannot be undone.</DialogDescription>
-          </DialogHeader>
-          <div className="flex justify-end gap-2 pt-2">
-            <Button variant="outline" onClick={() => setConfirmDelete(null)}>Cancel</Button>
-            <Button onClick={() => handleDelete(confirmDelete)} className="bg-red-600 hover:bg-red-700 text-white">Delete</Button>
-          </div>
-        </DialogContent>
-      </Dialog>
+      <ConfirmDialog
+        open={!!confirmArchive}
+        onClose={() => setConfirmArchive(null)}
+        onConfirm={() => handleArchive(confirmArchive)}
+        title="Archive Engagement"
+        description={<>Archive the <strong>{confirmArchive?.engagement_type}</strong> engagement for <strong>{confirmArchive?.client_name}</strong>? It will be hidden from active views but preserved.</>}
+        confirmWord="ARCHIVE"
+        actionLabel="Archive"
+      />
+
+      <ConfirmDialog
+        open={!!confirmDelete}
+        onClose={() => setConfirmDelete(null)}
+        onConfirm={() => handleDelete(confirmDelete)}
+        title="Permanently Delete Engagement"
+        description={<>This will permanently delete the <strong>{confirmDelete?.engagement_type}</strong> engagement for <strong>{confirmDelete?.client_name}</strong> and all related data. This <strong>cannot be undone</strong>.</>}
+        confirmWord="DELETE"
+        actionLabel="Delete Permanently"
+      />
 
       <Dialog open={showCreate} onOpenChange={setShowCreate}>
         <DialogContent className="max-w-lg">
