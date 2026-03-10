@@ -9,6 +9,7 @@ import { Label } from '@/components/ui/label';
 import { RiskBadge, StatusBadge } from '../ui/RiskBadge';
 import { suggestRisksFromIntake, calculateInherentRisk, LIKELIHOOD_SCALE, IMPACT_SCALE } from '../scoring/riskScoringEngine';
 import { Lightbulb, Plus, Trash2, ChevronDown, ChevronRight, AlertTriangle, CheckCircle2 } from 'lucide-react';
+import InfoTooltip from '../ui/InfoTooltip';
 
 export default function RisksTab({ engagement }) {
   const [engRisks, setEngRisks] = useState([]);
@@ -106,14 +107,19 @@ export default function RisksTab({ engagement }) {
 
   return (
     <div className="space-y-6">
-      {/* Actions bar */}
-      <div className="flex flex-wrap gap-3">
+      {/* Actions bar + counts */}
+      <div className="flex flex-wrap items-center gap-3">
         <Button variant="outline" onClick={() => setShowSuggestions(true)} className="gap-2">
-          <Lightbulb className="w-4 h-4" /> Suggested Risks ({suggestions.length})
+          <Lightbulb className="w-4 h-4 text-amber-500" /> Suggested Risks ({suggestions.length})
         </Button>
         <Button variant="outline" onClick={() => setShowAddRisk(true)} className="gap-2">
           <Plus className="w-4 h-4" /> Add Risk
         </Button>
+        <div className="ml-auto flex items-center gap-4 text-xs text-slate-500">
+          <span>Accepted: <strong className="text-slate-900">{engRisks.filter(r => r.is_accepted !== false).length}</strong></span>
+          <span>From Suggestions: <strong className="text-amber-700">{engRisks.filter(r => r.is_suggested).length}</strong></span>
+          <span>Total: <strong className="text-slate-900">{engRisks.length}</strong></span>
+        </div>
       </div>
 
       {/* Risk list grouped by category */}
@@ -152,7 +158,7 @@ export default function RisksTab({ engagement }) {
                     <div className="px-5 py-4 bg-slate-50/30 border-t border-slate-100">
                       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
                         <div>
-                          <Label className="text-xs">Likelihood (1-3)</Label>
+                          <Label className="text-xs flex items-center">Likelihood (1-3)<InfoTooltip content="Likelihood reflects how probable it is that this risk could occur based on the business model, products, delivery channels, and client profile. 1 = Low, 2 = Moderate, 3 = High." /></Label>
                           <Select value={String(risk.inherent_likelihood_score || '')} onValueChange={v => updateRiskScore(risk, 'inherent_likelihood_score', v)}>
                             <SelectTrigger><SelectValue placeholder="Score" /></SelectTrigger>
                             <SelectContent>
@@ -163,7 +169,7 @@ export default function RisksTab({ engagement }) {
                           </Select>
                         </div>
                         <div>
-                          <Label className="text-xs">Impact (1-3)</Label>
+                          <Label className="text-xs flex items-center">Impact (1-3)<InfoTooltip content="Impact reflects the potential regulatory, financial, operational, or reputational consequences if this risk materializes. 1 = Low, 2 = Moderate, 3 = High." /></Label>
                           <Select value={String(risk.inherent_impact_score || '')} onValueChange={v => updateRiskScore(risk, 'inherent_impact_score', v)}>
                             <SelectTrigger><SelectValue placeholder="Score" /></SelectTrigger>
                             <SelectContent>
@@ -174,11 +180,11 @@ export default function RisksTab({ engagement }) {
                           </Select>
                         </div>
                         <div>
-                          <Label className="text-xs">Inherent Risk</Label>
+                          <Label className="text-xs flex items-center">Inherent Risk<InfoTooltip content="Inherent risk is calculated as Likelihood × Impact, before considering any controls. Scores of 1–2 = Low, 3–4 = Moderate, 6–9 = High." /></Label>
                           <div className="mt-1.5"><RiskBadge rating={risk.inherent_risk_rating} /></div>
                         </div>
                         <div>
-                          <Label className="text-xs">Residual Risk</Label>
+                          <Label className="text-xs flex items-center">Residual Risk<InfoTooltip content="Residual risk is the risk remaining after considering the effectiveness of applicable controls. Derived from the Inherent Risk rating combined with Overall Control Effectiveness." /></Label>
                           <div className="mt-1.5"><RiskBadge rating={risk.residual_risk_rating} /></div>
                         </div>
                       </div>
