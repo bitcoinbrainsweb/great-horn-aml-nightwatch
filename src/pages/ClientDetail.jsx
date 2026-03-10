@@ -121,6 +121,10 @@ export default function ClientDetail() {
           <TabsTrigger value="activity">Activity</TabsTrigger>
         </TabsList>
 
+        <TabsContent value="compliance">
+          <ComplianceOverview clientId={clientId} engagements={engagements} />
+        </TabsContent>
+
         <TabsContent value="overview">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <div className="bg-white rounded-xl border border-slate-200/60 p-6 space-y-4">
