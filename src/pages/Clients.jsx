@@ -11,7 +11,7 @@ import { Label } from '@/components/ui/label';
 import PageHeader from '../components/ui/PageHeader';
 import { StatusBadge } from '../components/ui/RiskBadge';
 import EmptyState from '../components/ui/EmptyState';
-import { logAudit } from '../lib/auditLog';
+import { logAudit } from '../components/util/auditLog';
 
 export default function Clients() {
   const [clients, setClients] = useState([]);

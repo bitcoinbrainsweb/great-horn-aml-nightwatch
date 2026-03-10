@@ -13,7 +13,7 @@ import { StatusBadge, RiskBadge } from '../components/ui/RiskBadge';
 import EmptyState from '../components/ui/EmptyState';
 import { DEFAULT_TASKS } from '../components/scoring/riskScoringEngine';
 import { format } from 'date-fns';
-import { logAudit } from '../lib/auditLog';
+import { logAudit } from '../components/util/auditLog';
 
 export default function Engagements() {
   const [engagements, setEngagements] = useState([]);

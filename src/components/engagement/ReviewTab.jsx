@@ -6,7 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { StatusBadge } from '../ui/RiskBadge';
 import { CheckCircle2, XCircle, MessageSquare, Lock } from 'lucide-react';
 import { format } from 'date-fns';
-import { logAudit } from '../lib/auditLog';
+import { logAudit } from '../util/auditLog';
 
 export default function ReviewTab({ engagement }) {
   const [reviewLogs, setReviewLogs] = useState([]);

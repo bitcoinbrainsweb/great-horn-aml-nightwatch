@@ -5,7 +5,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { FileText, Save, Sparkles, Send, CheckCircle2, Lock, Download, FileDown, AlertTriangle } from 'lucide-react';
 import { StatusBadge } from '../ui/RiskBadge';
 import { jsPDF } from 'jspdf';
-import { logAudit } from '../lib/auditLog';
+import { logAudit } from '../util/auditLog';
 
 const REPORT_SECTIONS = [
   'Executive Summary',

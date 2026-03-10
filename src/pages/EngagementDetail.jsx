@@ -21,7 +21,7 @@ import ReviewTab from '../components/engagement/ReviewTab';
 import RiskSnapshotPanel from '../components/engagement/RiskSnapshotPanel';
 import ProgressTracker from '../components/engagement/ProgressTracker';
 import { format } from 'date-fns';
-import { logAudit } from '../lib/auditLog';
+import { logAudit } from '../components/util/auditLog';
 
 const ENGAGEMENT_STATUSES = ['Not Started', 'Intake In Progress', 'Risk Analysis', 'Draft Report', 'Under Review', 'Completed', 'Archived'];
 
