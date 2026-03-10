@@ -86,6 +86,8 @@ import VerificationReportM4827 from './pages/VerificationReportM4827';
 import VerificationReportNW11 from './pages/VerificationReportNW11';
 import VerificationReportU4827 from './pages/VerificationReportU4827';
 import PromptTemplateSystemSummary from './pages/PromptTemplateSystemSummary';
+import DeterministicEngineVerification from './pages/DeterministicEngineVerification';
+import DeterministicEngineArchitecture from './pages/DeterministicEngineArchitecture';
 import __Layout from './Layout.jsx';
 
 
@@ -129,6 +131,8 @@ export const PAGES = {
     "VerificationReportNW11": VerificationReportNW11,
     "VerificationReportU4827": VerificationReportU4827,
     "PromptTemplateSystemSummary": PromptTemplateSystemSummary,
+    "DeterministicEngineVerification": DeterministicEngineVerification,
+    "DeterministicEngineArchitecture": DeterministicEngineArchitecture,
 }
 
 export const pagesConfig = {
