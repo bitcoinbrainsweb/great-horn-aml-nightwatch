@@ -69,7 +69,7 @@ export default function Layout({ children, currentPageName }) {
       if (!me.role || me.role === 'user') {
         let newRole = validInvite.role || 'reviewer';
         // Amanda auto-maps to compliance_admin
-        if (me.email === 'amanda@greathornaml.com' && newRole === 'reviewer') newRole = 'compliance_admin';
+        if (me.email === 'amanda@greathornaml.com') newRole = 'compliance_admin';
         await base44.auth.updateMe({ role: newRole });
         const updated = await base44.auth.me();
         setUser(updated);
