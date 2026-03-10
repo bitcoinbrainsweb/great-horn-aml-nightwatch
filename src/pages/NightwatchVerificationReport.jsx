@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import PageHeader from '../components/ui/PageHeader';
 import VerificationReportA1847 from './VerificationReportA1847';
 import VerificationReportM4827 from './VerificationReportM4827';
+import VerificationReportA7364 from './VerificationReportA7364';
 
 // ── shared helpers ────────────────────────────────────────────────────────────
 
@@ -367,7 +368,25 @@ export default function NightwatchVerificationReport() {
 
       <div className="space-y-4">
 
-        {/* M4827 — most recent */}
+        {/* A7364 — most recent */}
+        <ReportCard
+          id="A7364"
+          name="Master Risk & Control Library Migration — Amanda AML Framework"
+          date="2026-03-10"
+          scope="Full library migration: 28 Amanda framework risks imported, 35 controls imported, 92 risk-to-control mappings rebuilt, 19 legacy items preserved and flagged for admin review. Zero existing engagements or reports modified."
+          statusLabel="✅ All Passed — Safe to Proceed"
+          statusColor="green"
+          badges={[
+            { label: 'Checks', value: 10, variant: 'neutral' },
+            { label: 'PASS', value: 10, variant: 'pass' },
+            { label: 'Risks', value: 28, variant: 'neutral' },
+            { label: 'Controls', value: 35, variant: 'neutral' },
+          ]}
+        >
+          <VerificationReportA7364 />
+        </ReportCard>
+
+        {/* M4827 */}
         <ReportCard
           id="M4827"
           name="Critical Guardrail Repair & Re-Verification"
