@@ -21,6 +21,13 @@ const VERIFICATION_HISTORY = [
     scope: 'Workspace entity schemas, hybrid library model, control testing extensions, Help docs, ControlsTab build fix',
     checked: 5, pass: 4, partial: 1, fail: 0, openIssues: 3,
   },
+  {
+    id: 'v3',
+    label: 'V3 — Workflow, Security, Intelligence & UX Upgrade',
+    date: '2026-03-10',
+    scope: 'Invitation-only access, Technical Admin label, destructive action protection, engagement lock, integrity seal, risk proposals, Bitcoin risk intelligence, ConfirmDialog, IntegrityPanel, EngagementLockBanner',
+    checked: 9, pass: 9, partial: 0, fail: 0, openIssues: 0,
+  },
 ];
 
 const REPORT_MD = `# Nightwatch Verification Audit Report
