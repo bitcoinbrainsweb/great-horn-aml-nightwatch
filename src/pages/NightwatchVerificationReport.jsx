@@ -9,6 +9,7 @@ import VerificationReportB6142 from './VerificationReportB6142';
 import VerificationReportU4827 from './VerificationReportU4827';
 import VerificationReportC4186 from './VerificationReportC4186';
 import VerificationReportH7314 from './VerificationReportH7314';
+import SystemAuditReportH7314 from './SystemAuditReportH7314';
 
 // ── shared helpers ────────────────────────────────────────────────────────────
 
@@ -382,28 +383,28 @@ export default function NightwatchVerificationReport() {
 
       <div className="space-y-4">
 
-        {/* H7314 — most recent */}
+        {/* H7314 — most recent (System Audit) */}
         <ReportCard
           id="H7314"
-          name="Narrative Engine & Template Population — Consulting-Grade Report Quality"
-          date="2026-03-10 10:30 AM"
-          scope="9-section implementation: 13 consulting-grade NarrativeTemplate records, structured narrative framework (Context/Observations/Risk Implication/Controls/Conclusion), Generate Narrative button for risks, template-anchored report generation, {{client_name}} placeholders, Evidence Considered blocks, AdminNarratives search/filter/preview UX."
-          statusLabel="✅ All Passed — Safe to Proceed"
-          statusColor="green"
+          name="Nightwatch Core Architecture v1 — Comprehensive System Audit"
+          date="2026-03-10 10:45 AM"
+          scope="Complete architectural and product audit: prompt system, state model, mapping engine, verification layer, UX/product, performance, and production readiness assessment. 9 detailed audit sections with critical findings and prioritized remediation roadmap."
+          statusLabel="⚠️ Conditional Pass"
+          statusColor="amber"
           badges={[
-            { label: 'Checks', value: 12, variant: 'neutral' },
-            { label: 'PASS', value: 12, variant: 'pass' },
-            { label: 'Templates', value: 13, variant: 'neutral' },
+            { label: 'Status', value: 'Conditional Pass', variant: 'warn' },
+            { label: 'Sections', value: 10, variant: 'neutral' },
+            { label: 'Risks', value: 5, variant: 'fail' },
           ]}
           onDownload={() => {
-            const blob = new Blob(['# H7314: Narrative Engine & Template Population\n\nDate: 2026-03-10 10:30 AM\n\nAll 12 verification checks passed.'], { type: 'text/markdown' });
+            const blob = new Blob(['# H7314: System Audit Report\n\nDate: 2026-03-10 10:45 AM\n\nConditional Pass - See full report for 5 critical findings and remediation roadmap.'], { type: 'text/markdown' });
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
-            a.href = url; a.download = 'Verification_H7314_2026-03-10.md'; a.click();
+            a.href = url; a.download = 'SystemAudit_H7314_2026-03-10.md'; a.click();
             URL.revokeObjectURL(url);
           }}
         >
-          <VerificationReportH7314 />
+          <SystemAuditReportH7314 />
         </ReportCard>
 
         {/* C4186 */}
