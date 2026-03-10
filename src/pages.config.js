@@ -97,7 +97,6 @@ import NightwatchV18DeliveryGateSummary from './pages/NightwatchV18DeliveryGateS
 import NightwatchV18InternalAudit from './pages/NightwatchV18InternalAudit';
 import NightwatchV18Summary from './pages/NightwatchV18Summary';
 import NightwatchV18VerificationReport from './pages/NightwatchV18VerificationReport';
-import NightwatchVerificationReport from './pages/NightwatchVerificationReport';
 import PromptTemplateSystemSummary from './pages/PromptTemplateSystemSummary';
 import RegressionTestDashboard from './pages/RegressionTestDashboard';
 import ReportPublicationDebug from './pages/ReportPublicationDebug';
@@ -169,7 +168,6 @@ export const PAGES = {
     "NightwatchV18InternalAudit": NightwatchV18InternalAudit,
     "NightwatchV18Summary": NightwatchV18Summary,
     "NightwatchV18VerificationReport": NightwatchV18VerificationReport,
-    "NightwatchVerificationReport": NightwatchVerificationReport,
     "PromptTemplateSystemSummary": PromptTemplateSystemSummary,
     "RegressionTestDashboard": RegressionTestDashboard,
     "ReportPublicationDebug": ReportPublicationDebug,
