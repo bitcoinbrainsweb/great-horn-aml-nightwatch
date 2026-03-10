@@ -421,19 +421,11 @@ export default function VerificationReportA1847() {
   const sectionNames = [...new Set(CHECKS.map(c => c.s))];
 
   return (
-    <div className="max-w-5xl mx-auto space-y-6">
-      <div className="flex items-start justify-between gap-4">
-        <div>
-          <div className="flex items-center gap-2 mb-1">
-            <span className="text-xs font-bold px-2 py-0.5 rounded bg-slate-900 text-white uppercase tracking-widest">A1847</span>
-            <span className="text-xs text-slate-500">2026-03-10</span>
-          </div>
-          <h1 className="text-2xl font-bold text-slate-900">Post-Upgrade Verification Suite</h1>
-          <p className="text-sm text-slate-500 mt-1">Great Horn AML Nightwatch — V3 Full Platform Audit</p>
-        </div>
-        <Button onClick={downloadReport} className="bg-slate-900 hover:bg-slate-800 gap-2 flex-shrink-0">
-          <Download className="w-4 h-4" />
-          Download .md Report
+    <div className="space-y-6">
+      <div className="flex justify-end">
+        <Button onClick={downloadReport} variant="outline" className="gap-2 text-xs">
+          <Download className="w-3 h-3" />
+          Download A1847 .md
         </Button>
       </div>
 
