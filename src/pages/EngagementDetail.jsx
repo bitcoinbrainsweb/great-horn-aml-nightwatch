@@ -223,8 +223,14 @@ export default function EngagementDetail() {
         </div>
       )}
 
+      {/* Risk snapshot */}
+      <RiskSnapshotPanel engagement={engagement} />
+
+      {/* Progress tracker */}
+      <ProgressTracker engagement={engagement} onTabChange={tab => setActiveTab(tab)} />
+
       {/* Tab navigation */}
-      <Tabs defaultValue="overview" className="space-y-6">
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
         <TabsList className="flex-wrap">
           <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="intake">Intake</TabsTrigger>
@@ -235,6 +241,7 @@ export default function EngagementDetail() {
           <TabsTrigger value="review">Review</TabsTrigger>
           <TabsTrigger value="documents">Documents</TabsTrigger>
           <TabsTrigger value="tasks">Tasks</TabsTrigger>
+          <TabsTrigger value="notes">Notes</TabsTrigger>
           <TabsTrigger value="activity">Activity</TabsTrigger>
         </TabsList>
 
@@ -359,6 +366,28 @@ export default function EngagementDetail() {
                 </div>
               </div>
             ))}
+          </div>
+        </TabsContent>
+
+        <TabsContent value="notes">
+          <div className="bg-white rounded-xl border border-slate-200/60 p-6">
+            <div className="flex items-center gap-2 mb-4">
+              <StickyNote className="w-4 h-4 text-slate-500" />
+              <h3 className="text-sm font-semibold text-slate-900">Engagement Notes</h3>
+            </div>
+            <p className="text-xs text-slate-500 mb-3">Record observations, interview notes, internal commentary, and review comments. Visible to all team members on this engagement.</p>
+            <Textarea
+              value={engNotes}
+              onChange={e => setEngNotes(e.target.value)}
+              rows={14}
+              placeholder="Enter observations, interview notes, findings, or internal commentary here..."
+              className="font-mono text-sm leading-relaxed"
+            />
+            <div className="flex justify-end mt-3">
+              <Button onClick={saveNotes} disabled={savingNotes} className="bg-slate-900 hover:bg-slate-800">
+                {savingNotes ? 'Saving...' : 'Save Notes'}
+              </Button>
+            </div>
           </div>
         </TabsContent>
 
