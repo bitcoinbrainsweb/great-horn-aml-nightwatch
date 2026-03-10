@@ -11,7 +11,7 @@ import PageHeader from '../components/ui/PageHeader';
 import { StatusBadge } from '../components/ui/RiskBadge';
 
 const ROLES = [
-  { value: 'super_admin', label: 'Super Admin' },
+  { value: 'super_admin', label: 'Technical Admin' },
   { value: 'compliance_admin', label: 'Compliance Admin' },
   { value: 'analyst', label: 'Analyst' },
   { value: 'reviewer', label: 'Reviewer' },
