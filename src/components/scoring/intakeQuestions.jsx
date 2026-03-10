@@ -189,8 +189,27 @@ export const INTAKE_SECTIONS = [
     ]
   },
   {
+    id: 'bitcoin_risk_intelligence',
+    title: '12. Bitcoin & Crypto Risk Intelligence',
+    icon: 'Bitcoin',
+    questions: [
+      { key: 'hot_wallet_usage', label: 'Hot wallet usage for customer funds?', type: 'boolean' },
+      { key: 'cold_storage_usage', label: 'Cold storage used for customer funds?', type: 'boolean' },
+      { key: 'lightning_support', label: 'Lightning Network supported?', type: 'boolean' },
+      { key: 'custody_services_btc', label: 'Custody services offered for Bitcoin/crypto?', type: 'boolean' },
+      { key: 'external_wallet_withdrawals', label: 'External wallet withdrawals permitted?', type: 'boolean' },
+      { key: 'api_trading', label: 'API trading enabled?', type: 'boolean' },
+      { key: 'institutional_accounts', label: 'Institutional or high-volume accounts serviced?', type: 'boolean' },
+      { key: 'otc_desk', label: 'OTC desk services offered?', type: 'boolean' },
+      { key: 'unhosted_wallets', label: 'Unhosted (self-custody) wallets permitted?', type: 'boolean' },
+      { key: 'chain_analytics', label: 'Blockchain analytics tools in use?', type: 'boolean' },
+      { key: 'privacy_coins', label: 'Privacy coins or mixers relevant?', type: 'boolean' },
+      { key: 'defi_exposure', label: 'DeFi protocol exposure present?', type: 'boolean' },
+    ]
+  },
+  {
     id: 'virtual_asset_module',
-    title: '12. Virtual Asset Methodology Module',
+    title: '13. Virtual Asset Methodology Module',
     icon: 'Bitcoin',
     methodology: 'Virtual Asset EWRA',
     questions: [
