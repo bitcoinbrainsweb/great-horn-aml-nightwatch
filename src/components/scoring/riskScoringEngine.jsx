@@ -246,6 +246,45 @@ export function suggestRisksFromIntake(intakeResponses) {
     suggestions.push({ risk_name: 'Unauthorized System Access', reason: 'No MFA in place' });
   }
 
+  // Bitcoin / Crypto-specific risk intelligence
+  if (r.hot_wallet_usage === true || r.hot_wallet_usage === 'yes') {
+    suggestions.push({ risk_name: 'Hot Wallet Compromise', reason: 'Hot wallets used for customer funds — elevated cyber theft risk' });
+    suggestions.push({ risk_name: 'Custodial Wallet Exposure', reason: 'Custody of customer hot wallet funds creates concentration risk' });
+  }
+  if (r.lightning_support === true || r.lightning_support === 'yes') {
+    suggestions.push({ risk_name: 'Lightning Network Abuse', reason: 'Lightning Network support creates off-chain transaction obfuscation risk' });
+  }
+  if (r.api_trading === true || r.api_trading === 'yes') {
+    suggestions.push({ risk_name: 'API Trading Manipulation', reason: 'API trading enabled — wash trading and algorithmic manipulation risk' });
+  }
+  if (r.external_wallet_withdrawals === true || r.external_wallet_withdrawals === 'yes') {
+    suggestions.push({ risk_name: 'Withdrawal Abuse', reason: 'External wallet withdrawals permitted to unverified addresses' });
+  }
+  if (r.otc_desk === true || r.otc_desk === 'yes') {
+    suggestions.push({ risk_name: 'Large Block Trade Laundering Risk', reason: 'OTC desk services offered — large block trades may obscure beneficial ownership' });
+    suggestions.push({ risk_name: 'Third-Party Settlement Risk', reason: 'OTC settlements may involve unverified third-party counterparties' });
+  }
+  if (r.institutional_accounts === true || r.institutional_accounts === 'yes') {
+    suggestions.push({ risk_name: 'Institutional Account Concentration Risk', reason: 'High-volume institutional accounts create disproportionate exposure' });
+  }
+  if (r.privacy_coins === true || r.privacy_coins === 'yes') {
+    suggestions.push({ risk_name: 'Privacy Asset Exposure', reason: 'Privacy coins or mixers create transaction tracing limitations' });
+  }
+  if (r.defi_exposure === true || r.defi_exposure === 'yes') {
+    suggestions.push({ risk_name: 'DeFi Protocol Exposure', reason: 'DeFi exposure creates regulatory and smart contract risk' });
+  }
+  if (r.cold_storage_usage === false || r.cold_storage_usage === 'no') {
+    if (r.custody_services_btc === true || r.custody_services_btc === 'yes') {
+      suggestions.push({ risk_name: 'Custodial Wallet Exposure', reason: 'Custody services offered without cold storage for customer funds' });
+    }
+  }
+  if (r.unhosted_wallets === true || r.unhosted_wallets === 'yes') {
+    suggestions.push({ risk_name: 'Unhosted Wallet Risk', reason: 'Unhosted wallets permitted — wallet ownership attestation risk' });
+  }
+  if (!r.chain_analytics && (r.handles_virtual_assets === true || r.handles_virtual_assets === 'yes')) {
+    suggestions.push({ risk_name: 'Blockchain Transaction Monitoring Gap', reason: 'No blockchain analytics tool detected for virtual asset operations' });
+  }
+
   // Deduplicate by risk_name
   const seen = new Set();
   return suggestions.filter(s => {
