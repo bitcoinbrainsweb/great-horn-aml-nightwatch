@@ -390,6 +390,22 @@ function V3Content() {
 // ── main page ─────────────────────────────────────────────────────────────────
 
 export default function NightwatchVerificationReport() {
+  const [gateRuns, setGateRuns] = useState([]);
+
+  useEffect(() => {
+    loadGateRuns();
+  }, []);
+
+  async function loadGateRuns() {
+    try {
+      const runs = await base44.entities.DeliveryGateRun.list('-completedAt');
+      setGateRuns(runs || []);
+    } catch (error) {
+      console.error('Failed to load delivery gate runs:', error);
+      setGateRuns([]);
+    }
+  }
+
   return (
     <div className="max-w-5xl mx-auto">
       <PageHeader
