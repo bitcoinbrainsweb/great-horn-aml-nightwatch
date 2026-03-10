@@ -20,6 +20,8 @@ import ReportTab from '../components/engagement/ReportTab';
 import ReviewTab from '../components/engagement/ReviewTab';
 import RiskSnapshotPanel from '../components/engagement/RiskSnapshotPanel';
 import ProgressTracker from '../components/engagement/ProgressTracker';
+import IntegrityPanel from '../components/engagement/IntegrityPanel';
+import EngagementLockBanner from '../components/engagement/EngagementLockBanner';
 import { format } from 'date-fns';
 import { logAudit } from '../components/util/auditLog';
 
@@ -250,6 +252,12 @@ export default function EngagementDetail() {
           {completionError}
         </div>
       )}
+
+      {/* Engagement lock banner */}
+      <EngagementLockBanner engagement={engagement} user={user} onUnlock={loadData} />
+
+      {/* Integrity panel */}
+      <IntegrityPanel engagement={engagement} />
 
       {/* Risk snapshot */}
       <RiskSnapshotPanel engagement={engagement} />
