@@ -480,29 +480,6 @@ Priority 5: Conflict resolution (1-2 weeks)`;
             { label: 'Risks', value: 5, variant: 'fail' },
           ]}
           onDownload={() => {
-            const blob = new Blob(['# H7314: System Audit Report\n\nDate: 2026-03-10 10:45 AM\n\nConditional Pass - Issues fixed in NW11.'], { type: 'text/markdown' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url; a.download = 'SystemAudit_H7314_2026-03-10.md'; a.click();
-            URL.revokeObjectURL(url);
-          }}
-        >
-          <SystemAuditReportH7314 />
-        </ReportCard>
-        <ReportCard
-          id="H7314"
-          name="Nightwatch Core Architecture v1 — Comprehensive System Audit"
-          date="2026-03-10 10:45 AM"
-          scope="Complete architectural and product audit: prompt system, state model, mapping engine, verification layer, UX/product, performance, and production readiness assessment. 9 detailed audit sections with critical findings and prioritized remediation roadmap."
-          statusLabel="⚠️ Conditional Pass"
-          statusColor="amber"
-          isFullAudit={true}
-          badges={[
-            { label: 'Status', value: 'Conditional Pass', variant: 'warn' },
-            { label: 'Sections', value: 10, variant: 'neutral' },
-            { label: 'Risks', value: 5, variant: 'fail' },
-          ]}
-          onDownload={() => {
             const content = `# H7314: Nightwatch Core Architecture v1 — Comprehensive System Audit
 Date: 2026-03-10 10:45 AM
 Status: CONDITIONAL PASS
