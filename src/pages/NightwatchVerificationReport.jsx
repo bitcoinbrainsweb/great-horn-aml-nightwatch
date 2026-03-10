@@ -3,6 +3,7 @@ import { CheckCircle2, AlertTriangle, XCircle, ChevronDown, ChevronRight, Downlo
 import { Button } from '@/components/ui/button';
 import PageHeader from '../components/ui/PageHeader';
 import VerificationReportA1847 from './VerificationReportA1847';
+import VerificationReportM4827 from './VerificationReportM4827';
 
 // ── shared helpers ────────────────────────────────────────────────────────────
 
@@ -366,7 +367,23 @@ export default function NightwatchVerificationReport() {
 
       <div className="space-y-4">
 
-        {/* A1847 — most recent */}
+        {/* M4827 — most recent */}
+        <ReportCard
+          id="M4827"
+          name="Critical Guardrail Repair & Re-Verification"
+          date="2026-03-10"
+          scope="Targeted re-verification of 4 critical guardrail fixes: engagement lock enforcement (Intake/Risks/Controls), task delete confirmation, Submit for Review role guard, client delete Inactive-first gate"
+          statusLabel="✅ All Passed — Safe to Proceed"
+          statusColor="green"
+          badges={[
+            { label: 'Checks', value: 15, variant: 'neutral' },
+            { label: 'PASS', value: 15, variant: 'pass' },
+          ]}
+        >
+          <VerificationReportM4827 />
+        </ReportCard>
+
+        {/* A1847 */}
         <ReportCard
           id="A1847"
           name="Full Platform Audit — Post-Upgrade Verification Suite"
