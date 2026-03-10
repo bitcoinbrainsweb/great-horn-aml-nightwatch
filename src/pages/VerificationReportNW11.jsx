@@ -6,6 +6,51 @@ import { CheckCircle2, AlertTriangle, XCircle, Zap } from 'lucide-react';
  * Generated: 2026-03-10 11:30 AM
  */
 
+function Section({ children, accent }) {
+  const colors = {
+    amber: 'border-amber-200 bg-amber-50'
+  };
+  const accentClass = accent ? colors[accent] : 'border-slate-200 bg-white';
+  
+  return (
+    <div className={`rounded-xl border ${accentClass} p-6`}>
+      {children}
+    </div>
+  );
+}
+
+function CheckItem({ status, text }) {
+  const icons = {
+    pass: <CheckCircle2 className="w-4 h-4 text-green-600 flex-shrink-0" />,
+    fail: <XCircle className="w-4 h-4 text-red-600 flex-shrink-0" />
+  };
+  
+  return (
+    <div className="flex items-start gap-2 text-slate-700">
+      {icons[status]}
+      <span className="text-sm">{text}</span>
+    </div>
+  );
+}
+
+function VerificationItem({ title, status, details }) {
+  const statusColor = status === 'PASS' ? 'text-green-600' : 'text-amber-600';
+  
+  return (
+    <div className="border border-slate-200 rounded-lg p-4">
+      <div className="flex items-start justify-between mb-3">
+        <h3 className="font-semibold text-slate-900">{title}</h3>
+        <span className={`text-xs font-bold uppercase ${statusColor}`}>{status}</span>
+      </div>
+      <ul className="space-y-1">
+        {details.map((detail, idx) => (
+          <li key={idx} className="text-sm text-slate-700">{detail}</li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
 export default function VerificationReportNW11() {
   return (
     <div className="max-w-6xl mx-auto space-y-6">
@@ -191,51 +236,6 @@ export default function VerificationReportNW11() {
           All v1.1 remediation objectives have been implemented and verified. The system now provides transaction safety, decision provenance, async job processing, and conditional control logic. Critical weaknesses from v1.0 have been addressed. System is recommended for expanded testing and performance evaluation.
         </p>
       </div>
-    </div>
-  );
-}
-
-function Section({ children, accent }) {
-  const colors = {
-    amber: 'border-amber-200 bg-amber-50'
-  };
-  const accentClass = accent ? colors[accent] : 'border-slate-200 bg-white';
-  
-  return (
-    <div className={`rounded-xl border ${accentClass} p-6`}>
-      {children}
-    </div>
-  );
-}
-
-function CheckItem({ status, text }) {
-  const icons = {
-    pass: <CheckCircle2 className="w-4 h-4 text-green-600 flex-shrink-0" />,
-    fail: <XCircle className="w-4 h-4 text-red-600 flex-shrink-0" />
-  };
-  
-  return (
-    <div className="flex items-start gap-2 text-slate-700">
-      {icons[status]}
-      <span className="text-sm">{text}</span>
-    </div>
-  );
-}
-
-function VerificationItem({ title, status, details }) {
-  const statusColor = status === 'PASS' ? 'text-green-600' : 'text-amber-600';
-  
-  return (
-    <div className="border border-slate-200 rounded-lg p-4">
-      <div className="flex items-start justify-between mb-3">
-        <h3 className="font-semibold text-slate-900">{title}</h3>
-        <span className={`text-xs font-bold uppercase ${statusColor}`}>{status}</span>
-      </div>
-      <ul className="space-y-1">
-        {details.map((detail, idx) => (
-          <li key={idx} className="text-sm text-slate-700">{detail}</li>
-        ))}
-      </ul>
     </div>
   );
 }
