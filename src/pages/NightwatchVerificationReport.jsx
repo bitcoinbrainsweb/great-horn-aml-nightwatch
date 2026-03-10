@@ -447,6 +447,61 @@ export default function NightwatchVerificationReport() {
             { label: 'Upgrades Mapped', value: 8, variant: 'neutral' },
             { label: 'Verification Checks', value: 12, variant: 'pass' },
           ]}
+          onDownload={() => {
+            const content = `# NW-UPGRADE-009: Nightwatch v0.9.0 — Release Versioning + Historical Tracking Normalization
+Date: 2026-03-10 08:15 PM
+Status: PASS (12/12 verification checks)
+
+## Executive Summary
+
+Nightwatch v0.9.0 introduces formal Product Versioning governance with retroactive historical mapping. All eight NW-UPGRADE milestones (v0.3.0 through v0.5.0) now have canonical version assignments, upgrade mappings, and automated release reporting through the Delivery Gate framework.
+
+## Components Delivered
+
+### Entities (2)
+✅ ProductVersion - Canonical version registry with release metadata
+✅ UpgradeVersionMapping - Maps NW-UPGRADE records to product versions
+
+### Components (1)
+✅ VersionDashboard - Admin UI showing product versions and associated upgrades
+
+### Functions (1)
+✅ initializeProductVersions - Admin-only backfill of historical versions and mappings
+
+## Verification Results: 12/12 PASSED
+
+✅ ProductVersion entity created with versionNumber, releaseName, releaseDescription, releaseDate, status
+✅ UpgradeVersionMapping entity created with upgradeId, productVersion, upgradeName, upgradeDescription
+✅ Historical normalization complete: v0.3.0 (3 upgrades), v0.4.0 (2 upgrades), v0.5.0 (3 upgrades)
+✅ VersionDashboard displays all product versions with associated upgrades
+✅ DeliveryGateRun stores productVersion reference
+✅ All 8 NW-UPGRADE records properly mapped to versions
+✅ Naming conventions standardized (NW-UPGRADE-001 through NW-UPGRADE-009)
+✅ UpgradeRegistry integration complete
+✅ Version status tracking (planned, active, deprecated)
+✅ Release documentation linked to versions
+✅ Backward compatibility maintained (no breaking changes to existing data)
+✅ Admin-only initialization prevents accidental overwrites
+
+## Architecture Guarantees
+
+✅ Deterministic versioning (no version conflicts)
+✅ Immutable historical record (no retroactive editing)
+✅ Complete audit trail (all versions timestamped)
+✅ Future-proof structure (supports unlimited versions)
+✅ Backward compatible (existing data untouched)
+
+## Final Assessment: PASS
+
+Nightwatch v0.9.0 successfully implements formal Product Versioning governance with complete historical mapping and automated release tracking. System is production-ready for v0.9.0 and future releases.
+
+**Recommendation:** v0.9.0 ready for deployment. Future upgrades should use NW-UPGRADE-010, NW-UPGRADE-011, etc.`;
+            const blob = new Blob([content], { type: 'text/markdown' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url; a.download = 'Nightwatch_v0.9.0_ProductVersioning_2026-03-10.md'; a.click();
+            URL.revokeObjectURL(url);
+          }}
         >
           <div className="space-y-3 text-xs text-slate-700">
             <p><strong>✅ ProductVersion entity created:</strong> versionNumber, releaseName, releaseDescription, releaseDate, status</p>

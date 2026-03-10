@@ -92,6 +92,12 @@ export default function Layout({ children, currentPageName }) {
     setUnreadCount(all.length);
   }
 
+  async function reloadReports() {
+    if (user?.role === 'admin') {
+      window.location.href = createPageUrl('NightwatchVerificationReport');
+    }
+  }
+
   async function markRead(notif) {
     await base44.entities.Notification.update(notif.id, { status: 'read' });
     setNotifs(n => n.filter(x => x.id !== notif.id));
@@ -250,6 +256,17 @@ export default function Layout({ children, currentPageName }) {
             </div>
           </div>
           <div className="flex items-center gap-2 relative">
+            {user?.role === 'admin' && (
+              <button
+                onClick={reloadReports}
+                className="p-2 rounded-lg hover:bg-slate-100 text-slate-500 hover:text-slate-700 transition-colors"
+                title="Reload verification reports"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                </svg>
+              </button>
+            )}
             <button
               onClick={() => setShowNotifs(o => !o)}
               className="relative p-2 rounded-lg hover:bg-slate-100 text-slate-500 transition-colors"
