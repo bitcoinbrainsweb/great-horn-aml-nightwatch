@@ -7,7 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { CheckCircle2, Circle, Save } from 'lucide-react';
+import { CheckCircle2, Circle, Save, Lock } from 'lucide-react';
 
 export default function IntakeTab({ engagement }) {
   const [sections, setSections] = useState({});

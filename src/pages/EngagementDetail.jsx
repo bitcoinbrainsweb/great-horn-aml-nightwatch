@@ -22,6 +22,7 @@ import RiskSnapshotPanel from '../components/engagement/RiskSnapshotPanel';
 import ProgressTracker from '../components/engagement/ProgressTracker';
 import IntegrityPanel from '../components/engagement/IntegrityPanel';
 import EngagementLockBanner from '../components/engagement/EngagementLockBanner';
+import ConfirmDialog from '../components/ui/ConfirmDialog';
 import { format } from 'date-fns';
 import { logAudit } from '../components/util/auditLog';
 

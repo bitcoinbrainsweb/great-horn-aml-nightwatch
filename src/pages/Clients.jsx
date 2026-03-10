@@ -154,8 +154,8 @@ export default function Clients() {
                               <Archive className="w-3.5 h-3.5" />
                             </Button>
                           )}
-                          {(user?.role === 'super_admin' || user?.role === 'admin') && (
-                            <Button variant="ghost" size="icon" onClick={() => { setDeleteError(''); setConfirmDelete(c); }} className="h-7 w-7 text-slate-400 hover:text-red-600" title="Delete client">
+                          {(user?.role === 'super_admin' || user?.role === 'admin') && c.status === 'Inactive' && (
+                            <Button variant="ghost" size="icon" onClick={() => { setDeleteError(''); setConfirmDelete(c); }} className="h-7 w-7 text-slate-400 hover:text-red-600" title="Delete client (Inactive only)">
                               <Trash2 className="w-3.5 h-3.5" />
                             </Button>
                           )}

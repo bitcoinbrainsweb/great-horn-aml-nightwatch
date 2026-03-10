@@ -8,7 +8,7 @@ import { Switch } from '@/components/ui/switch';
 import { Input } from '@/components/ui/input';
 import { RiskBadge } from '../ui/RiskBadge';
 import { calculateControlEffectiveness, calculateResidualRisk } from '../scoring/riskScoringEngine';
-import { ChevronDown, ChevronRight, Save, Paperclip } from 'lucide-react';
+import { ChevronDown, ChevronRight, Save, Paperclip, Lock } from 'lucide-react';
 import InfoTooltip from '../ui/InfoTooltip';
 import { logAudit } from '../util/auditLog';
 

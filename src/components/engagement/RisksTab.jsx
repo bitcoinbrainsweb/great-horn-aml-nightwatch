@@ -9,7 +9,7 @@ import { Label } from '@/components/ui/label';
 import { RiskBadge, StatusBadge } from '../ui/RiskBadge';
 import { suggestRisksFromIntake, calculateInherentRisk, LIKELIHOOD_SCALE, IMPACT_SCALE } from '../scoring/riskScoringEngine';
 import { logAudit } from '../util/auditLog';
-import { Lightbulb, Plus, Trash2, ChevronDown, ChevronRight, AlertTriangle, CheckCircle2 } from 'lucide-react';
+import { Lightbulb, Plus, Trash2, ChevronDown, ChevronRight, AlertTriangle, CheckCircle2, Lock } from 'lucide-react';
 import InfoTooltip from '../ui/InfoTooltip';
 
 export default function RisksTab({ engagement }) {

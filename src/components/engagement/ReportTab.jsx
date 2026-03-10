@@ -268,6 +268,7 @@ ${content}
   }
 
   const isAdmin = ['admin', 'super_admin', 'compliance_admin'].includes(user?.role);
+  const isAnalyst = user?.email === engagement.assigned_analyst || isAdmin;
   const isReviewer = user?.email === engagement.assigned_reviewer || isAdmin;
   const isDraft = !report || report?.status === 'Draft';
   const isUnderReview = report?.status === 'Under Review';
