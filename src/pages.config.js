@@ -93,6 +93,8 @@ import InfrastructureLayerOverview from './pages/InfrastructureLayerOverview';
 import NightwatchV14FinalSummary from './pages/NightwatchV14FinalSummary';
 import NightwatchAuditReport from './pages/NightwatchAuditReport';
 import NightwatchV15Summary from './pages/NightwatchV15Summary';
+import NightwatchV15VerificationReport from './pages/NightwatchV15VerificationReport';
+import NightwatchV15InternalAudit from './pages/NightwatchV15InternalAudit';
 import __Layout from './Layout.jsx';
 
 
@@ -143,6 +145,8 @@ export const PAGES = {
     "NightwatchV14FinalSummary": NightwatchV14FinalSummary,
     "NightwatchAuditReport": NightwatchAuditReport,
     "NightwatchV15Summary": NightwatchV15Summary,
+    "NightwatchV15VerificationReport": NightwatchV15VerificationReport,
+    "NightwatchV15InternalAudit": NightwatchV15InternalAudit,
 }
 
 export const pagesConfig = {
