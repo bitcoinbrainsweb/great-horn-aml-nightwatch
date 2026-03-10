@@ -47,46 +47,48 @@
  *
  * The mainPage value must match a key in the PAGES object exactly.
  */
-import Dashboard from './pages/Dashboard';
-import Clients from './pages/Clients';
-import Engagements from './pages/Engagements';
-import Tasks from './pages/Tasks';
-import Reports from './pages/Reports';
 import Admin from './pages/Admin';
-import ClientDetail from './pages/ClientDetail';
-import EngagementDetail from './pages/EngagementDetail';
-import AdminRiskLibrary from './pages/AdminRiskLibrary';
+import AdminAuditLog from './pages/AdminAuditLog';
 import AdminControlLibrary from './pages/AdminControlLibrary';
+import AdminIndustries from './pages/AdminIndustries';
+import AdminJurisdictions from './pages/AdminJurisdictions';
 import AdminMethodologies from './pages/AdminMethodologies';
 import AdminNarratives from './pages/AdminNarratives';
-import AdminUsers from './pages/AdminUsers';
-import AdminAuditLog from './pages/AdminAuditLog';
-import AdminJurisdictions from './pages/AdminJurisdictions';
-import AdminIndustries from './pages/AdminIndustries';
+import AdminRiskLibrary from './pages/AdminRiskLibrary';
 import AdminSuggestions from './pages/AdminSuggestions';
 import AdminTestScenarios from './pages/AdminTestScenarios';
+import AdminUsers from './pages/AdminUsers';
+import ClientDetail from './pages/ClientDetail';
+import Clients from './pages/Clients';
+import Dashboard from './pages/Dashboard';
+import EngagementDetail from './pages/EngagementDetail';
+import Engagements from './pages/Engagements';
+import Reports from './pages/Reports';
+import Tasks from './pages/Tasks';
+import Help from './pages/Help';
 import __Layout from './Layout.jsx';
 
 
 export const PAGES = {
-    "Dashboard": Dashboard,
-    "Clients": Clients,
-    "Engagements": Engagements,
-    "Tasks": Tasks,
-    "Reports": Reports,
     "Admin": Admin,
-    "ClientDetail": ClientDetail,
-    "EngagementDetail": EngagementDetail,
-    "AdminRiskLibrary": AdminRiskLibrary,
+    "AdminAuditLog": AdminAuditLog,
     "AdminControlLibrary": AdminControlLibrary,
+    "AdminIndustries": AdminIndustries,
+    "AdminJurisdictions": AdminJurisdictions,
     "AdminMethodologies": AdminMethodologies,
     "AdminNarratives": AdminNarratives,
-    "AdminUsers": AdminUsers,
-    "AdminAuditLog": AdminAuditLog,
-    "AdminJurisdictions": AdminJurisdictions,
-    "AdminIndustries": AdminIndustries,
+    "AdminRiskLibrary": AdminRiskLibrary,
     "AdminSuggestions": AdminSuggestions,
     "AdminTestScenarios": AdminTestScenarios,
+    "AdminUsers": AdminUsers,
+    "ClientDetail": ClientDetail,
+    "Clients": Clients,
+    "Dashboard": Dashboard,
+    "EngagementDetail": EngagementDetail,
+    "Engagements": Engagements,
+    "Reports": Reports,
+    "Tasks": Tasks,
+    "Help": Help,
 }
 
 export const pagesConfig = {

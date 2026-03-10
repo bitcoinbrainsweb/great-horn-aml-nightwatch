@@ -2,10 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
-import { ArrowLeft, Edit2, FileUp, Plus, Trash2 } from 'lucide-react';
+import { ArrowLeft, Edit2, FileUp, Plus, Trash2, AlertTriangle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -19,6 +19,8 @@ import ReportTab from '../components/engagement/ReportTab';
 import ReviewTab from '../components/engagement/ReviewTab';
 import { format } from 'date-fns';
 
+const ENGAGEMENT_STATUSES = ['Not Started', 'Intake In Progress', 'Risk Analysis', 'Draft Report', 'Under Review', 'Completed', 'Archived'];
+
 export default function EngagementDetail() {
   const urlParams = new URLSearchParams(window.location.search);
   const engId = urlParams.get('id');
@@ -26,6 +28,7 @@ export default function EngagementDetail() {
   const [tasks, setTasks] = useState([]);
   const [documents, setDocuments] = useState([]);
   const [activities, setActivities] = useState([]);
+  const [reports, setReports] = useState([]);
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState(false);
   const [form, setForm] = useState({});
@@ -33,17 +36,21 @@ export default function EngagementDetail() {
   const [methodologies, setMethodologies] = useState([]);
   const [showAddTask, setShowAddTask] = useState(false);
   const [taskForm, setTaskForm] = useState({});
+  const [user, setUser] = useState(null);
+  const [completionError, setCompletionError] = useState('');
 
   useEffect(() => { if (engId) loadData(); }, [engId]);
 
   async function loadData() {
-    const [engs, t, d, a, u, m] = await Promise.all([
+    const [engs, t, d, a, u, m, me, rpts] = await Promise.all([
       base44.entities.Engagement.list(),
       base44.entities.Task.filter({ engagement_id: engId }),
       base44.entities.Document.filter({ engagement_id: engId }),
       base44.entities.ActivityLog.filter({ engagement_id: engId }),
       base44.entities.User.list(),
-      base44.entities.Methodology.list()
+      base44.entities.Methodology.list(),
+      base44.auth.me(),
+      base44.entities.Report.filter({ engagement_id: engId }),
     ]);
     setEngagement(engs.find(e => e.id === engId));
     setTasks(t.sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0)));
@@ -51,13 +58,34 @@ export default function EngagementDetail() {
     setActivities(a);
     setUsers(u);
     setMethodologies(m);
+    setUser(me);
+    setReports(rpts);
     setLoading(false);
   }
+
+  const isAdmin = ['admin', 'super_admin', 'compliance_admin'].includes(user?.role);
 
   async function handleSave() {
     const meth = methodologies.find(m => m.id === form.methodology_id);
     await base44.entities.Engagement.update(engId, { ...form, methodology_name: meth?.name || form.methodology_name });
     setEditing(false);
+    await loadData();
+  }
+
+  async function handleStatusChange(newStatus) {
+    setCompletionError('');
+    if (newStatus === 'Completed') {
+      const latestReport = reports[0];
+      if (!latestReport) {
+        setCompletionError('A report must be generated before marking this engagement as Completed.');
+        return;
+      }
+      if (!['Approved', 'Finalized', 'Exported'].includes(latestReport.status)) {
+        setCompletionError(`The report must be Approved or Finalized before marking this engagement as Completed. Current report status: ${latestReport.status}.`);
+        return;
+      }
+    }
+    await base44.entities.Engagement.update(engId, { status: newStatus });
     await loadData();
   }
 
@@ -112,25 +140,42 @@ export default function EngagementDetail() {
     return <EmptyState title="Engagement not found" />;
   }
 
+  const isTestData = engagement.notes?.includes('[TEST DATA');
+  const noAnalyst = !engagement.assigned_analyst;
+  const noReviewer = !engagement.assigned_reviewer;
+
   return (
     <div>
       {/* Header */}
-      <div className="flex items-center gap-3 mb-6">
+      <div className="flex items-center gap-3 mb-4">
         <Link to={createPageUrl('Engagements')} className="p-2 rounded-lg hover:bg-slate-100 text-slate-500 transition-colors">
           <ArrowLeft className="w-4 h-4" />
         </Link>
         <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-3 flex-wrap">
+          <div className="flex items-center gap-2 flex-wrap">
             <h1 className="text-xl font-bold text-slate-900">{engagement.client_name}</h1>
-            <StatusBadge status={engagement.status} />
-            <RiskBadge rating={engagement.overall_risk_rating} />
+            {isTestData && (
+              <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-rose-100 text-rose-700 border border-rose-200 uppercase tracking-wider">Test Data</span>
+            )}
           </div>
-          <p className="text-sm text-slate-500">{engagement.engagement_type} · {engagement.methodology_name || 'No methodology'} · {engagement.assigned_analyst || 'Unassigned'}</p>
+          <div className="flex items-center gap-3 mt-1 flex-wrap">
+            <span className="text-xs text-slate-500">
+              <span className="font-medium text-slate-600">Status:</span>
+            </span>
+            <StatusBadge status={engagement.status} />
+            <span className="text-slate-300">·</span>
+            <span className="text-xs text-slate-500">
+              <span className="font-medium text-slate-600">Overall Risk:</span>
+            </span>
+            <RiskBadge rating={engagement.overall_risk_rating} />
+            <span className="text-slate-300">·</span>
+            <span className="text-xs text-slate-500">{engagement.engagement_type} · {engagement.methodology_name || 'No methodology'}</span>
+          </div>
         </div>
-        <Select value={engagement.status} onValueChange={async v => { await base44.entities.Engagement.update(engId, { status: v }); await loadData(); }}>
+        <Select value={engagement.status} onValueChange={handleStatusChange}>
           <SelectTrigger className="w-[180px]"><SelectValue /></SelectTrigger>
           <SelectContent>
-            {['Not Started', 'Intake In Progress', 'Risk Analysis', 'Draft Report', 'Under Review', 'Completed'].map(s => (
+            {ENGAGEMENT_STATUSES.map(s => (
               <SelectItem key={s} value={s}>{s}</SelectItem>
             ))}
           </SelectContent>
@@ -139,6 +184,30 @@ export default function EngagementDetail() {
           <Edit2 className="w-4 h-4" /> Edit
         </Button>
       </div>
+
+      {/* Assignment warnings */}
+      {(noAnalyst || noReviewer) && (
+        <div className="flex flex-wrap gap-2 mb-4">
+          {noAnalyst && (
+            <div className="flex items-center gap-2 px-3 py-2 bg-amber-50 border border-amber-200 rounded-lg text-xs text-amber-700">
+              <AlertTriangle className="w-3.5 h-3.5 flex-shrink-0" /> No analyst assigned to this engagement.
+            </div>
+          )}
+          {noReviewer && (
+            <div className="flex items-center gap-2 px-3 py-2 bg-amber-50 border border-amber-200 rounded-lg text-xs text-amber-700">
+              <AlertTriangle className="w-3.5 h-3.5 flex-shrink-0" /> No reviewer assigned. Required before submitting for review.
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Completion error */}
+      {completionError && (
+        <div className="flex items-center gap-2 mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700">
+          <AlertTriangle className="w-4 h-4 flex-shrink-0" />
+          {completionError}
+        </div>
+      )}
 
       {/* Tab navigation */}
       <Tabs defaultValue="overview" className="space-y-6">
@@ -164,13 +233,11 @@ export default function EngagementDetail() {
                   ['Client', engagement.client_name],
                   ['Type', engagement.engagement_type],
                   ['Methodology', engagement.methodology_name],
-                  ['Status', engagement.status],
                   ['Priority', engagement.priority],
                   ['Analyst', engagement.assigned_analyst],
                   ['Reviewer', engagement.assigned_reviewer],
                   ['Start Date', engagement.start_date ? format(new Date(engagement.start_date), 'MMM d, yyyy') : '—'],
                   ['Target Delivery', engagement.target_delivery_date ? format(new Date(engagement.target_delivery_date), 'MMM d, yyyy') : '—'],
-                  ['Overall Risk', engagement.overall_risk_rating],
                 ].map(([label, value]) => (
                   <div key={label}>
                     <p className="text-xs text-slate-500">{label}</p>
@@ -181,14 +248,25 @@ export default function EngagementDetail() {
             </div>
             <div className="bg-white rounded-xl border border-slate-200/60 p-6">
               <h3 className="text-sm font-semibold text-slate-900 mb-3">Tasks Progress</h3>
-              <div className="space-y-2">
-                {tasks.map(t => (
-                  <div key={t.id} className="flex items-center justify-between py-1.5">
-                    <p className="text-sm text-slate-700">{t.task_name}</p>
-                    <StatusBadge status={t.status} />
+              {tasks.length === 0 ? <p className="text-xs text-slate-500">No tasks.</p> : (
+                <div className="space-y-2">
+                  {tasks.map(t => (
+                    <div key={t.id} className="flex items-center justify-between py-1.5">
+                      <p className="text-sm text-slate-700 truncate mr-2">{t.task_name}</p>
+                      <StatusBadge status={t.status} />
+                    </div>
+                  ))}
+                </div>
+              )}
+              {reports.length > 0 && (
+                <div className="mt-4 pt-4 border-t border-slate-100">
+                  <h3 className="text-sm font-semibold text-slate-900 mb-2">Report Status</h3>
+                  <div className="flex items-center gap-2">
+                    <StatusBadge status={reports[0].status} />
+                    <span className="text-xs text-slate-500">v{reports[0].version} · {reports[0].report_type}</span>
                   </div>
-                ))}
-              </div>
+                </div>
+              )}
             </div>
           </div>
         </TabsContent>
@@ -245,6 +323,7 @@ export default function EngagementDetail() {
             <Button variant="outline" onClick={() => setShowAddTask(true)} className="gap-2"><Plus className="w-4 h-4" /> Add Task</Button>
           </div>
           <div className="bg-white rounded-xl border border-slate-200/60 divide-y divide-slate-100">
+            {tasks.length === 0 && <p className="px-5 py-4 text-sm text-slate-500">No tasks.</p>}
             {tasks.map(t => (
               <div key={t.id} className="px-5 py-3 flex items-center justify-between">
                 <div className="flex-1 min-w-0">
@@ -258,9 +337,11 @@ export default function EngagementDetail() {
                       {['Not Started', 'In Progress', 'Waiting Review', 'Completed'].map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
                     </SelectContent>
                   </Select>
-                  <Button variant="ghost" size="icon" onClick={() => deleteTask(t.id)} className="h-7 w-7 text-slate-400 hover:text-red-600">
-                    <Trash2 className="w-3.5 h-3.5" />
-                  </Button>
+                  {isAdmin && (
+                    <Button variant="ghost" size="icon" onClick={() => deleteTask(t.id)} className="h-7 w-7 text-slate-400 hover:text-red-600">
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </Button>
+                  )}
                 </div>
               </div>
             ))}
@@ -319,6 +400,13 @@ export default function EngagementDetail() {
                 <Select value={form.methodology_id || ''} onValueChange={v => setForm({...form, methodology_id: v})}>
                   <SelectTrigger><SelectValue placeholder="Select..." /></SelectTrigger>
                   <SelectContent>{methodologies.filter(m => m.status === 'Active').map(m => <SelectItem key={m.id} value={m.id}>{m.name}</SelectItem>)}</SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label>Overall Risk Rating</Label>
+                <Select value={form.overall_risk_rating || ''} onValueChange={v => setForm({...form, overall_risk_rating: v})}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>{['Low', 'Moderate', 'High', 'Not Rated'].map(r => <SelectItem key={r} value={r}>{r}</SelectItem>)}</SelectContent>
                 </Select>
               </div>
             </div>
