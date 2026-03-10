@@ -12,7 +12,7 @@ import { logAudit } from '../util/auditLog';
 import { Lightbulb, Plus, Trash2, ChevronDown, ChevronRight, AlertTriangle, CheckCircle2, Lock } from 'lucide-react';
 import InfoTooltip from '../ui/InfoTooltip';
 
-export default function RisksTab({ engagement }) {
+export default function RisksTab({ engagement, isLocked }) {
   const [engRisks, setEngRisks] = useState([]);
   const [riskLibrary, setRiskLibrary] = useState([]);
   const [intakeResponses, setIntakeResponses] = useState([]);
@@ -110,12 +110,18 @@ export default function RisksTab({ engagement }) {
 
   return (
     <div className="space-y-6">
+      {isLocked && (
+        <div className="flex items-center gap-2 p-3 bg-slate-100 border border-slate-300 rounded-lg text-sm text-slate-600">
+          <Lock className="w-4 h-4 flex-shrink-0 text-slate-500" />
+          This engagement is locked. Risk scores and assignments are read-only.
+        </div>
+      )}
       {/* Actions bar + counts */}
       <div className="flex flex-wrap items-center gap-3">
-        <Button variant="outline" onClick={() => setShowSuggestions(true)} className="gap-2">
+        <Button variant="outline" onClick={() => setShowSuggestions(true)} disabled={isLocked} className="gap-2">
           <Lightbulb className="w-4 h-4 text-amber-500" /> Suggested Risks ({suggestions.length})
         </Button>
-        <Button variant="outline" onClick={() => setShowAddRisk(true)} className="gap-2">
+        <Button variant="outline" onClick={() => setShowAddRisk(true)} disabled={isLocked} className="gap-2">
           <Plus className="w-4 h-4" /> Add Risk
         </Button>
         <div className="ml-auto flex items-center gap-4 text-xs text-slate-500">
@@ -162,7 +168,7 @@ export default function RisksTab({ engagement }) {
                       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
                         <div>
                           <Label className="text-xs flex items-center">Likelihood (1-3)<InfoTooltip content="Likelihood reflects how probable it is that this risk could occur based on the business model, products, delivery channels, and client profile. 1 = Low, 2 = Moderate, 3 = High." /></Label>
-                          <Select value={String(risk.inherent_likelihood_score || '')} onValueChange={v => updateRiskScore(risk, 'inherent_likelihood_score', v)}>
+                          <Select value={String(risk.inherent_likelihood_score || '')} onValueChange={v => updateRiskScore(risk, 'inherent_likelihood_score', v)} disabled={isLocked}>
                             <SelectTrigger><SelectValue placeholder="Score" /></SelectTrigger>
                             <SelectContent>
                               <SelectItem value="1">1 - Low</SelectItem>
@@ -173,7 +179,7 @@ export default function RisksTab({ engagement }) {
                         </div>
                         <div>
                           <Label className="text-xs flex items-center">Impact (1-3)<InfoTooltip content="Impact reflects the potential regulatory, financial, operational, or reputational consequences if this risk materializes. 1 = Low, 2 = Moderate, 3 = High." /></Label>
-                          <Select value={String(risk.inherent_impact_score || '')} onValueChange={v => updateRiskScore(risk, 'inherent_impact_score', v)}>
+                          <Select value={String(risk.inherent_impact_score || '')} onValueChange={v => updateRiskScore(risk, 'inherent_impact_score', v)} disabled={isLocked}>
                             <SelectTrigger><SelectValue placeholder="Score" /></SelectTrigger>
                             <SelectContent>
                               <SelectItem value="1">1 - Low</SelectItem>
@@ -193,13 +199,15 @@ export default function RisksTab({ engagement }) {
                       </div>
                       <div className="mb-3">
                         <Label className="text-xs">Analyst Rationale</Label>
-                        <Textarea value={risk.analyst_rationale || ''} rows={2} onChange={e => base44.entities.EngagementRisk.update(risk.id, { analyst_rationale: e.target.value })} />
+                        <Textarea value={risk.analyst_rationale || ''} rows={2} disabled={isLocked} onChange={e => !isLocked && base44.entities.EngagementRisk.update(risk.id, { analyst_rationale: e.target.value })} />
                       </div>
-                      <div className="flex justify-end">
-                        <Button variant="ghost" size="sm" onClick={() => removeRisk(risk.id)} className="text-red-600 hover:text-red-700 hover:bg-red-50 gap-1">
-                          <Trash2 className="w-3.5 h-3.5" /> Remove
-                        </Button>
-                      </div>
+                      {!isLocked && (
+                        <div className="flex justify-end">
+                          <Button variant="ghost" size="sm" onClick={() => removeRisk(risk.id)} className="text-red-600 hover:text-red-700 hover:bg-red-50 gap-1">
+                            <Trash2 className="w-3.5 h-3.5" /> Remove
+                          </Button>
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>

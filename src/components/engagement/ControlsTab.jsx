@@ -12,7 +12,7 @@ import { ChevronDown, ChevronRight, Save, Paperclip, Lock } from 'lucide-react';
 import InfoTooltip from '../ui/InfoTooltip';
 import { logAudit } from '../util/auditLog';
 
-export default function ControlsTab({ engagement }) {
+export default function ControlsTab({ engagement, isLocked }) {
   const [engRisks, setEngRisks] = useState([]);
   const [controlAssessments, setControlAssessments] = useState([]);
   const [controlLibrary, setControlLibrary] = useState([]);
@@ -144,6 +144,12 @@ export default function ControlsTab({ engagement }) {
 
   return (
     <div className="space-y-4">
+      {isLocked && (
+        <div className="flex items-center gap-2 p-3 bg-slate-100 border border-slate-300 rounded-lg text-sm text-slate-600">
+          <Lock className="w-4 h-4 flex-shrink-0 text-slate-500" />
+          This engagement is locked. Control assessments are read-only.
+        </div>
+      )}
       <p className="text-sm text-slate-500">Assess controls for each identified risk. Controls are suggested based on the risk library mappings.</p>
 
       {engRisks.length === 0 ? (
@@ -177,14 +183,16 @@ export default function ControlsTab({ engagement }) {
 
               {isExpanded && (
                 <div className="px-5 py-4 border-t border-slate-100 space-y-4">
-                  <div className="flex gap-2">
-                    <Button size="sm" variant="outline" onClick={() => addSuggestedControls(risk)}>
-                      Add Suggested Controls
-                    </Button>
-                    <Button size="sm" variant="outline" onClick={() => calculateResiduals(risk)} className="gap-1">
-                      <Save className="w-3.5 h-3.5" /> Calculate Residual
-                    </Button>
-                  </div>
+                  {!isLocked && (
+                    <div className="flex gap-2">
+                      <Button size="sm" variant="outline" onClick={() => addSuggestedControls(risk)}>
+                        Add Suggested Controls
+                      </Button>
+                      <Button size="sm" variant="outline" onClick={() => calculateResiduals(risk)} className="gap-1">
+                        <Save className="w-3.5 h-3.5" /> Calculate Residual
+                      </Button>
+                    </div>
+                  )}
 
                   {riskControls.length === 0 ? (
                     <p className="text-xs text-slate-500 py-2">No controls added. Click "Add Suggested Controls" to begin.</p>
@@ -199,14 +207,14 @@ export default function ControlsTab({ engagement }) {
                             </div>
                             <div className="flex items-center gap-2">
                               <Label className="text-xs">Present</Label>
-                              <Switch checked={ctrl.control_present} onCheckedChange={v => updateControl(ctrl.id, { control_present: v })} />
+                              <Switch checked={ctrl.control_present} onCheckedChange={v => updateControl(ctrl.id, { control_present: v })} disabled={isLocked} />
                             </div>
                           </div>
                           {ctrl.control_present && (
                             <div className="grid grid-cols-3 gap-3">
                               <div>
                                 <Label className="text-xs flex items-center">Design<InfoTooltip content="Design adequacy: Is the control appropriately designed to mitigate the risk? Does it address the right threat vectors?" /></Label>
-                                <Select value={ctrl.design_effectiveness || ''} onValueChange={v => updateControl(ctrl.id, { design_effectiveness: v })}>
+                                <Select value={ctrl.design_effectiveness || ''} onValueChange={v => updateControl(ctrl.id, { design_effectiveness: v })} disabled={isLocked}>
                                   <SelectTrigger className="h-8 text-xs"><SelectValue placeholder="Rate..." /></SelectTrigger>
                                   <SelectContent>
                                     {['Strong', 'Partially Effective', 'Weak'].map(r => <SelectItem key={r} value={r}>{r}</SelectItem>)}
@@ -215,7 +223,7 @@ export default function ControlsTab({ engagement }) {
                               </div>
                               <div>
                                 <Label className="text-xs flex items-center">Operational<InfoTooltip content="Operational performance: Is the control functioning in practice? Is there evidence of effective operation?" /></Label>
-                                <Select value={ctrl.operational_effectiveness || ''} onValueChange={v => updateControl(ctrl.id, { operational_effectiveness: v })}>
+                                <Select value={ctrl.operational_effectiveness || ''} onValueChange={v => updateControl(ctrl.id, { operational_effectiveness: v })} disabled={isLocked}>
                                   <SelectTrigger className="h-8 text-xs"><SelectValue placeholder="Rate..." /></SelectTrigger>
                                   <SelectContent>
                                     {['Strong', 'Partially Effective', 'Weak'].map(r => <SelectItem key={r} value={r}>{r}</SelectItem>)}
@@ -224,7 +232,7 @@ export default function ControlsTab({ engagement }) {
                               </div>
                               <div>
                                 <Label className="text-xs flex items-center">Consistency<InfoTooltip content="Consistency of application: Is the control applied consistently across the organization, channels, and staff?" /></Label>
-                                <Select value={ctrl.consistency_of_application || ''} onValueChange={v => updateControl(ctrl.id, { consistency_of_application: v })}>
+                                <Select value={ctrl.consistency_of_application || ''} onValueChange={v => updateControl(ctrl.id, { consistency_of_application: v })} disabled={isLocked}>
                                   <SelectTrigger className="h-8 text-xs"><SelectValue placeholder="Rate..." /></SelectTrigger>
                                   <SelectContent>
                                     {['Strong', 'Partially Effective', 'Weak'].map(r => <SelectItem key={r} value={r}>{r}</SelectItem>)}
@@ -243,28 +251,28 @@ export default function ControlsTab({ engagement }) {
                               <div className="grid grid-cols-2 gap-2">
                                 <div>
                                   <Label className="text-xs">Evidence Reference</Label>
-                                  <Textarea rows={2} className="text-xs mt-0.5" placeholder="Document title, file reference..." value={ctrl.evidence_reference || ''} onChange={e => updateControl(ctrl.id, { evidence_reference: e.target.value })} />
+                                  <Textarea rows={2} className="text-xs mt-0.5" placeholder="Document title, file reference..." value={ctrl.evidence_reference || ''} onChange={e => updateControl(ctrl.id, { evidence_reference: e.target.value })} disabled={isLocked} />
                                 </div>
                                 <div>
                                   <Label className="text-xs">Sample Size</Label>
-                                  <input className="flex h-8 w-full rounded-md border border-input bg-transparent px-3 py-1 text-xs shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring mt-0.5" placeholder="e.g. 25 transactions" value={ctrl.sample_size || ''} onChange={e => updateControl(ctrl.id, { sample_size: e.target.value })} />
+                                  <input className="flex h-8 w-full rounded-md border border-input bg-transparent px-3 py-1 text-xs shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring mt-0.5" placeholder="e.g. 25 transactions" value={ctrl.sample_size || ''} onChange={e => updateControl(ctrl.id, { sample_size: e.target.value })} disabled={isLocked} />
                                 </div>
                               </div>
                               <div>
                                 <Label className="text-xs">Testing Notes</Label>
-                                <Textarea rows={2} className="text-xs mt-0.5" placeholder="Testing approach and methodology..." value={ctrl.testing_notes || ''} onChange={e => updateControl(ctrl.id, { testing_notes: e.target.value })} />
+                                <Textarea rows={2} className="text-xs mt-0.5" placeholder="Testing approach and methodology..." value={ctrl.testing_notes || ''} onChange={e => updateControl(ctrl.id, { testing_notes: e.target.value })} disabled={isLocked} />
                               </div>
                               <div>
                                 <Label className="text-xs">Sample Results</Label>
-                                <Textarea rows={2} className="text-xs mt-0.5" placeholder="Summary of sample testing results..." value={ctrl.sample_results || ''} onChange={e => updateControl(ctrl.id, { sample_results: e.target.value })} />
+                                <Textarea rows={2} className="text-xs mt-0.5" placeholder="Summary of sample testing results..." value={ctrl.sample_results || ''} onChange={e => updateControl(ctrl.id, { sample_results: e.target.value })} disabled={isLocked} />
                               </div>
                               <div>
                                 <Label className="text-xs">Reviewer Notes</Label>
-                                <Textarea rows={2} className="text-xs mt-0.5" placeholder="Reviewer comments on this control..." value={ctrl.reviewer_notes || ''} onChange={e => updateControl(ctrl.id, { reviewer_notes: e.target.value })} />
+                                <Textarea rows={2} className="text-xs mt-0.5" placeholder="Reviewer comments on this control..." value={ctrl.reviewer_notes || ''} onChange={e => updateControl(ctrl.id, { reviewer_notes: e.target.value })} disabled={isLocked} />
                               </div>
                               <div>
                                 <Label className="text-xs">Testing Conclusion</Label>
-                                <Textarea rows={2} className="text-xs mt-0.5" placeholder="Overall conclusion on control effectiveness based on evidence and testing..." value={ctrl.testing_conclusion || ''} onChange={e => updateControl(ctrl.id, { testing_conclusion: e.target.value })} />
+                                <Textarea rows={2} className="text-xs mt-0.5" placeholder="Overall conclusion on control effectiveness based on evidence and testing..." value={ctrl.testing_conclusion || ''} onChange={e => updateControl(ctrl.id, { testing_conclusion: e.target.value })} disabled={isLocked} />
                               </div>
                               {/* Reviewer Sign-Off */}
                               <div className="flex items-center justify-between border-t border-slate-200/60 pt-3 mt-1">
@@ -278,6 +286,7 @@ export default function ControlsTab({ engagement }) {
                                 </div>
                                 <Switch
                                   checked={!!ctrl.reviewer_sign_off}
+                                  disabled={isLocked}
                                   onCheckedChange={v => updateControl(ctrl.id, {
                                     reviewer_sign_off: v,
                                     reviewer_sign_off_date: v ? new Date().toISOString().split('T')[0] : null,
