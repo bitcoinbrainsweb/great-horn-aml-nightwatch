@@ -124,7 +124,7 @@ Deno.serve(async (req) => {
     // Create audit log entry
     await base44.asServiceRole.entities.PublicationAuditLog.create({
       auditId: `audit-${Date.now()}`,
-      outputId: record.id,
+      outputId: publishedRecord.id,
       outputName: recordName,
       eventType: 'publication',
       newClassification: 'verification_record',
