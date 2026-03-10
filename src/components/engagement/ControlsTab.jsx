@@ -5,6 +5,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
+import { Input } from '@/components/ui/input';
 import { RiskBadge } from '../ui/RiskBadge';
 import { calculateControlEffectiveness, calculateResidualRisk } from '../scoring/riskScoringEngine';
 import { ChevronDown, ChevronRight, Save, Paperclip } from 'lucide-react';
@@ -168,7 +169,7 @@ export default function ControlsTab({ engagement }) {
                           {ctrl.control_present && (
                             <div className="grid grid-cols-3 gap-3">
                               <div>
-                                <Label className="text-xs">Design</Label>
+                                <Label className="text-xs flex items-center">Design<InfoTooltip content="Design adequacy: Is the control appropriately designed to mitigate the risk? Does it address the right threat vectors?" /></Label>
                                 <Select value={ctrl.design_effectiveness || ''} onValueChange={v => updateControl(ctrl.id, { design_effectiveness: v })}>
                                   <SelectTrigger className="h-8 text-xs"><SelectValue placeholder="Rate..." /></SelectTrigger>
                                   <SelectContent>
@@ -177,7 +178,7 @@ export default function ControlsTab({ engagement }) {
                                 </Select>
                               </div>
                               <div>
-                                <Label className="text-xs">Operational</Label>
+                                <Label className="text-xs flex items-center">Operational<InfoTooltip content="Operational performance: Is the control functioning in practice? Is there evidence of effective operation?" /></Label>
                                 <Select value={ctrl.operational_effectiveness || ''} onValueChange={v => updateControl(ctrl.id, { operational_effectiveness: v })}>
                                   <SelectTrigger className="h-8 text-xs"><SelectValue placeholder="Rate..." /></SelectTrigger>
                                   <SelectContent>
@@ -186,7 +187,7 @@ export default function ControlsTab({ engagement }) {
                                 </Select>
                               </div>
                               <div>
-                                <Label className="text-xs">Consistency</Label>
+                                <Label className="text-xs flex items-center">Consistency<InfoTooltip content="Consistency of application: Is the control applied consistently across the organization, channels, and staff?" /></Label>
                                 <Select value={ctrl.consistency_of_application || ''} onValueChange={v => updateControl(ctrl.id, { consistency_of_application: v })}>
                                   <SelectTrigger className="h-8 text-xs"><SelectValue placeholder="Rate..." /></SelectTrigger>
                                   <SelectContent>
