@@ -111,6 +111,7 @@ import RegressionTestDashboard from './pages/RegressionTestDashboard';
 import NW010DeliveryGateSummary from './pages/NW010DeliveryGateSummary';
 import AdminGovernance from './pages/AdminGovernance';
 import GovernanceDeliveryGateSummary from './pages/GovernanceDeliveryGateSummary';
+import AdminGovernanceDocumentation from './pages/AdminGovernanceDocumentation';
 import __Layout from './Layout.jsx';
 
 
@@ -179,6 +180,7 @@ export const PAGES = {
     "NW010DeliveryGateSummary": NW010DeliveryGateSummary,
     "AdminGovernance": AdminGovernance,
     "GovernanceDeliveryGateSummary": GovernanceDeliveryGateSummary,
+    "AdminGovernanceDocumentation": AdminGovernanceDocumentation,
 }
 
 export const pagesConfig = {
