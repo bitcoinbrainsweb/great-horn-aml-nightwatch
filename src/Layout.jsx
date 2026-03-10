@@ -16,6 +16,7 @@ const NAV_ITEMS = [
   { name: 'Reports', icon: FileBarChart, page: 'Reports' },
   { name: 'Reviewer', icon: Shield, page: 'ReviewerDashboard' },
   { name: 'Admin', icon: Settings, page: 'Admin' },
+  { name: 'Feedback', icon: HelpCircle, page: 'Feedback' },
   { name: 'Help', icon: HelpCircle, page: 'Help' },
 ];
 
@@ -183,6 +184,7 @@ export default function Layout({ children, currentPageName }) {
             const isActive = currentPageName === item.page || 
               (item.page === 'Clients' && currentPageName === 'ClientDetail') ||
               (item.page === 'Engagements' && currentPageName === 'EngagementDetail') ||
+              (item.page === 'Feedback' && ['Feedback'].includes(currentPageName)) ||
               (item.page === 'Admin' && ['AdminRiskLibrary', 'AdminControlLibrary', 'AdminMethodologies', 'AdminNarratives', 'AdminUsers', 'AdminAuditLog', 'AdminJurisdictions', 'AdminIndustries', 'AdminSuggestions', 'AdminTestScenarios', 'AdminInvitations', 'AdminRiskProposals', 'VerificationReportA1847', 'AdminFeatureFlags', 'AdminReleaseLog', 'LibraryReviewDashboard'].includes(currentPageName));
             return (
               <Link
