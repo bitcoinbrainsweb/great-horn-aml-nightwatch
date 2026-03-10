@@ -48,6 +48,7 @@ export default function EngagementDetail() {
   const [activeTab, setActiveTab] = useState('overview');
   const [savingNotes, setSavingNotes] = useState(false);
   const [engNotes, setEngNotes] = useState('');
+  const [confirmDeleteTask, setConfirmDeleteTask] = useState(null);
 
   useEffect(() => { if (engId) loadData(); }, [engId]);
 
@@ -164,16 +165,16 @@ export default function EngagementDetail() {
     await loadData();
   }
 
-  async function deleteTask(taskId) {
-    const task = tasks.find(t => t.id === taskId);
-    await base44.entities.Task.delete(taskId);
+  async function deleteTask(task) {
+    await base44.entities.Task.delete(task.id);
     await logAudit({
       userEmail: user?.email,
       objectType: 'Task',
-      objectId: taskId,
+      objectId: task.id,
       action: 'deleted',
       details: `Task "${task?.task_name}" deleted from engagement ${engId}`,
     });
+    setConfirmDeleteTask(null);
     await loadData();
   }
 
@@ -330,15 +331,15 @@ export default function EngagementDetail() {
         </TabsContent>
 
         <TabsContent value="intake">
-          <IntakeTab engagement={engagement} />
+          <IntakeTab engagement={engagement} isLocked={!!engagement.is_locked} />
         </TabsContent>
 
         <TabsContent value="risks">
-          <RisksTab engagement={engagement} />
+          <RisksTab engagement={engagement} isLocked={!!engagement.is_locked} />
         </TabsContent>
 
         <TabsContent value="controls">
-          <ControlsTab engagement={engagement} />
+          <ControlsTab engagement={engagement} isLocked={!!engagement.is_locked} />
         </TabsContent>
 
         <TabsContent value="summary">
@@ -396,7 +397,7 @@ export default function EngagementDetail() {
                     </SelectContent>
                   </Select>
                   {isAdmin && (
-                    <Button variant="ghost" size="icon" onClick={() => deleteTask(t.id)} className="h-7 w-7 text-slate-400 hover:text-red-600">
+                    <Button variant="ghost" size="icon" onClick={() => setConfirmDeleteTask(t)} className="h-7 w-7 text-slate-400 hover:text-red-600">
                       <Trash2 className="w-3.5 h-3.5" />
                     </Button>
                   )}
