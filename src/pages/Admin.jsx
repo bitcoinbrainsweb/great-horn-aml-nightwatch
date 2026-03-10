@@ -18,6 +18,7 @@ const ADMIN_SECTIONS = [
   { name: 'Jurisdictions', description: 'Jurisdiction risk ratings', icon: Globe, page: 'AdminJurisdictions', color: 'bg-cyan-50 text-cyan-600' },
   { name: 'Users', description: 'Manage team members and roles', icon: Users, page: 'AdminUsers', color: 'bg-indigo-50 text-indigo-600' },
   { name: 'Invitations', description: 'Manage workspace access invitations', icon: Users, page: 'AdminInvitations', color: 'bg-violet-50 text-violet-600' },
+  { name: 'Library Review Dashboard', description: 'Review and approve proposed risks and controls', icon: ShieldCheck, page: 'LibraryReviewDashboard', color: 'bg-indigo-50 text-indigo-600' },
   { name: 'Risk Proposals', description: 'Review analyst risk change proposals', icon: ShieldCheck, page: 'AdminRiskProposals', color: 'bg-rose-50 text-rose-600' },
   { name: 'Audit Log', description: 'Track system changes', icon: History, page: 'AdminAuditLog', color: 'bg-orange-50 text-orange-600' },
 ];
