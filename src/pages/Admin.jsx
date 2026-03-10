@@ -4,7 +4,7 @@ import { createPageUrl } from '@/utils';
 import { base44 } from '@/api/base44Client';
 import {
   BookOpen, ShieldCheck, FileText, Users, History,
-  Globe, Factory, Lightbulb, FlaskConical, Mail, Lock
+  Globe, Factory, Lightbulb, FlaskConical, Mail, Lock, GitBranch
 } from 'lucide-react';
 import PageHeader from '../components/ui/PageHeader';
 
@@ -18,6 +18,7 @@ const ADMIN_SECTIONS = [
   { name: 'Jurisdictions', description: 'Jurisdiction risk ratings', icon: Globe, page: 'AdminJurisdictions', color: 'bg-cyan-50 text-cyan-600' },
   { name: 'Users', description: 'Manage team members and roles', icon: Users, page: 'AdminUsers', color: 'bg-indigo-50 text-indigo-600' },
   { name: 'Invitations', description: 'Manage workspace access invitations', icon: Users, page: 'AdminInvitations', color: 'bg-violet-50 text-violet-600' },
+  { name: 'Change Management', description: 'Software development verification and audit records', icon: GitBranch, page: 'AdminChangeManagement', color: 'bg-purple-50 text-purple-600' },
   { name: 'Governance & Permissions', description: 'Role management, overrides, and SOD compliance', icon: Lock, page: 'AdminGovernance', color: 'bg-teal-50 text-teal-600' },
   { name: 'Library Review Dashboard', description: 'Review and approve proposed risks and controls', icon: ShieldCheck, page: 'LibraryReviewDashboard', color: 'bg-indigo-50 text-indigo-600' },
   { name: 'Risk Proposals', description: 'Review analyst risk change proposals', icon: ShieldCheck, page: 'AdminRiskProposals', color: 'bg-rose-50 text-rose-600' },
