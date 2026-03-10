@@ -9,8 +9,9 @@ import { Label } from '@/components/ui/label';
 import { RiskBadge, StatusBadge } from '../ui/RiskBadge';
 import { suggestRisksFromIntake, calculateInherentRisk, LIKELIHOOD_SCALE, IMPACT_SCALE } from '../scoring/riskScoringEngine';
 import { logAudit } from '../util/auditLog';
-import { Lightbulb, Plus, Trash2, ChevronDown, ChevronRight, AlertTriangle, CheckCircle2, Lock } from 'lucide-react';
+import { Lightbulb, Plus, Trash2, ChevronDown, ChevronRight, AlertTriangle, CheckCircle2, Lock, Info } from 'lucide-react';
 import InfoTooltip from '../ui/InfoTooltip';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 
 export default function RisksTab({ engagement, isLocked }) {
   const [engRisks, setEngRisks] = useState([]);
@@ -21,6 +22,7 @@ export default function RisksTab({ engagement, isLocked }) {
   const [showAddRisk, setShowAddRisk] = useState(false);
   const [expandedRisk, setExpandedRisk] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [explainRisk, setExplainRisk] = useState(null);
 
   useEffect(() => { loadData(); }, [engagement.id]);
 
@@ -95,7 +97,13 @@ export default function RisksTab({ engagement, isLocked }) {
     }
     
     await base44.entities.EngagementRisk.update(risk.id, updates);
+    await logAudit({ objectType: 'EngagementRisk', objectId: risk.id, action: 'score_justification_edit', fieldChanged: field, oldValue: String(risk[field] || ''), newValue: String(value), details: `Score field "${field}" changed on risk "${risk.risk_name}"` });
     await loadData();
+  }
+
+  async function saveJustification(risk, value) {
+    await base44.entities.EngagementRisk.update(risk.id, { score_justification: value });
+    await logAudit({ objectType: 'EngagementRisk', objectId: risk.id, action: 'score_justification_edit', fieldChanged: 'score_justification', newValue: value, details: `Score justification updated for "${risk.risk_name}"` });
   }
 
   // Group by category
@@ -201,13 +209,35 @@ export default function RisksTab({ engagement, isLocked }) {
                         <Label className="text-xs">Analyst Rationale</Label>
                         <Textarea value={risk.analyst_rationale || ''} rows={2} disabled={isLocked} onChange={e => !isLocked && base44.entities.EngagementRisk.update(risk.id, { analyst_rationale: e.target.value })} />
                       </div>
-                      {!isLocked && (
-                        <div className="flex justify-end">
+                      <div className="mb-3">
+                        <Label className="text-xs flex items-center gap-1">
+                          Score Justification
+                          <InfoTooltip content="Required if your likelihood or impact score differs from the library default. Briefly explain the client-specific reason." />
+                        </Label>
+                        <Textarea
+                          value={risk.score_justification || ''}
+                          rows={2}
+                          disabled={isLocked}
+                          placeholder="Explain if score differs from library default..."
+                          onChange={e => !isLocked && base44.entities.EngagementRisk.update(risk.id, { score_justification: e.target.value })}
+                          onBlur={e => !isLocked && saveJustification(risk, e.target.value)}
+                        />
+                        {!risk.score_justification && (risk.inherent_likelihood_score || risk.inherent_impact_score) && (
+                          <p className="text-[10px] text-amber-600 mt-1 flex items-center gap-1">
+                            <AlertTriangle className="w-3 h-3" /> Justification recommended when overriding default scores.
+                          </p>
+                        )}
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <Button variant="outline" size="sm" onClick={() => setExplainRisk(risk)} className="gap-1 text-xs h-7">
+                          <Info className="w-3 h-3" /> Explain Score
+                        </Button>
+                        {!isLocked && (
                           <Button variant="ghost" size="sm" onClick={() => removeRisk(risk.id)} className="text-red-600 hover:text-red-700 hover:bg-red-50 gap-1">
                             <Trash2 className="w-3.5 h-3.5" /> Remove
                           </Button>
-                        </div>
-                      )}
+                        )}
+                      </div>
                     </div>
                   )}
                 </div>
@@ -216,6 +246,45 @@ export default function RisksTab({ engagement, isLocked }) {
           </div>
         ))
       )}
+
+      {/* Explain Score Dialog */}
+      <Dialog open={!!explainRisk} onOpenChange={() => setExplainRisk(null)}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Score Explanation — {explainRisk?.risk_name}</DialogTitle>
+          </DialogHeader>
+          {explainRisk && (
+            <div className="space-y-3 text-sm">
+              <div className="grid grid-cols-2 gap-3">
+                {[
+                  ['Likelihood Input', explainRisk.inherent_likelihood_rating || `Score: ${explainRisk.inherent_likelihood_score || '—'}`],
+                  ['Impact Input', explainRisk.inherent_impact_rating || `Score: ${explainRisk.inherent_impact_score || '—'}`],
+                  ['Inherent Risk', explainRisk.inherent_risk_rating || '—'],
+                  ['Control Effectiveness', explainRisk.overall_control_effectiveness || 'Not Assessed'],
+                  ['Residual Risk', explainRisk.residual_risk_rating || 'Not Calculated'],
+                  ['Risk Category', explainRisk.risk_category || '—'],
+                ].map(([label, val]) => (
+                  <div key={label} className="bg-slate-50 rounded-lg p-3 border border-slate-100">
+                    <p className="text-[10px] text-slate-500 uppercase font-semibold tracking-wider">{label}</p>
+                    <p className="text-sm font-bold text-slate-900 mt-0.5">{val}</p>
+                  </div>
+                ))}
+              </div>
+              <div className="bg-slate-50 rounded-lg p-3 border border-slate-100 text-xs text-slate-600">
+                <p className="font-semibold text-slate-700 mb-1">Calculation Logic</p>
+                <p>Inherent Risk = Likelihood × Impact. Score 1–2 = Low, 3–4 = Moderate, 6–9 = High.</p>
+                <p className="mt-1">Residual Risk = Inherent Risk adjusted for Control Effectiveness. Weak controls elevate residual risk; Strong controls reduce it.</p>
+              </div>
+              {explainRisk.score_justification && (
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                  <p className="text-[10px] font-semibold text-blue-700 uppercase tracking-wider mb-1">Analyst Justification</p>
+                  <p className="text-xs text-blue-900">{explainRisk.score_justification}</p>
+                </div>
+              )}
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
 
       {/* Suggestions Dialog */}
       <Dialog open={showSuggestions} onOpenChange={setShowSuggestions}>

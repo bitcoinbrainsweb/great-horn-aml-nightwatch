@@ -8,7 +8,7 @@ import { Switch } from '@/components/ui/switch';
 import { Input } from '@/components/ui/input';
 import { RiskBadge } from '../ui/RiskBadge';
 import { calculateControlEffectiveness, calculateResidualRisk } from '../scoring/riskScoringEngine';
-import { ChevronDown, ChevronRight, Save, Paperclip, Lock } from 'lucide-react';
+import { ChevronDown, ChevronRight, Save, Paperclip, Lock, AlertTriangle } from 'lucide-react';
 import InfoTooltip from '../ui/InfoTooltip';
 import { logAudit } from '../util/auditLog';
 
@@ -201,15 +201,20 @@ export default function ControlsTab({ engagement, isLocked }) {
                       {riskControls.map(ctrl => (
                         <div key={ctrl.id} className="p-3 rounded-lg border border-slate-200 bg-slate-50/50 space-y-3">
                           <div className="flex items-center justify-between">
-                            <div>
-                              <p className="text-sm font-medium text-slate-900">{ctrl.control_name}</p>
-                              <p className="text-xs text-slate-500">{ctrl.control_category}</p>
+                              <div>
+                                <p className="text-sm font-medium text-slate-900">{ctrl.control_name}</p>
+                                <p className="text-xs text-slate-500">{ctrl.control_category}</p>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                {ctrl.control_present && !ctrl.evidence_reference && (
+                                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-700 border border-amber-200">
+                                    <AlertTriangle className="w-2.5 h-2.5" /> Evidence Missing
+                                  </span>
+                                )}
+                                <Label className="text-xs">Present</Label>
+                                <Switch checked={ctrl.control_present} onCheckedChange={v => updateControl(ctrl.id, { control_present: v })} disabled={isLocked} />
+                              </div>
                             </div>
-                            <div className="flex items-center gap-2">
-                              <Label className="text-xs">Present</Label>
-                              <Switch checked={ctrl.control_present} onCheckedChange={v => updateControl(ctrl.id, { control_present: v })} disabled={isLocked} />
-                            </div>
-                          </div>
                           {ctrl.control_present && (
                             <div className="grid grid-cols-3 gap-3">
                               <div>
