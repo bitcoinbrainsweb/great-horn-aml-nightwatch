@@ -11,7 +11,6 @@ import { suggestRisksFromIntake, calculateInherentRisk, LIKELIHOOD_SCALE, IMPACT
 import { logAudit } from '../util/auditLog';
 import { Lightbulb, Plus, Trash2, ChevronDown, ChevronRight, AlertTriangle, CheckCircle2, Lock, Info } from 'lucide-react';
 import InfoTooltip from '../ui/InfoTooltip';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 
 export default function RisksTab({ engagement, isLocked }) {
   const [engRisks, setEngRisks] = useState([]);

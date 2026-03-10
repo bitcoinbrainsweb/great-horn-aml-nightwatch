@@ -1,7 +1,5 @@
 import React, { useState, useEffect } from 'react';
 
-import React, { useState, useEffect } from 'react';
-
 // Simple deterministic hash for integrity seal generation
 function generateSeal(data) {
   const str = JSON.stringify(data);
