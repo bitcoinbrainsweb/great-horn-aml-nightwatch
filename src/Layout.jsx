@@ -33,48 +33,55 @@ export default function Layout({ children, currentPageName }) {
   }, []);
 
   async function loadUser() {
-    const isAuth = await base44.auth.isAuthenticated();
-    if (!isAuth) {
-      base44.auth.redirectToLogin();
-      return;
-    }
-    const me = await base44.auth.me();
-    // Platform admin (app builder/owner) always gets through as Technical Admin
-    if (me.role === 'admin') {
-      setUser(me);
-      return;
-    }
+    try {
+      const isAuth = await base44.auth.isAuthenticated();
+      if (!isAuth) {
+        base44.auth.redirectToLogin();
+        return;
+      }
+      const me = await base44.auth.me();
+      // Platform admin (app builder/owner) always gets through as Technical Admin
+      if (me.role === 'admin') {
+        setUser(me);
+        loadNotifications(me.email);
+        return;
+      }
 
-    const domain = me.email?.split('@')[1];
-    const allowed = ['greathornaml.com', 'libertylabs.ca', 'bitcoinbrains.com'];
-    if (!allowed.includes(domain)) {
+      const domain = me.email?.split('@')[1];
+      const allowed = ['greathornaml.com', 'libertylabs.ca', 'bitcoinbrains.com'];
+      if (!allowed.includes(domain)) {
+        setAccessDenied(true);
+        return;
+      }
+      // Check invitation
+      const invitations = await base44.entities.UserInvitation.filter({ email: me.email });
+      const validInvite = invitations.find(i => ['Pending', 'Active'].includes(i.status));
+      if (!validInvite) {
+        setAccessDenied(true);
+        setNeedsInvite(true);
+        return;
+      }
+      // Activate invite if pending
+      if (validInvite.status === 'Pending') {
+        await base44.entities.UserInvitation.update(validInvite.id, { status: 'Active' });
+      }
+      // Auto-assign role on first login
+      if (!me.role || me.role === 'user') {
+        let newRole = validInvite.role || 'reviewer';
+        // Amanda auto-maps to compliance_admin
+        if (me.email === 'amanda@greathornaml.com' && newRole === 'reviewer') newRole = 'compliance_admin';
+        await base44.auth.updateMe({ role: newRole });
+        const updated = await base44.auth.me();
+        setUser(updated);
+        loadNotifications(updated.email);
+        return;
+      }
+      setUser(me);
+      loadNotifications(me.email);
+    } catch (error) {
+      console.error('Auth error:', error);
       setAccessDenied(true);
-      return;
     }
-    // Check invitation
-    const invitations = await base44.entities.UserInvitation.filter({ email: me.email });
-    const validInvite = invitations.find(i => ['Pending', 'Active'].includes(i.status));
-    if (!validInvite) {
-      setAccessDenied(true);
-      setNeedsInvite(true);
-      return;
-    }
-    // Activate invite if pending
-    if (validInvite.status === 'Pending') {
-      await base44.entities.UserInvitation.update(validInvite.id, { status: 'Active' });
-    }
-    // Auto-assign role on first login
-    if (!me.role || me.role === 'user') {
-      let newRole = validInvite.role || 'reviewer';
-      // Amanda auto-maps to compliance_admin
-      if (me.email === 'amanda@greathornaml.com' && newRole === 'reviewer') newRole = 'compliance_admin';
-      await base44.auth.updateMe({ role: newRole });
-      const updated = await base44.auth.me();
-      setUser(updated);
-      return;
-    }
-    setUser(me);
-    loadNotifications(me.email);
   }
 
   async function loadNotifications(email) {
