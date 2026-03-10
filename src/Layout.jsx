@@ -13,6 +13,7 @@ const NAV_ITEMS = [
   { name: 'Engagements', icon: FileStack, page: 'Engagements' },
   { name: 'Tasks', icon: ListTodo, page: 'Tasks' },
   { name: 'Reports', icon: FileBarChart, page: 'Reports' },
+  { name: 'Reviewer', icon: Shield, page: 'ReviewerDashboard' },
   { name: 'Admin', icon: Settings, page: 'Admin' },
   { name: 'Help', icon: HelpCircle, page: 'Help' },
 ];
@@ -23,6 +24,9 @@ export default function Layout({ children, currentPageName }) {
   const [user, setUser] = useState(null);
   const [accessDenied, setAccessDenied] = useState(false);
   const [needsInvite, setNeedsInvite] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(0);
+  const [showNotifs, setShowNotifs] = useState(false);
+  const [notifs, setNotifs] = useState([]);
 
   useEffect(() => {
     loadUser();
@@ -70,6 +74,20 @@ export default function Layout({ children, currentPageName }) {
       return;
     }
     setUser(me);
+    loadNotifications(me.email);
+  }
+
+  async function loadNotifications(email) {
+    if (!email) return;
+    const all = await base44.entities.Notification.filter({ user_email: email, status: 'unread' });
+    setNotifs(all.slice(0, 10));
+    setUnreadCount(all.length);
+  }
+
+  async function markRead(notif) {
+    await base44.entities.Notification.update(notif.id, { status: 'read' });
+    setNotifs(n => n.filter(x => x.id !== notif.id));
+    setUnreadCount(c => Math.max(0, c - 1));
   }
 
   if (accessDenied) {
@@ -221,10 +239,38 @@ export default function Layout({ children, currentPageName }) {
               {currentPageName === 'Dashboard' && <p className="text-[10px] text-slate-500">Risk Intelligence and Compliance Engine</p>}
             </div>
           </div>
-          <div className="flex items-center gap-2">
-            <button className="relative p-2 rounded-lg hover:bg-slate-100 text-slate-500 transition-colors">
-              <Bell className="w-4.5 h-4.5" />
+          <div className="flex items-center gap-2 relative">
+            <button
+              onClick={() => setShowNotifs(o => !o)}
+              className="relative p-2 rounded-lg hover:bg-slate-100 text-slate-500 transition-colors"
+            >
+              <Bell className="w-4 h-4" />
+              {unreadCount > 0 && (
+                <span className="absolute top-1 right-1 w-4 h-4 rounded-full bg-red-500 text-white text-[9px] font-bold flex items-center justify-center">
+                  {unreadCount > 9 ? '9+' : unreadCount}
+                </span>
+              )}
             </button>
+            {showNotifs && (
+              <div className="absolute right-0 top-10 w-80 bg-white rounded-xl shadow-xl border border-slate-200 z-50 overflow-hidden">
+                <div className="px-4 py-3 border-b border-slate-100 flex items-center justify-between">
+                  <p className="text-sm font-semibold text-slate-900">Notifications</p>
+                  <button onClick={() => setShowNotifs(false)} className="text-slate-400 hover:text-slate-600 text-xs">Close</button>
+                </div>
+                {notifs.length === 0 ? (
+                  <p className="px-4 py-6 text-xs text-slate-400 text-center">No unread notifications.</p>
+                ) : (
+                  <div className="divide-y divide-slate-100 max-h-72 overflow-y-auto">
+                    {notifs.map(n => (
+                      <div key={n.id} className="px-4 py-3 hover:bg-slate-50 cursor-pointer" onClick={() => markRead(n)}>
+                        <p className="text-xs font-medium text-slate-800">{n.message}</p>
+                        <p className="text-[10px] text-slate-400 mt-0.5 capitalize">{n.notification_type?.replace(/_/g, ' ')}</p>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         </header>
 
