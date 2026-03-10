@@ -97,31 +97,32 @@ Deno.serve(async (req) => {
     } else {
       // Create new record
       publishedRecord = await base44.asServiceRole.entities.PublishedOutput.create({
-      outputName: recordName,
-      classification: 'verification_record',
-      subtype: 'upgrade_verification',
-      is_runnable: false,
-      is_user_visible: false,
-      display_zone: 'internal_only',
-      source_module: 'publishNW013VerificationRecord',
-      source_event_type: 'upgrade_complete',
-      product_version: 'v0.6.0',
-      upgrade_id: 'NW-UPGRADE-013',
-      report_type: 'verification',
-      status: 'published',
-      published_at: new Date().toISOString(),
-      content: JSON.stringify(content),
-      summary: summary,
-      metadata: JSON.stringify({
-        audit_trail: true,
-        pages_deleted_count: 10,
-        routes_removed_count: 10,
-        classification_rules_implemented: 8
-      })
-    });
+        outputName: recordName,
+        classification: 'verification_record',
+        subtype: 'upgrade_verification',
+        is_runnable: false,
+        is_user_visible: false,
+        display_zone: 'internal_only',
+        source_module: 'publishNW013VerificationRecord',
+        source_event_type: 'upgrade_complete',
+        product_version: 'v0.6.0',
+        upgrade_id: 'NW-UPGRADE-013',
+        report_type: 'verification',
+        status: 'published',
+        published_at: new Date().toISOString(),
+        content: JSON.stringify(content),
+        summary: summary,
+        metadata: JSON.stringify({
+          audit_trail: true,
+          pages_deleted_count: 10,
+          routes_removed_count: 10,
+          classification_rules_implemented: 8
+        })
+      });
+    }
 
     // Create audit log entry
-    await base44.entities.PublicationAuditLog.create({
+    await base44.asServiceRole.entities.PublicationAuditLog.create({
       auditId: `audit-${Date.now()}`,
       outputId: record.id,
       outputName: recordName,
