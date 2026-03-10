@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { CheckCircle2, AlertTriangle, XCircle, ChevronDown, ChevronRight, Download } from 'lucide-react';
+import { CheckCircle2, AlertTriangle, XCircle, ChevronDown, ChevronRight, Download, Zap } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import PageHeader from '../components/ui/PageHeader';
 import VerificationReportA1847 from './VerificationReportA1847';
@@ -90,7 +90,7 @@ function Tick() { return <span className="text-emerald-600 font-bold">✅</span>
 
 // ── top-level report card (collapsed by default) ──────────────────────────────
 
-function ReportCard({ id, name, date, scope, badges, statusLabel, statusColor, children, onDownload }) {
+function ReportCard({ id, name, date, scope, badges, statusLabel, statusColor, children, onDownload, isFullAudit, supersededBy }) {
   const [open, setOpen] = useState(false);
   const statusCls = {
     green: 'bg-emerald-50 border-emerald-200 text-emerald-800',
@@ -99,9 +99,9 @@ function ReportCard({ id, name, date, scope, badges, statusLabel, statusColor, c
   }[statusColor] || 'bg-slate-50 border-slate-200 text-slate-800';
 
   return (
-    <div className="rounded-2xl border border-slate-200 overflow-hidden shadow-sm">
+    <div className={`rounded-2xl border overflow-hidden shadow-sm ${supersededBy ? 'border-slate-300 bg-slate-50/50' : 'border-slate-200'}`}>
       {/* always-visible header */}
-      <div className="w-full px-6 py-5 bg-white hover:bg-slate-50 transition-colors flex items-start justify-between gap-4">
+      <div className={`w-full px-6 py-5 ${supersededBy ? 'bg-slate-50' : 'bg-white hover:bg-slate-50'} transition-colors flex items-start justify-between gap-4`}>
         <button
           onClick={() => setOpen(o => !o)}
           className="text-left flex items-start gap-3 min-w-0 flex-1"
@@ -112,10 +112,18 @@ function ReportCard({ id, name, date, scope, badges, statusLabel, statusColor, c
           <div className="min-w-0">
             <div className="flex items-center gap-2 mb-1 flex-wrap">
               <span className="text-xs font-bold px-2 py-0.5 rounded bg-slate-900 text-white uppercase tracking-widest">{id}</span>
+              {isFullAudit && (
+                <span className="text-xs font-bold px-2 py-0.5 rounded bg-amber-600 text-white uppercase tracking-widest flex items-center gap-1">
+                  <Zap className="w-3 h-3" /> Full Audit
+                </span>
+              )}
               <span className="text-xs text-slate-400">{date}</span>
               <span className={`text-xs font-semibold px-2 py-0.5 rounded-full border ${statusCls}`}>{statusLabel}</span>
+              {supersededBy && (
+                <span className="text-xs px-2 py-0.5 rounded-full bg-slate-200 text-slate-700 border border-slate-300">Issues fixed in {supersededBy}</span>
+              )}
             </div>
-            <p className="text-base font-bold text-slate-900">{name}</p>
+            <p className={`text-base font-bold ${supersededBy ? 'text-slate-600 line-through' : 'text-slate-900'}`}>{name}</p>
             <p className="text-xs text-slate-500 mt-0.5 line-clamp-1">{scope}</p>
           </div>
         </button>
@@ -138,7 +146,12 @@ function ReportCard({ id, name, date, scope, badges, statusLabel, statusColor, c
 
       {/* collapsible body */}
       {open && (
-        <div className="border-t border-slate-100 bg-slate-50/30 px-6 py-6">
+        <div className={`border-t ${supersededBy ? 'border-slate-300 bg-slate-50' : 'border-slate-100 bg-slate-50/30'} px-6 py-6`}>
+          {supersededBy && (
+            <div className="p-3 bg-slate-100 border border-slate-300 rounded-lg mb-4 text-sm text-slate-700">
+              ℹ️ Issues found in this report have been fixed in <strong>{supersededBy}</strong>. Review the newer report for current status.
+            </div>
+          )}
           {children}
         </div>
       )}
@@ -391,13 +404,78 @@ export default function NightwatchVerificationReport() {
           scope="Complete architectural and product audit: prompt system, state model, mapping engine, verification layer, UX/product, performance, and production readiness assessment. 9 detailed audit sections with critical findings and prioritized remediation roadmap."
           statusLabel="⚠️ Conditional Pass"
           statusColor="amber"
+          isFullAudit={true}
           badges={[
             { label: 'Status', value: 'Conditional Pass', variant: 'warn' },
             { label: 'Sections', value: 10, variant: 'neutral' },
             { label: 'Risks', value: 5, variant: 'fail' },
           ]}
           onDownload={() => {
-            const blob = new Blob(['# H7314: System Audit Report\n\nDate: 2026-03-10 10:45 AM\n\nConditional Pass - See full report for 5 critical findings and remediation roadmap.'], { type: 'text/markdown' });
+            const content = `# H7314: Nightwatch Core Architecture v1 — Comprehensive System Audit
+Date: 2026-03-10 10:45 AM
+Status: CONDITIONAL PASS
+
+## Executive Summary
+The Nightwatch v1 Core Architecture implementation represents a foundational architectural transformation that successfully addresses critical technical debt and establishes a more maintainable platform foundation. However, significant architectural weaknesses remain that prevent Nightwatch from achieving production-grade reliability and performance.
+
+## Critical Finding
+The system is architecturally sound for MVP use but faces critical scaling, performance, and data integrity challenges. Deployment to production requires immediate remediation of the top 5 priority fixes identified below.
+
+## What Improved in This Upgrade
+✅ Central prompt routing eliminates ad-hoc prompt spaghetti
+✅ Modular library design (RiskLibrary, ControlLibrary) enables independent updates
+✅ Structured verification framework with 5 core integrity checks
+✅ Jurisdiction-aware assessment capability (CAN/USA/EU)
+✅ Configurable scoring engine with Balanced/Conservative/Aggressive modes
+✅ Partial regeneration support reduces unnecessary LLM calls
+✅ Single source of truth (AssessmentState) for engagement data
+
+## Top 5 Highest Priority Risks
+
+1. **CRITICAL: Performance bottleneck in serial risk processing**
+   - Impact: Poor user experience, limits assessment size, competitive disadvantage
+   - Likelihood: High
+
+2. **HIGH: No transaction management or rollback capability**
+   - Impact: Data corruption on partial failures, loss of analyst work
+   - Likelihood: Medium
+
+3. **HIGH: Missing audit trail for AssessmentState changes**
+   - Impact: Regulatory compliance failure, cannot trace errors
+   - Likelihood: High
+
+4. **MEDIUM: No user feedback during LLM operations**
+   - Impact: User frustration, perceived system freeze, support burden
+   - Likelihood: High
+
+5. **HIGH: Conditional control logic not implemented**
+   - Impact: Incorrect gap analysis, regulatory non-compliance
+   - Likelihood: Medium
+
+## Recommended Fixes — Ranked by Priority
+
+1. Implement async job queue with progress tracking (2-3 weeks, CRITICAL impact)
+2. Add library data caching layer (1 week, HIGH impact)
+3. Implement batch parallel risk processing (1-2 weeks, HIGH impact)
+4. Add AssessmentState change audit trail (1 week, HIGH impact)
+5. Implement conditional trigger evaluation engine (2-3 weeks, HIGH impact)
+
+## Production Readiness Assessment
+
+**Current Status: NOT PRODUCTION READY**
+
+The system can safely be used in limited-concurrency MVP scenarios (≤10 concurrent users). However, deployment to production requires:
+- Top 5 priority fixes implemented and tested
+- Load testing confirming scalability to target user base
+- Audit trail implementation for regulatory compliance
+- Transaction management and rollback capability
+- User feedback during long-running operations
+
+Estimated timeline to production readiness: 3-4 weeks of focused engineering
+
+## Final Assessment
+The Nightwatch v1 Core Architecture is architecturally sound and ready for MVP/limited-scale use. The implementation successfully establishes a modular, verifiable foundation for AML assessment workflows. However, critical weaknesses in performance, data integrity, and user experience must be addressed before production deployment.`;
+            const blob = new Blob([content], { type: 'text/markdown' });
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url; a.download = 'SystemAudit_H7314_2026-03-10.md'; a.click();
@@ -534,6 +612,8 @@ export default function NightwatchVerificationReport() {
           scope="Complete 64-point codebase audit: access, security, workspace isolation, audit integrity, controls, risk workflow, templates, reporting, dashboard, help"
           statusLabel="⚠️ Proceed with Caution"
           statusColor="amber"
+          isFullAudit={true}
+          supersededBy="H7314"
           badges={[
             { label: 'Checks', value: 64, variant: 'neutral' },
             { label: 'PASS', value: 30, variant: 'pass' },
@@ -541,7 +621,7 @@ export default function NightwatchVerificationReport() {
             { label: 'FAIL', value: 14, variant: 'fail' },
           ]}
           onDownload={() => {
-            const blob = new Blob(['# A1847: Full Platform Audit\n\nDate: 2026-03-08 11:45 AM\n\n30 PASS, 20 WARN, 14 FAIL.'], { type: 'text/markdown' });
+            const blob = new Blob(['# A1847: Full Platform Audit\n\nDate: 2026-03-08 11:45 AM\n\n30 PASS, 20 WARN, 14 FAIL.\n\n⚠️ Note: This report has been superseded by H7314 with updated findings.'], { type: 'text/markdown' });
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url; a.download = 'Verification_A1847_2026-03-08.md'; a.click();
