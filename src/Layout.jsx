@@ -20,12 +20,6 @@ const NAV_ITEMS = [
   { name: 'Feedback', icon: HelpCircle, page: 'Feedback' },
 ];
 
-const GitBranch = ({ className }) => (
-  <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 20c4.4 0 6.552-.892 9.286-2.296m31.280-4.236c0 .713-.264 1.39-.734 1.86m-2.022-2.022c.466.466 1.128.734 1.86.734M9 12a3 3 0 11-6 0 3 3 0 016 0zm12 0a3 3 0 11-6 0 3 3 0 016 0z" />
-  </svg>
-);
-
 export default function Layout({ children, currentPageName }) {
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
