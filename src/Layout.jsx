@@ -5,7 +5,7 @@ import { base44 } from '@/api/base44Client';
 import FeedbackButton from '@/components/feedback/FeedbackButton';
 import {
   LayoutDashboard, Building2, FileStack, ListTodo, FileBarChart, Settings,
-  ChevronLeft, ChevronRight, LogOut, Shield, Menu, Bell, HelpCircle
+  ChevronLeft, ChevronRight, LogOut, Shield, Menu, Bell, HelpCircle, GitBranch
 } from 'lucide-react';
 
 const NAV_ITEMS = [
@@ -16,8 +16,15 @@ const NAV_ITEMS = [
   { name: 'Reports', icon: FileBarChart, page: 'Reports' },
   { name: 'Reviewer', icon: Shield, page: 'ReviewerDashboard' },
   { name: 'Admin', icon: Settings, page: 'Admin' },
+  { name: 'ChangeLog', icon: GitBranch, page: 'ChangeLog', adminOnly: true },
   { name: 'Feedback', icon: HelpCircle, page: 'Feedback' },
 ];
+
+const GitBranch = ({ className }) => (
+  <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 20c4.4 0 6.552-.892 9.286-2.296m31.280-4.236c0 .713-.264 1.39-.734 1.86m-2.022-2.022c.466.466 1.128.734 1.86.734M9 12a3 3 0 11-6 0 3 3 0 016 0zm12 0a3 3 0 11-6 0 3 3 0 016 0z" />
+  </svg>
+);
 
 export default function Layout({ children, currentPageName }) {
   const [collapsed, setCollapsed] = useState(false);
@@ -185,12 +192,13 @@ export default function Layout({ children, currentPageName }) {
 
         {/* Nav */}
         <nav className="flex-1 py-4 px-2 space-y-1 overflow-y-auto">
-          {NAV_ITEMS.map(item => {
+          {NAV_ITEMS.filter(item => !item.adminOnly || user?.role === 'admin').map(item => {
             const isActive = currentPageName === item.page || 
               (item.page === 'Clients' && currentPageName === 'ClientDetail') ||
               (item.page === 'Engagements' && currentPageName === 'EngagementDetail') ||
               (item.page === 'Feedback' && ['Feedback'].includes(currentPageName)) ||
-              (item.page === 'Admin' && ['AdminRiskLibrary', 'AdminControlLibrary', 'AdminMethodologies', 'AdminNarratives', 'AdminUsers', 'AdminAuditLog', 'AdminJurisdictions', 'AdminIndustries', 'AdminSuggestions', 'AdminTestScenarios', 'AdminInvitations', 'AdminRiskProposals', 'AdminFeatureFlags', 'AdminReleaseLog', 'AdminChangeManagement', 'LibraryReviewDashboard', 'AdminGovernance'].includes(currentPageName));
+              (item.page === 'ChangeLog' && currentPageName === 'ChangeLog') ||
+              (item.page === 'Admin' && ['AdminRiskLibrary', 'AdminControlLibrary', 'AdminMethodologies', 'AdminNarratives', 'AdminUsers', 'AdminAuditLog', 'AdminJurisdictions', 'AdminIndustries', 'AdminTestScenarios', 'AdminInvitations', 'AdminRiskProposals', 'AdminFeatureFlags', 'AdminReleaseLog', 'LibraryReviewDashboard', 'AdminGovernance'].includes(currentPageName));
             return (
               <Link
                 key={item.page}
