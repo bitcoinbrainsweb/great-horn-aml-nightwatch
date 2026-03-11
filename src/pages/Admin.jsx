@@ -8,21 +8,29 @@ import {
 } from 'lucide-react';
 import PageHeader from '../components/ui/PageHeader';
 
-const ADMIN_SECTIONS = [
-  { name: 'Methodologies', description: 'Assessment methodology profiles', icon: BookOpen, page: 'AdminMethodologies', color: 'bg-blue-50 text-blue-600' },
-  { name: 'Risk Library', description: 'Manage risk definitions and categories', icon: ShieldCheck, page: 'AdminRiskLibrary', color: 'bg-red-50 text-red-600' },
-  { name: 'Control Library', description: 'Manage control definitions', icon: ShieldCheck, page: 'AdminControlLibrary', color: 'bg-emerald-50 text-emerald-600' },
-  { name: 'Narrative Templates', description: 'Report narrative templates', icon: FileText, page: 'AdminNarratives', color: 'bg-purple-50 text-purple-600' },
-  { name: 'Suggestions Queue', description: 'Review analyst-submitted risks and controls', icon: Lightbulb, page: 'AdminSuggestions', color: 'bg-amber-50 text-amber-600' },
-  { name: 'Industries', description: 'Industry classification table', icon: Factory, page: 'AdminIndustries', color: 'bg-slate-50 text-slate-600' },
-  { name: 'Jurisdictions', description: 'Jurisdiction risk ratings', icon: Globe, page: 'AdminJurisdictions', color: 'bg-cyan-50 text-cyan-600' },
-  { name: 'Users', description: 'Manage team members and roles', icon: Users, page: 'AdminUsers', color: 'bg-indigo-50 text-indigo-600' },
-  { name: 'Invitations', description: 'Manage workspace access invitations', icon: Users, page: 'AdminInvitations', color: 'bg-violet-50 text-violet-600' },
-  { name: 'Change Management', description: 'Software development verification and audit records', icon: GitBranch, page: 'AdminChangeManagement', color: 'bg-purple-50 text-purple-600' },
-  { name: 'Governance & Permissions', description: 'Role management, overrides, and SOD compliance', icon: Lock, page: 'AdminGovernance', color: 'bg-teal-50 text-teal-600' },
-  { name: 'Library Review Dashboard', description: 'Review and approve proposed risks and controls', icon: ShieldCheck, page: 'LibraryReviewDashboard', color: 'bg-indigo-50 text-indigo-600' },
-  { name: 'Audit Log', description: 'Track system changes', icon: History, page: 'AdminAuditLog', color: 'bg-orange-50 text-orange-600' },
-];
+const ADMIN_SECTIONS = {
+  riskFramework: [
+    { name: 'Methodologies', description: 'Assessment methodology profiles', icon: BookOpen, page: 'AdminMethodologies', color: 'bg-blue-50 text-blue-600' },
+    { name: 'Risk Library', description: 'Manage risk definitions and categories', icon: ShieldCheck, page: 'AdminRiskLibrary', color: 'bg-red-50 text-red-600' },
+    { name: 'Control Library', description: 'Manage control definitions', icon: ShieldCheck, page: 'AdminControlLibrary', color: 'bg-emerald-50 text-emerald-600' },
+  ],
+  content: [
+    { name: 'Narrative Templates', description: 'Report narrative templates', icon: FileText, page: 'AdminNarratives', color: 'bg-purple-50 text-purple-600' },
+    { name: 'Library Review Dashboard', description: 'Review and approve proposed risks and controls', icon: ShieldCheck, page: 'LibraryReviewDashboard', color: 'bg-indigo-50 text-indigo-600' },
+  ],
+  context: [
+    { name: 'Industries', description: 'Industry classification table', icon: Factory, page: 'AdminIndustries', color: 'bg-slate-50 text-slate-600' },
+    { name: 'Jurisdictions', description: 'Jurisdiction risk ratings', icon: Globe, page: 'AdminJurisdictions', color: 'bg-cyan-50 text-cyan-600' },
+  ],
+  workspace: [
+    { name: 'Users', description: 'Manage team members and roles', icon: Users, page: 'AdminUsers', color: 'bg-indigo-50 text-indigo-600' },
+    { name: 'Invitations', description: 'Manage workspace access invitations', icon: Users, page: 'AdminInvitations', color: 'bg-violet-50 text-violet-600' },
+  ],
+  governance: [
+    { name: 'Governance & Permissions', description: 'Role management, overrides, and SOD compliance', icon: Lock, page: 'AdminGovernance', color: 'bg-teal-50 text-teal-600' },
+    { name: 'Audit Log', description: 'Track system changes', icon: History, page: 'AdminAuditLog', color: 'bg-orange-50 text-orange-600' },
+  ],
+};
 
 const SUPERADMIN_SECTIONS = [
   { name: 'Test Scenario Generator', description: 'Generate fictional test data for internal QA', icon: FlaskConical, page: 'AdminTestScenarios', color: 'bg-rose-50 text-rose-600' },
@@ -37,11 +45,13 @@ export default function Admin() {
 
   const isSuperAdmin = ['admin', 'super_admin', 'compliance_admin'].includes(user?.role);
 
-  return (
-    <div>
-      <PageHeader title="Administration" subtitle="Manage system configuration and reference data" />
+  const renderSection = (title, items) => (
+    <div className="mb-8">
+      <div className="mb-4 pb-3 border-b border-slate-200">
+        <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wider">{title}</h3>
+      </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        {ADMIN_SECTIONS.map(section => (
+        {items.map(section => (
           <Link
             key={section.page}
             to={createPageUrl(section.page)}
@@ -59,6 +69,50 @@ export default function Admin() {
           </Link>
         ))}
       </div>
+    </div>
+  );
+
+  return (
+    <div>
+      <PageHeader title="Administration" subtitle="Manage system configuration and reference data" />
+      
+      {/* Risk Framework Section */}
+      <div className="border border-slate-200 rounded-lg p-6 mb-8 bg-slate-50/50">
+        <div className="mb-4 pb-3 border-b border-slate-200">
+          <h3 className="text-sm font-semibold text-slate-700">Risk Framework</h3>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {ADMIN_SECTIONS.riskFramework.map(section => (
+            <Link
+              key={section.page}
+              to={createPageUrl(section.page)}
+              className="bg-white rounded-xl border border-slate-200/60 p-5 hover:shadow-md hover:border-slate-300 transition-all duration-200 group"
+            >
+              <div className="flex items-start gap-4">
+                <div className={`p-2.5 rounded-lg ${section.color}`}>
+                  <section.icon className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-semibold text-slate-900 group-hover:text-blue-600 transition-colors">{section.name}</h3>
+                  <p className="text-xs text-slate-500 mt-1">{section.description}</p>
+                </div>
+              </div>
+            </Link>
+          ))}
+        </div>
+      </div>
+
+      {/* Content Section */}
+      {renderSection('Content & Review', ADMIN_SECTIONS.content)}
+
+      {/* Context Section */}
+      {renderSection('Context & Reference', ADMIN_SECTIONS.context)}
+
+      {/* Workspace Section */}
+      {renderSection('Workspace', ADMIN_SECTIONS.workspace)}
+
+      {/* Governance Section */}
+      {renderSection('Governance', ADMIN_SECTIONS.governance)}
 
       {isSuperAdmin && (
         <>
