@@ -16,6 +16,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import PageHeader from '../components/ui/PageHeader';
 import StatCard from '../components/ui/StatCard';
 import { logAudit } from '../components/util/auditLog';
+import LegacyRiskReviewDialog from '../components/library/LegacyRiskReviewDialog';
+import LegacyControlReviewDialog from '../components/library/LegacyControlReviewDialog';
 import { format } from 'date-fns';
 
 const STATUS_COLORS = {
@@ -53,6 +55,8 @@ export default function LibraryReviewDashboard() {
   const [user, setUser] = useState(null);
   const [selectedRisk, setSelectedRisk] = useState(null);
   const [selectedControl, setSelectedControl] = useState(null);
+  const [selectedLegacyRisk, setSelectedLegacyRisk] = useState(null);
+  const [selectedLegacyControl, setSelectedLegacyControl] = useState(null);
   const [reviewNotes, setReviewNotes] = useState('');
   const [saving, setSaving] = useState(false);
   const [editMode, setEditMode] = useState(false);
@@ -65,6 +69,7 @@ export default function LibraryReviewDashboard() {
   const [sourceFilter, setSourceFilter] = useState('all');
   const [expandedRisk, setExpandedRisk] = useState(null);
   const [expandedControl, setExpandedControl] = useState(null);
+  const [activeTab, setActiveTab] = useState('risk_proposals');
 
   useEffect(() => { load(); }, []);
 
@@ -92,8 +97,8 @@ export default function LibraryReviewDashboard() {
 
   const pendingRisks = riskProposals.filter(p => p.status === 'pending' || p.status === 'needs_review');
   const pendingControls = controlProposals.filter(p => p.status === 'pending' || p.status === 'needs_review');
-  const legacyRisks = riskLibrary.filter(r => r.source === 'Great Horn AML' && r.status === 'Active' && !r.is_core);
-  const legacyControls = controlLibrary.filter(c => c.status === 'Active' && !c.is_core);
+  const legacyRisks = riskLibrary.filter(r => r.status && (r.status.startsWith('legacy_') || r.status === 'deprecated'));
+  const legacyControls = controlLibrary.filter(c => c.status && (c.status.startsWith('legacy_') || c.status === 'deprecated'));
   const approvedThisMonth = [...riskProposals, ...controlProposals].filter(p => p.status === 'approved' && p.updated_date && new Date(p.updated_date) >= monthStart);
   const rejectedThisMonth = [...riskProposals, ...controlProposals].filter(p => p.status === 'rejected' && p.updated_date && new Date(p.updated_date) >= monthStart);
 
@@ -109,8 +114,19 @@ export default function LibraryReviewDashboard() {
     });
   }
 
+  function filterLibraryItems(items, field = 'risk_name') {
+    return items.filter(item => {
+      const matchesSearch = !searchTerm || 
+        (item[field] || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (item.description || '').toLowerCase().includes(searchTerm.toLowerCase());
+      return matchesSearch;
+    });
+  }
+
   const filteredRisks = filterProposals(riskProposals);
   const filteredControls = filterProposals(controlProposals);
+  const filteredLegacyRisks = filterLibraryItems(legacyRisks, 'risk_name');
+  const filteredLegacyControls = filterLibraryItems(legacyControls, 'control_name');
 
   async function handleRiskDecision(status) {
     setSaving(true);
@@ -320,12 +336,32 @@ export default function LibraryReviewDashboard() {
         />
       </div>
 
-      {/* Summary Cards */}
+      {/* Summary Cards - Clickable */}
       <div className="grid grid-cols-2 lg:grid-cols-6 gap-3 mb-6">
-        <StatCard title="Pending Risks" value={pendingRisks.length} icon={AlertCircle} color="amber" />
-        <StatCard title="Pending Controls" value={pendingControls.length} icon={Shield} color="blue" />
-        <StatCard title="Legacy Risks" value={legacyRisks.length} icon={BookOpen} color="slate" />
-        <StatCard title="Legacy Controls" value={legacyControls.length} icon={FileStack} color="slate" />
+        <button
+          onClick={() => { setActiveTab('risk_proposals'); setSearchTerm(''); setStatusFilter('pending'); }}
+          className="group hover:scale-105 transition-transform"
+        >
+          <StatCard title="Pending Risks" value={pendingRisks.length} icon={AlertCircle} color="amber" />
+        </button>
+        <button
+          onClick={() => { setActiveTab('control_proposals'); setSearchTerm(''); setStatusFilter('pending'); }}
+          className="group hover:scale-105 transition-transform"
+        >
+          <StatCard title="Pending Controls" value={pendingControls.length} icon={Shield} color="blue" />
+        </button>
+        <button
+          onClick={() => { setActiveTab('legacy_risks'); setSearchTerm(''); setStatusFilter('all'); }}
+          className="group hover:scale-105 transition-transform"
+        >
+          <StatCard title="Legacy Risks" value={legacyRisks.length} icon={BookOpen} color="slate" />
+        </button>
+        <button
+          onClick={() => { setActiveTab('legacy_controls'); setSearchTerm(''); setStatusFilter('all'); }}
+          className="group hover:scale-105 transition-transform"
+        >
+          <StatCard title="Legacy Controls" value={legacyControls.length} icon={FileStack} color="slate" />
+        </button>
         <StatCard title="Approved (MTD)" value={approvedThisMonth.length} icon={CheckCircle2} color="green" />
         <StatCard title="Rejected (MTD)" value={rejectedThisMonth.length} icon={XCircle} color="red" />
       </div>
@@ -374,13 +410,15 @@ export default function LibraryReviewDashboard() {
       </div>
 
       {/* Tabs */}
-      <Tabs defaultValue="risks" className="space-y-4">
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
         <TabsList>
-          <TabsTrigger value="risks">Risk Proposals ({filteredRisks.length})</TabsTrigger>
-          <TabsTrigger value="controls">Control Proposals ({filteredControls.length})</TabsTrigger>
+          <TabsTrigger value="risk_proposals">Risk Proposals ({filteredRisks.length})</TabsTrigger>
+          <TabsTrigger value="control_proposals">Control Proposals ({filteredControls.length})</TabsTrigger>
+          <TabsTrigger value="legacy_risks">Legacy Risks ({filteredLegacyRisks.length})</TabsTrigger>
+          <TabsTrigger value="legacy_controls">Legacy Controls ({filteredLegacyControls.length})</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="risks" className="space-y-3">
+        <TabsContent value="risk_proposals" className="space-y-3">
           {filteredRisks.length === 0 ? (
             <div className="bg-white rounded-xl border border-slate-200/60 p-10 text-center text-sm text-slate-500">
               No risk proposals match your filters.
@@ -464,7 +502,7 @@ export default function LibraryReviewDashboard() {
           )}
         </TabsContent>
 
-        <TabsContent value="controls" className="space-y-3">
+        <TabsContent value="control_proposals" className="space-y-3">
           {filteredControls.length === 0 ? (
             <div className="bg-white rounded-xl border border-slate-200/60 p-10 text-center text-sm text-slate-500">
               No control proposals match your filters.
@@ -543,6 +581,72 @@ export default function LibraryReviewDashboard() {
                     )}
                   </div>
                 )}
+              </div>
+            ))
+          )}
+        </TabsContent>
+
+        <TabsContent value="legacy_risks" className="space-y-3">
+          {filteredLegacyRisks.length === 0 ? (
+            <div className="bg-white rounded-xl border border-slate-200/60 p-10 text-center text-sm text-slate-500">
+              No legacy risks to review.
+            </div>
+          ) : (
+            filteredLegacyRisks.map(r => (
+              <div key={r.id} className="bg-white rounded-xl border border-amber-200/60 border-l-4 border-l-amber-500">
+                <button
+                  onClick={() => setSelectedLegacyRisk(r)}
+                  className="w-full px-5 py-4 flex items-start justify-between hover:bg-amber-50/50 transition-colors text-left"
+                >
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap mb-2">
+                      <span className="px-2 py-0.5 rounded-full text-xs font-semibold border bg-amber-50 text-amber-700 border-amber-200">
+                        {r.status}
+                      </span>
+                      {r.risk_category && (
+                        <span className="px-2 py-0.5 rounded text-xs bg-indigo-50 text-indigo-700 font-medium">
+                          {r.risk_category}
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-sm font-semibold text-slate-900">{r.risk_name}</p>
+                    <p className="text-xs text-slate-600 mt-1 line-clamp-2">{r.description}</p>
+                  </div>
+                  <ChevronRight className="w-4 h-4 text-slate-400 ml-3 flex-shrink-0" />
+                </button>
+              </div>
+            ))
+          )}
+        </TabsContent>
+
+        <TabsContent value="legacy_controls" className="space-y-3">
+          {filteredLegacyControls.length === 0 ? (
+            <div className="bg-white rounded-xl border border-slate-200/60 p-10 text-center text-sm text-slate-500">
+              No legacy controls to review.
+            </div>
+          ) : (
+            filteredLegacyControls.map(c => (
+              <div key={c.id} className="bg-white rounded-xl border border-amber-200/60 border-l-4 border-l-amber-500">
+                <button
+                  onClick={() => setSelectedLegacyControl(c)}
+                  className="w-full px-5 py-4 flex items-start justify-between hover:bg-amber-50/50 transition-colors text-left"
+                >
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap mb-2">
+                      <span className="px-2 py-0.5 rounded-full text-xs font-semibold border bg-amber-50 text-amber-700 border-amber-200">
+                        {c.status}
+                      </span>
+                      {c.control_category && (
+                        <span className="px-2 py-0.5 rounded text-xs bg-indigo-50 text-indigo-700 font-medium">
+                          {c.control_category}
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-sm font-semibold text-slate-900">{c.control_name}</p>
+                    <p className="text-xs text-slate-600 mt-1 line-clamp-2">{c.description}</p>
+                  </div>
+                  <ChevronRight className="w-4 h-4 text-slate-400 ml-3 flex-shrink-0" />
+                </button>
               </div>
             ))
           )}
@@ -830,6 +934,24 @@ export default function LibraryReviewDashboard() {
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Legacy Risk Review Dialog */}
+      <LegacyRiskReviewDialog
+        open={!!selectedLegacyRisk}
+        risk={selectedLegacyRisk}
+        user={user}
+        onClose={() => setSelectedLegacyRisk(null)}
+        onRefresh={load}
+      />
+
+      {/* Legacy Control Review Dialog */}
+      <LegacyControlReviewDialog
+        open={!!selectedLegacyControl}
+        control={selectedLegacyControl}
+        user={user}
+        onClose={() => setSelectedLegacyControl(null)}
+        onRefresh={load}
+      />
     </div>
   );
 }
