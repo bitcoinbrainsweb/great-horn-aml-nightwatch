@@ -46,24 +46,24 @@ export default function Admin() {
   const isSuperAdmin = ['admin', 'super_admin', 'compliance_admin'].includes(user?.role);
 
   const renderSection = (title, items) => (
-    <div className="mb-5">
-      <div className="mb-2 pb-2 border-b border-slate-200">
+    <div className="mb-3">
+      <div className="mb-1.5 pb-1.5 border-b border-slate-200">
         <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wider">{title}</h3>
       </div>
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
         {items.map(section => (
           <Link
             key={section.page}
             to={createPageUrl(section.page)}
-            className="bg-white rounded-lg border border-slate-200/60 p-3 hover:shadow-md hover:border-slate-300 transition-all duration-200 group"
+            className="bg-white rounded-lg border border-slate-200/60 p-2.5 hover:shadow-md hover:border-slate-300 transition-all duration-200 group"
           >
-            <div className="flex items-start gap-3">
-              <div className={`p-2 rounded-md ${section.color}`}>
-                <section.icon className="w-4 h-4" />
+            <div className="flex items-start gap-2">
+              <div className={`p-1.5 rounded-md flex-shrink-0 ${section.color}`}>
+                <section.icon className="w-3.5 h-3.5" />
               </div>
               <div className="min-w-0">
-                <h3 className="text-xs font-semibold text-slate-900 group-hover:text-blue-600 transition-colors">{section.name}</h3>
-                <p className="text-[11px] text-slate-500 mt-0.5">{section.description}</p>
+                <h3 className="text-xs font-semibold text-slate-900 group-hover:text-blue-600 transition-colors leading-tight">{section.name}</h3>
+                <p className="text-[10px] text-slate-500 mt-0.5 leading-tight">{section.description}</p>
               </div>
             </div>
           </Link>
@@ -77,24 +77,24 @@ export default function Admin() {
       <PageHeader title="Administration" subtitle="Manage system configuration and reference data" />
       
       {/* Risk Framework Section */}
-      <div className="border border-slate-200 rounded-lg p-4 mb-5 bg-slate-50/50">
-        <div className="mb-2 pb-2 border-b border-slate-200">
+      <div className="border border-slate-200 rounded-lg p-3 mb-3 bg-slate-50/50">
+        <div className="mb-1.5 pb-1.5 border-b border-slate-200">
           <h3 className="text-sm font-semibold text-slate-700">Risk Framework</h3>
         </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
           {ADMIN_SECTIONS.riskFramework.map(section => (
             <Link
               key={section.page}
               to={createPageUrl(section.page)}
-              className="bg-white rounded-lg border border-slate-200/60 p-3 hover:shadow-md hover:border-slate-300 transition-all duration-200 group"
+              className="bg-white rounded-lg border border-slate-200/60 p-2.5 hover:shadow-md hover:border-slate-300 transition-all duration-200 group"
             >
-              <div className="flex items-start gap-3">
-                <div className={`p-2 rounded-md ${section.color}`}>
-                  <section.icon className="w-4 h-4" />
+              <div className="flex items-start gap-2">
+                <div className={`p-1.5 rounded-md flex-shrink-0 ${section.color}`}>
+                  <section.icon className="w-3.5 h-3.5" />
                 </div>
                 <div className="min-w-0">
-                  <h3 className="text-xs font-semibold text-slate-900 group-hover:text-blue-600 transition-colors">{section.name}</h3>
-                  <p className="text-[11px] text-slate-500 mt-0.5">{section.description}</p>
+                  <h3 className="text-xs font-semibold text-slate-900 group-hover:text-blue-600 transition-colors leading-tight">{section.name}</h3>
+                  <p className="text-[10px] text-slate-500 mt-0.5 leading-tight">{section.description}</p>
                 </div>
               </div>
             </Link>
@@ -116,23 +116,23 @@ export default function Admin() {
 
       {isSuperAdmin && (
         <>
-          <div className="mt-5 mb-2">
+          <div className="mt-3 mb-1.5">
             <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Internal Tools</p>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
             {SUPERADMIN_SECTIONS.map(section => (
               <Link
                 key={section.page}
                 to={createPageUrl(section.page)}
-                className="bg-white rounded-lg border border-rose-200/60 p-3 hover:shadow-md hover:border-rose-300 transition-all duration-200 group"
+                className="bg-white rounded-lg border border-rose-200/60 p-2.5 hover:shadow-md hover:border-rose-300 transition-all duration-200 group"
               >
-                <div className="flex items-start gap-3">
-                  <div className={`p-2 rounded-md ${section.color}`}>
-                    <section.icon className="w-4 h-4" />
+                <div className="flex items-start gap-2">
+                  <div className={`p-1.5 rounded-md flex-shrink-0 ${section.color}`}>
+                    <section.icon className="w-3.5 h-3.5" />
                   </div>
                   <div className="min-w-0">
-                    <h3 className="text-xs font-semibold text-slate-900 group-hover:text-rose-600 transition-colors">{section.name}</h3>
-                    <p className="text-[11px] text-slate-500 mt-0.5">{section.description}</p>
+                    <h3 className="text-xs font-semibold text-slate-900 group-hover:text-rose-600 transition-colors leading-tight">{section.name}</h3>
+                    <p className="text-[10px] text-slate-500 mt-0.5 leading-tight">{section.description}</p>
                   </div>
                 </div>
               </Link>
