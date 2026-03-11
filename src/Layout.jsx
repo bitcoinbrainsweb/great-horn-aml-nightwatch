@@ -186,7 +186,7 @@ export default function Layout({ children, currentPageName }) {
 
         {/* Nav */}
         <nav className="flex-1 py-4 px-2 space-y-1 overflow-y-auto">
-          {NAV_ITEMS.filter(item => !item.adminOnly || user?.role === 'technical_admin').map(item => {
+          {NAV_ITEMS.filter(item => !item.adminOnly || ['technical_admin', 'super_admin'].includes(user?.role)).map(item => {
             const isActive = currentPageName === item.page || 
               (item.page === 'Clients' && currentPageName === 'ClientDetail') ||
               (item.page === 'Engagements' && currentPageName === 'EngagementDetail') ||

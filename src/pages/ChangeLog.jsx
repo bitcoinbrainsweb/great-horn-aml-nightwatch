@@ -21,7 +21,7 @@ export default function ChangeLog() {
     try {
       const me = await base44.auth.me();
       setUser(me);
-      if (me?.role !== 'technical_admin') {
+      if (!['technical_admin', 'super_admin'].includes(me?.role)) {
         setAccessDenied(true);
         setLoading(false);
         return;
