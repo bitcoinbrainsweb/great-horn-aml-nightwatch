@@ -21,7 +21,6 @@ const ADMIN_SECTIONS = [
   { name: 'Change Management', description: 'Software development verification and audit records', icon: GitBranch, page: 'AdminChangeManagement', color: 'bg-purple-50 text-purple-600' },
   { name: 'Governance & Permissions', description: 'Role management, overrides, and SOD compliance', icon: Lock, page: 'AdminGovernance', color: 'bg-teal-50 text-teal-600' },
   { name: 'Library Review Dashboard', description: 'Review and approve proposed risks and controls', icon: ShieldCheck, page: 'LibraryReviewDashboard', color: 'bg-indigo-50 text-indigo-600' },
-  { name: 'Risk Proposals', description: 'Review analyst risk change proposals', icon: ShieldCheck, page: 'AdminRiskProposals', color: 'bg-rose-50 text-rose-600' },
   { name: 'Audit Log', description: 'Track system changes', icon: History, page: 'AdminAuditLog', color: 'bg-orange-50 text-orange-600' },
 ];
 

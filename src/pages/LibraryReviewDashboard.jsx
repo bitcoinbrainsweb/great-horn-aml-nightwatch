@@ -97,8 +97,8 @@ export default function LibraryReviewDashboard() {
 
   const pendingRisks = riskProposals.filter(p => p.status === 'pending' || p.status === 'needs_review');
   const pendingControls = controlProposals.filter(p => p.status === 'pending' || p.status === 'needs_review');
-  const legacyRisks = riskLibrary.filter(r => r.status && (r.status.startsWith('legacy_') || r.status === 'deprecated'));
-  const legacyControls = controlLibrary.filter(c => c.status && (c.status.startsWith('legacy_') || c.status === 'deprecated'));
+  const legacyRisks = riskLibrary.filter(r => r.review_state === 'legacy_unreviewed' || r.review_state === 'legacy_reviewed');
+  const legacyControls = controlLibrary.filter(c => c.review_state === 'legacy_unreviewed' || c.review_state === 'legacy_reviewed');
   const approvedThisMonth = [...riskProposals, ...controlProposals].filter(p => p.status === 'approved' && p.updated_date && new Date(p.updated_date) >= monthStart);
   const rejectedThisMonth = [...riskProposals, ...controlProposals].filter(p => p.status === 'rejected' && p.updated_date && new Date(p.updated_date) >= monthStart);
 
