@@ -86,6 +86,7 @@ import ReportPublicationDebug from './pages/ReportPublicationDebug';
 import Reports from './pages/Reports';
 import ReviewerDashboard from './pages/ReviewerDashboard';
 import Tasks from './pages/Tasks';
+import ChangeLog from './pages/ChangeLog';
 import __Layout from './Layout.jsx';
 
 
@@ -129,6 +130,7 @@ export const PAGES = {
     "Reports": Reports,
     "ReviewerDashboard": ReviewerDashboard,
     "Tasks": Tasks,
+    "ChangeLog": ChangeLog,
 }
 
 export const pagesConfig = {
