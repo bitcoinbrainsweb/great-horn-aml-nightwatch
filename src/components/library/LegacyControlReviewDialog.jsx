@@ -18,7 +18,7 @@ export default function LegacyControlReviewDialog({ open, control, user, onClose
   const handleMarkReviewed = async () => {
     setSaving(true);
     await base44.entities.ControlLibrary.update(control.id, {
-      status: 'legacy_reviewed',
+      review_state: 'legacy_reviewed',
       reviewed_by: user?.email,
       review_notes: reviewNotes,
     });
@@ -28,7 +28,7 @@ export default function LegacyControlReviewDialog({ open, control, user, onClose
       objectId: control.id,
       action: 'legacy_marked_reviewed',
       fieldChanged: 'status',
-      oldValue: control.status,
+      oldValue: control.review_state,
       newValue: 'legacy_reviewed',
       details: `Legacy control marked as reviewed: ${control.control_name}. Notes: ${reviewNotes}`,
     });
@@ -55,7 +55,8 @@ export default function LegacyControlReviewDialog({ open, control, user, onClose
   const handleDeprecate = async () => {
     setSaving(true);
     await base44.entities.ControlLibrary.update(control.id, {
-      status: 'deprecated',
+      lifecycle_state: 'deprecated',
+      review_state: 'legacy_reviewed',
       reviewed_by: user?.email,
       review_notes: reviewNotes,
     });
@@ -64,8 +65,8 @@ export default function LegacyControlReviewDialog({ open, control, user, onClose
       objectType: 'ControlLibrary',
       objectId: control.id,
       action: 'legacy_deprecated',
-      fieldChanged: 'status',
-      oldValue: control.status,
+      fieldChanged: 'lifecycle_state',
+      oldValue: control.lifecycle_state,
       newValue: 'deprecated',
       details: `Legacy control deprecated: ${control.control_name}. Reason: ${reviewNotes}`,
     });
@@ -76,7 +77,8 @@ export default function LegacyControlReviewDialog({ open, control, user, onClose
   const handleArchive = async () => {
     setSaving(true);
     await base44.entities.ControlLibrary.update(control.id, {
-      status: 'archived',
+      lifecycle_state: 'archived',
+      review_state: 'legacy_reviewed',
       reviewed_by: user?.email,
       review_notes: reviewNotes,
     });
@@ -85,8 +87,8 @@ export default function LegacyControlReviewDialog({ open, control, user, onClose
       objectType: 'ControlLibrary',
       objectId: control.id,
       action: 'legacy_archived',
-      fieldChanged: 'status',
-      oldValue: control.status,
+      fieldChanged: 'lifecycle_state',
+      oldValue: control.lifecycle_state,
       newValue: 'archived',
       details: `Legacy control archived: ${control.control_name}. Reason: ${reviewNotes}`,
     });
@@ -172,6 +174,8 @@ export default function LegacyControlReviewDialog({ open, control, user, onClose
               <p><strong>Status:</strong> {control.status}</p>
               {control.description && <p><strong>Description:</strong> {control.description}</p>}
               {control.evidence_expected && <p><strong>Expected Evidence:</strong> {control.evidence_expected}</p>}
+              <p><strong>Review State:</strong> {control.review_state || 'none'}</p>
+              <p><strong>Lifecycle State:</strong> {control.lifecycle_state || 'active'}</p>
               {control.review_notes && <p><strong>Review Notes:</strong> {control.review_notes}</p>}
             </div>
 

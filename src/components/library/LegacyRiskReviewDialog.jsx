@@ -18,7 +18,7 @@ export default function LegacyRiskReviewDialog({ open, risk, user, onClose, onRe
   const handleMarkReviewed = async () => {
     setSaving(true);
     await base44.entities.RiskLibrary.update(risk.id, {
-      status: 'legacy_reviewed',
+      review_state: 'legacy_reviewed',
       reviewed_by: user?.email,
       review_notes: reviewNotes,
     });
@@ -28,7 +28,7 @@ export default function LegacyRiskReviewDialog({ open, risk, user, onClose, onRe
       objectId: risk.id,
       action: 'legacy_marked_reviewed',
       fieldChanged: 'status',
-      oldValue: risk.status,
+      oldValue: risk.review_state,
       newValue: 'legacy_reviewed',
       details: `Legacy risk marked as reviewed: ${risk.risk_name}. Notes: ${reviewNotes}`,
     });
@@ -55,7 +55,8 @@ export default function LegacyRiskReviewDialog({ open, risk, user, onClose, onRe
   const handleDeprecate = async () => {
     setSaving(true);
     await base44.entities.RiskLibrary.update(risk.id, {
-      status: 'deprecated',
+      lifecycle_state: 'deprecated',
+      review_state: 'legacy_reviewed',
       reviewed_by: user?.email,
       review_notes: reviewNotes,
     });
@@ -64,8 +65,8 @@ export default function LegacyRiskReviewDialog({ open, risk, user, onClose, onRe
       objectType: 'RiskLibrary',
       objectId: risk.id,
       action: 'legacy_deprecated',
-      fieldChanged: 'status',
-      oldValue: risk.status,
+      fieldChanged: 'lifecycle_state',
+      oldValue: risk.lifecycle_state,
       newValue: 'deprecated',
       details: `Legacy risk deprecated: ${risk.risk_name}. Reason: ${reviewNotes}`,
     });
@@ -76,7 +77,8 @@ export default function LegacyRiskReviewDialog({ open, risk, user, onClose, onRe
   const handleArchive = async () => {
     setSaving(true);
     await base44.entities.RiskLibrary.update(risk.id, {
-      status: 'archived',
+      lifecycle_state: 'archived',
+      review_state: 'legacy_reviewed',
       reviewed_by: user?.email,
       review_notes: reviewNotes,
     });
@@ -85,8 +87,8 @@ export default function LegacyRiskReviewDialog({ open, risk, user, onClose, onRe
       objectType: 'RiskLibrary',
       objectId: risk.id,
       action: 'legacy_archived',
-      fieldChanged: 'status',
-      oldValue: risk.status,
+      fieldChanged: 'lifecycle_state',
+      oldValue: risk.lifecycle_state,
       newValue: 'archived',
       details: `Legacy risk archived: ${risk.risk_name}. Reason: ${reviewNotes}`,
     });
@@ -187,6 +189,8 @@ export default function LegacyRiskReviewDialog({ open, risk, user, onClose, onRe
               {risk.description && <p><strong>Description:</strong> {risk.description}</p>}
               {risk.default_likelihood && <p><strong>Likelihood:</strong> {risk.default_likelihood}/5</p>}
               {risk.default_impact && <p><strong>Impact:</strong> {risk.default_impact}/5</p>}
+              <p><strong>Review State:</strong> {risk.review_state || 'none'}</p>
+              <p><strong>Lifecycle State:</strong> {risk.lifecycle_state || 'active'}</p>
               {risk.review_notes && <p><strong>Review Notes:</strong> {risk.review_notes}</p>}
             </div>
 
