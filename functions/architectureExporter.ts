@@ -526,14 +526,14 @@ Deno.serve(async (req) => {
         source_module: "architectureExporter",
         source_event_type: "architecture_export_complete",
         product_version: "v0.7.0",
-        upgrade_id: "NW-UPGRADE-031D",
+        upgrade_id: "NW-UPGRADE-031E",
         status: "published",
         published_at: now,
         content: artifactContent,
         summary: `Complete v0.7.0 system architecture snapshot: ${entities.length} entities, ${Object.keys(enums).length} enums, ${functions.length} functions, ${pages.length} pages. Real downloadable files attached.`,
         metadata: JSON.stringify({
           export_version: "v0.7.0",
-          export_upgrade_id: "NW-UPGRADE-031D",
+          export_upgrade_id: "NW-UPGRADE-031E",
           export_timestamp: now,
           export_phases: 8,
           total_entities: entities.length,
@@ -544,7 +544,7 @@ Deno.serve(async (req) => {
           total_files: 8,
           architecture_summary: summary.system_architecture,
           file_manifest: fileManifest,
-          root_cause_fix: "NW-UPGRADE-031D: Fixed version drift (v0.6.0 -> v0.7.0), attached real file contents to metadata, ensured visibility in ChangeLog"
+          root_cause_fix: "NW-UPGRADE-031E: VerificationRecordCard now renders file_manifest from metadata with downloadable files section"
         })
       });
 
@@ -554,7 +554,7 @@ Deno.serve(async (req) => {
         artifact_created: true,
         artifact_id: publishedOutput.id,
         artifact_name: publishedOutput.outputName,
-        upgrade_id: "NW-UPGRADE-031D",
+        upgrade_id: "NW-UPGRADE-031E",
         display_location: "ChangeLog",
         files_attached: 8,
         total_size_kb: Object.values(fileManifest).reduce((sum, f) => sum + (f.size_kb || 0), 0),
