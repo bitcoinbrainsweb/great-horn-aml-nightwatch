@@ -115,28 +115,58 @@ Deno.serve(async (req) => {
 
     console.log('[CanonicalWriter] Creating verification artifact:', artifactName);
     
-    // Write directly to PublishedOutput (ChangeLog source)
-    const artifact = await base44.asServiceRole.entities.PublishedOutput.create({
-      outputName: artifactName,
-      classification: 'verification_record',
-      subtype: 'upgrade_verification',
-      is_runnable: false,
-      is_user_visible: false,
-      display_zone: 'internal_only',
-      source_module: payload.upgrade_id,
-      source_event_type: 'verification_complete',
-      product_version: payload.product_version,
+    // Check for existing artifact (deduplication)
+    const existingArtifacts = await base44.asServiceRole.entities.PublishedOutput.filter({
       upgrade_id: payload.upgrade_id,
-      status: 'published',
-      published_at: timestamp,
-      content: JSON.stringify(content),
-      summary: payload.summary || `${payload.title} verification complete`,
-      metadata: JSON.stringify({
-        prompt_id: payload.prompt_id,
-        generated_by: 'CanonicalVerificationWriter',
-        engine_version: '1.0.0'
-      })
+      classification: 'verification_record'
     });
+
+    let artifact;
+    if (existingArtifacts.length > 0) {
+      console.log('[CanonicalWriter] Updating existing artifact:', existingArtifacts[0].id);
+      // Update existing artifact instead of creating duplicate
+      artifact = await base44.asServiceRole.entities.PublishedOutput.update(
+        existingArtifacts[0].id,
+        {
+          outputName: artifactName,
+          status: 'published',
+          published_at: timestamp,
+          content: JSON.stringify(content),
+          summary: payload.summary || `${payload.title} verification complete (updated)`,
+          metadata: JSON.stringify({
+            prompt_id: payload.prompt_id,
+            generated_by: 'CanonicalVerificationWriter',
+            engine_version: '1.0.0',
+            updated: true,
+            previous_artifact_id: existingArtifacts[0].id
+          })
+        }
+      );
+    } else {
+      console.log('[CanonicalWriter] Creating new artifact');
+      // Write directly to PublishedOutput (ChangeLog source)
+      artifact = await base44.asServiceRole.entities.PublishedOutput.create({
+        outputName: artifactName,
+        classification: 'verification_record',
+        subtype: 'upgrade_verification',
+        is_runnable: false,
+        is_user_visible: false,
+        display_zone: 'internal_only',
+        source_module: payload.upgrade_id,
+        source_event_type: 'verification_complete',
+        product_version: payload.product_version,
+        upgrade_id: payload.upgrade_id,
+        status: 'published',
+        published_at: timestamp,
+        content: JSON.stringify(content),
+        summary: payload.summary || `${payload.title} verification complete`,
+        metadata: JSON.stringify({
+          prompt_id: payload.prompt_id,
+          generated_by: 'CanonicalVerificationWriter',
+          engine_version: '1.0.0'
+        })
+      });
+    }
 
     console.log('[CanonicalWriter] Artifact created:', artifact.id);
     
