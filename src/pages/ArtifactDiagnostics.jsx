@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import PageHeader from '@/components/ui/PageHeader';
 import { FileCheck, Database, TestTube, RefreshCw, AlertCircle, CheckCircle } from 'lucide-react';
+import { getChangeLogArtifacts, CHANGELOG_QUERY_CONFIG } from '../components/changelog/ChangeLogQuery';
 
 export default function ArtifactDiagnostics() {
   const [user, setUser] = useState(null);
@@ -38,7 +39,7 @@ export default function ArtifactDiagnostics() {
   async function loadDiagnostics() {
     setLoading(true);
     try {
-      // Load all PublishedOutput records
+      // Load all PublishedOutput records for counts
       const allRecords = await base44.entities.PublishedOutput.filter({});
 
       // Count by classification
@@ -48,24 +49,23 @@ export default function ArtifactDiagnostics() {
         classificationCounts[cls] = (classificationCounts[cls] || 0) + 1;
       });
 
-      // ChangeLog filter simulation
-      const publishedRecords = allRecords.filter(r => r.status === 'published');
-      const changelogRecords = publishedRecords.filter(r => 
-        ['verification_record', 'audit_record', 'delivery_gate_record'].includes(r.classification)
-      );
+      // Use SHARED ChangeLog query logic
+      const changelogRecords = await getChangeLogArtifacts();
 
       // Recent artifacts (latest 10)
-      const recent = [...changelogRecords]
-        .sort((a, b) => new Date(b.published_at || b.created_date) - new Date(a.published_at || a.created_date))
-        .slice(0, 10);
+      const recent = changelogRecords.slice(0, 10);
+
+      const publishedRecords = allRecords.filter(r => r.status === 'published');
 
       setDiagnostics({
         source: {
-          entity: 'PublishedOutput',
-          query: "filter({ status: 'published' })",
-          classificationFilter: "['verification_record', 'audit_record', 'delivery_gate_record']",
+          entity: CHANGELOG_QUERY_CONFIG.entity,
+          query: `filter({ status: '${CHANGELOG_QUERY_CONFIG.statusFilter}' })`,
+          classificationFilter: JSON.stringify(CHANGELOG_QUERY_CONFIG.classificationFilter),
           listFields: ['outputName', 'upgrade_id', 'published_at', 'classification', 'status'],
-          expansionField: 'content (JSON string)'
+          expansionField: 'content (JSON string)',
+          sortField: CHANGELOG_QUERY_CONFIG.sortField,
+          sortOrder: CHANGELOG_QUERY_CONFIG.sortOrder
         },
         counts: {
           total: allRecords.length,
@@ -73,7 +73,8 @@ export default function ArtifactDiagnostics() {
           changelogVisible: changelogRecords.length,
           byClassification: classificationCounts
         },
-        recent: recent
+        recent: recent,
+        changelogRecordIds: changelogRecords.map(r => r.id)
       });
     } catch (error) {
       console.error('Diagnostics load error:', error);
@@ -173,14 +174,18 @@ export default function ArtifactDiagnostics() {
         }
       }
 
-      // Check 5: ChangeLog query match
-      const changelogQuery = await base44.entities.PublishedOutput.filter({
-        status: 'published',
-        classification: 'verification_record'
-      });
-
-      if (changelogQuery.find(r => r.id === artifact.id)) {
+      // Check 5: ChangeLog query match - USE SHARED QUERY LOGIC
+      console.log('[ArtifactDiagnostics] Running shared ChangeLog query for verification...');
+      const changelogArtifacts = await getChangeLogArtifacts();
+      const artifactInChangelog = changelogArtifacts.find(r => r.id === artifact.id);
+      
+      if (artifactInChangelog) {
         checks.changelog_query_match = true;
+        console.log('[ArtifactDiagnostics] ✓ Artifact confirmed in ChangeLog result set');
+      } else {
+        console.warn('[ArtifactDiagnostics] ✗ Artifact NOT found in ChangeLog result set');
+        console.warn('[ArtifactDiagnostics] ChangeLog returned', changelogArtifacts.length, 'records');
+        console.warn('[ArtifactDiagnostics] Looking for artifact ID:', artifact.id);
       }
 
       const allPassed = Object.values(checks).every(v => v === true);
@@ -276,6 +281,12 @@ export default function ArtifactDiagnostics() {
                   {field}
                 </span>
               ))}
+            </div>
+          </div>
+          <div className="pt-2 border-t">
+            <p className="text-xs text-slate-500 mb-1">Debug: ChangeLog Record IDs (Latest 5)</p>
+            <div className="bg-slate-50 rounded p-2 text-xs font-mono text-slate-600 max-h-20 overflow-y-auto">
+              {diagnostics?.changelogRecordIds?.slice(0, 5).join(', ') || 'No records'}
             </div>
           </div>
         </CardContent>

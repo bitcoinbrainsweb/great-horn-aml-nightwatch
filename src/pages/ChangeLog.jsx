@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input';
 import PageHeader from '../components/ui/PageHeader';
 import EmptyState from '../components/ui/EmptyState';
 import VerificationRecordCard from '../components/verification/VerificationRecordCard';
+import { getChangeLogArtifacts } from '../components/changelog/ChangeLogQuery';
 
 export default function ChangeLog() {
   const [records, setRecords] = useState([]);
@@ -36,14 +37,9 @@ export default function ChangeLog() {
 
   async function loadVerificationRecords() {
     try {
-      const allRecords = await base44.entities.PublishedOutput.filter({
-        status: 'published'
-      });
-      // ChangeLog shows: verification_record, audit_record, delivery_gate_record
-      const changelogArtifacts = allRecords.filter(r => 
-        ['verification_record', 'audit_record', 'delivery_gate_record'].includes(r.classification)
-      );
-      setRecords(changelogArtifacts.sort((a, b) => new Date(b.published_at) - new Date(a.published_at)));
+      // Use shared ChangeLog query logic
+      const changelogArtifacts = await getChangeLogArtifacts();
+      setRecords(changelogArtifacts);
     } catch (error) {
       console.error('Error loading verification records:', error);
     } finally {
