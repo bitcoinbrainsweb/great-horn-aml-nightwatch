@@ -23,11 +23,16 @@ export default function VerificationRecordCard({ record }) {
   }
 
   let metadata = {};
+  let files = {};
   try {
     if (!record.metadata) {
       metadata = {};
     } else {
       metadata = typeof record.metadata === 'string' ? JSON.parse(record.metadata) : record.metadata;
+      // Extract files from metadata for system_export artifacts
+      if (metadata.files) {
+        files = metadata.files;
+      }
     }
   } catch (e) {
     console.error('Failed to parse verification record metadata:', e);
@@ -173,7 +178,36 @@ export default function VerificationRecordCard({ record }) {
             </div>
           )}
 
-          {/* Attached Files Section */}
+          {/* Attached Files Section - For system_export */}
+          {Object.keys(files).length > 0 && (
+            <div>
+              <h4 className="font-semibold text-slate-900 mb-2">Downloadable Files</h4>
+              <div className="space-y-2">
+                {Object.entries(files).map(([filename, fileInfo]) => (
+                  <div key={filename} className="flex items-center justify-between p-2 bg-white border border-slate-200 rounded text-xs">
+                    <div>
+                      <p className="font-mono text-slate-700">{filename}</p>
+                      {fileInfo.size && <p className="text-slate-500">{fileInfo.size} KB</p>}
+                    </div>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        downloadFileFromUrl(filename, fileInfo.url);
+                      }}
+                      className="text-blue-600 hover:text-blue-700 flex-shrink-0"
+                      title="Download file"
+                    >
+                      <Download className="w-4 h-4" />
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Attached Files Section - For verification_record with file_manifest */}
           {metadata.file_manifest && Object.keys(metadata.file_manifest).length > 0 && (
             <div>
               <h4 className="font-semibold text-slate-900 mb-2">Attached Files</h4>
@@ -231,6 +265,15 @@ const downloadFile = (filename, content) => {
   a.click();
   document.body.removeChild(a);
   URL.revokeObjectURL(url);
+};
+
+const downloadFileFromUrl = (filename, fileUrl) => {
+  const a = document.createElement('a');
+  a.href = fileUrl;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
 };
 
 function generateMarkdown(record, content, passedTests, totalTests) {
