@@ -392,7 +392,7 @@ Deno.serve(async (req) => {
     const summary = {
       export_date: new Date().toISOString(),
       product_version: "v0.7.0",
-      upgrade_id: "NW-UPGRADE-031D",
+      upgrade_id: "NW-UPGRADE-031E",
       summary_statistics: {
         total_entities: entities.length,
         total_enums: Object.keys(enums).length,
@@ -516,6 +516,17 @@ Deno.serve(async (req) => {
         }
       };
 
+      // Delete any prior broken architecture export records to prevent confusion
+      const priorRecords = await base44.asServiceRole.entities.PublishedOutput.filter({
+        outputName: 'Nightwatch Architecture Export'
+      });
+      for (const prior of priorRecords) {
+        if (prior.status !== 'published' || !JSON.parse(prior.metadata || '{}').file_manifest) {
+          // Delete or archive incomplete prior records
+          await base44.asServiceRole.entities.PublishedOutput.delete(prior.id);
+        }
+      }
+
       const publishedOutput = await base44.asServiceRole.entities.PublishedOutput.create({
         outputName: `Nightwatch Architecture Export`,
         classification: "verification_record",
@@ -530,7 +541,7 @@ Deno.serve(async (req) => {
         status: "published",
         published_at: now,
         content: artifactContent,
-        summary: `Complete v0.7.0 system architecture snapshot: ${entities.length} entities, ${Object.keys(enums).length} enums, ${functions.length} functions, ${pages.length} pages. Real downloadable files attached.`,
+        summary: `Complete v0.7.0 system architecture snapshot: ${entities.length} entities, ${Object.keys(enums).length} enums, ${functions.length} functions, ${pages.length} pages. 8 real downloadable files attached.`,
         metadata: JSON.stringify({
           export_version: "v0.7.0",
           export_upgrade_id: "NW-UPGRADE-031E",
@@ -544,7 +555,8 @@ Deno.serve(async (req) => {
           total_files: 8,
           architecture_summary: summary.system_architecture,
           file_manifest: fileManifest,
-          root_cause_fix: "NW-UPGRADE-031E: VerificationRecordCard now renders file_manifest from metadata with downloadable files section"
+          canonical_shape: "file_manifest_in_metadata",
+          root_cause_nw031e: "VerificationRecordCard renders file_manifest from metadata with full download support"
         })
       });
 
