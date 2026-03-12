@@ -38,6 +38,7 @@ import ChangeLog from './pages/ChangeLog';
 import ArtifactDiagnostics from './pages/ArtifactDiagnostics';
 import Feedback from './pages/Feedback';
 import Help from './pages/Help';
+import ArchitectureExport from './pages/ArchitectureExport';
 
 const LayoutWrapper = ({ children, currentPageName }) => (
   <Layout currentPageName={currentPageName}>{children}</Layout>
@@ -100,6 +101,7 @@ const AuthenticatedApp = () => {
       <Route path="/ArtifactDiagnostics" element={<LayoutWrapper currentPageName="ArtifactDiagnostics"><ArtifactDiagnostics /></LayoutWrapper>} />
       <Route path="/Feedback" element={<LayoutWrapper currentPageName="Feedback"><Feedback /></LayoutWrapper>} />
       <Route path="/Help" element={<LayoutWrapper currentPageName="Help"><Help /></LayoutWrapper>} />
+      <Route path="/ArchitectureExport" element={<LayoutWrapper currentPageName="ArchitectureExport"><ArchitectureExport /></LayoutWrapper>} />
       <Route path="*" element={<PageNotFound />} />
     </Routes>
   );
