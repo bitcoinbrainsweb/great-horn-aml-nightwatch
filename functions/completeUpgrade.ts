@@ -159,7 +159,7 @@ Deno.serve(async (req) => {
       }
     );
 
-    // 4. Log completion
+    // 5. Log completion with artifact gating confirmation
     await base44.asServiceRole.entities.UpgradeAuditLog.create({
       upgrade_id,
       action: 'marked_complete',
@@ -171,19 +171,24 @@ Deno.serve(async (req) => {
       context: JSON.stringify({
         verification_record_id: published.id,
         delivery_gate_passed: true,
-        record_name: recordName
+        artifact_gating_passed: true,
+        artifact_verification_checks: artifactVerification
       })
     });
 
     await base44.asServiceRole.entities.UpgradeAuditLog.create({
       upgrade_id,
-      action: 'verification_record_created',
+      action: 'verification_record_confirmed',
       prior_status: 'delivery_gate_running',
       new_status: 'completed',
       triggering_function: 'completeUpgrade',
       actor: 'system',
       timestamp: now,
-      context: JSON.stringify({ published_output_id: published.id, record_name: recordName })
+      context: JSON.stringify({
+        published_output_id: published.id,
+        artifact_gating_result: 'PASSED',
+        artifact_name: published.outputName
+      })
     });
 
     return Response.json({
