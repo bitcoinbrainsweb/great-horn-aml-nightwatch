@@ -32,8 +32,6 @@ import AdminJurisdictions from './pages/AdminJurisdictions';
 import AdminIndustries from './pages/AdminIndustries';
 import AdminTestScenarios from './pages/AdminTestScenarios';
 import AdminRiskProposals from './pages/AdminRiskProposals';
-import AdminFeatureFlags from './pages/AdminFeatureFlags';
-import AdminReleaseLog from './pages/AdminReleaseLog';
 import LibraryReviewDashboard from './pages/LibraryReviewDashboard';
 import AdminGovernance from './pages/AdminGovernance';
 import ChangeLog from './pages/ChangeLog';
@@ -96,8 +94,6 @@ const AuthenticatedApp = () => {
       <Route path="/AdminIndustries" element={<LayoutWrapper currentPageName="AdminIndustries"><AdminIndustries /></LayoutWrapper>} />
       <Route path="/AdminTestScenarios" element={<LayoutWrapper currentPageName="AdminTestScenarios"><AdminTestScenarios /></LayoutWrapper>} />
       <Route path="/AdminRiskProposals" element={<LayoutWrapper currentPageName="AdminRiskProposals"><AdminRiskProposals /></LayoutWrapper>} />
-      <Route path="/AdminFeatureFlags" element={<LayoutWrapper currentPageName="AdminFeatureFlags"><AdminFeatureFlags /></LayoutWrapper>} />
-      <Route path="/AdminReleaseLog" element={<LayoutWrapper currentPageName="AdminReleaseLog"><AdminReleaseLog /></LayoutWrapper>} />
       <Route path="/LibraryReviewDashboard" element={<LayoutWrapper currentPageName="LibraryReviewDashboard"><LibraryReviewDashboard /></LayoutWrapper>} />
       <Route path="/AdminGovernance" element={<LayoutWrapper currentPageName="AdminGovernance"><AdminGovernance /></LayoutWrapper>} />
       <Route path="/ChangeLog" element={<LayoutWrapper currentPageName="ChangeLog"><ChangeLog /></LayoutWrapper>} />
