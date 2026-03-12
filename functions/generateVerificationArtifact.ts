@@ -95,42 +95,14 @@ Deno.serve(async (req) => {
       architectural_compliance: input.architectural_compliance || {}
     };
 
-    // Create PublishedOutput record
-    const artifact = await base44.entities.PublishedOutput.create({
-      outputName: artifactName,
-      classification: 'verification_record',
-      subtype: input.subtype || 'upgrade_verification',
-      is_runnable: false,
-      is_user_visible: false,
-      display_zone: 'internal_only',
-      source_module: input.upgrade_id,
-      source_event_type: 'verification_complete',
-      product_version: input.product_version,
-      upgrade_id: input.upgrade_id,
-      status: 'published',
-      published_at: timestamp,
-      content: JSON.stringify(verificationContent),
-      summary: input.summary || `${input.title}: ${status}`,
-      metadata: JSON.stringify({
-        prompt_id: input.prompt_id,
-        generated_by: 'VerificationReportEngine',
-        engine_version: '1.0.0'
-      })
-    });
-
+    // DEPRECATED: Route through canonical createVerificationArtifact instead
+    console.warn('[generateVerificationArtifact] DEPRECATED: Use createVerificationArtifact (canonical writer)');
+    
     return Response.json({
-      success: true,
-      artifact_id: artifact.id,
-      artifact_name: artifactName,
-      status: status,
-      message: `Verification artifact generated successfully: ${status}`,
-      verification_summary: {
-        total_records_affected: verificationContent.validation_results.total_records_affected,
-        total_files_modified: verificationContent.system_impact.total_files_modified,
-        total_issues: verificationContent.known_issues.total_issues,
-        status: status
-      }
-    });
+      error: 'DEPRECATED: Use createVerificationArtifact',
+      message: 'generateVerificationArtifact has been deprecated. Please use createVerificationArtifact (canonical publisher for verification_record classification).',
+      upgrade_id: input.upgrade_id
+    }, { status: 410 });
 
   } catch (error) {
     console.error('Verification artifact generation error:', error);
