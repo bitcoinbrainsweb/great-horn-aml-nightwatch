@@ -114,65 +114,6 @@ export default function ChangeLog() {
     }
   }
 
-  async function createTestArtifact() {
-    setTesting(true);
-    setTestResult(null);
-    try {
-      const timestamp = new Date().toISOString();
-      const artifactName = `Nightwatch_DiagnosticsRecord_ChangeLogTest_v0.6.0_NW-UPGRADE-029_${timestamp.split('T')[0]}`;
-      const testContent = {
-        upgrade_metadata: {
-          upgrade_id: 'NW-UPGRADE-029',
-          prompt_id: 'NW-UPGRADE-029-PROMPT-001',
-          product_version: 'v0.6.0',
-          timestamp: timestamp,
-          actor: user.email,
-          source: 'ChangeLog Diagnostics'
-        }
-      };
-      
-      const artifact = await base44.entities.PublishedOutput.create({
-        outputName: artifactName,
-        classification: 'diagnostic_record',
-        subtype: 'diagnostic_test',
-        is_runnable: false,
-        is_user_visible: false,
-        display_zone: 'internal_only',
-        source_module: 'ChangeLog',
-        source_event_type: 'diagnostic_test',
-        product_version: 'v0.6.0',
-        upgrade_id: 'NW-UPGRADE-029',
-        status: 'published',
-        published_at: timestamp,
-        content: JSON.stringify(testContent),
-        summary: 'ChangeLog Diagnostics Test Record',
-        metadata: JSON.stringify({ test_artifact: true })
-      });
-
-      const changelogArtifacts = await getChangeLogArtifacts();
-      const artifactInChangelog = changelogArtifacts.find(r => r.id === artifact.id);
-      
-      setTestResult({
-        success: artifactInChangelog ? true : false,
-        artifact_id: artifact.id,
-        artifact_name: artifactName,
-        message: artifactInChangelog 
-          ? 'Test artifact created and confirmed in ChangeLog'
-          : 'Test artifact created but not yet visible in ChangeLog'
-      });
-      await loadDiagnostics();
-    } catch (error) {
-      console.error('Test write failed:', error);
-      setTestResult({
-        success: false,
-        error: error.message,
-        message: 'Failed to create test artifact'
-      });
-    } finally {
-      setTesting(false);
-    }
-  }
-
   const filtered = records.filter(r =>
     !search ||
     r.outputName?.toLowerCase().includes(search.toLowerCase()) ||
@@ -296,35 +237,6 @@ export default function ChangeLog() {
                   <p className="text-xs text-green-600">ChangeLog Visible</p>
                 </div>
               </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-base">
-                <TestTube className="w-4 h-4" />
-                Test Verification Writer
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <Button onClick={createTestArtifact} disabled={testing} className="w-full">
-                {testing ? 'Creating...' : 'Create Test Artifact'}
-              </Button>
-              {testResult && (
-                <div className={`border rounded-lg p-4 ${testResult.success ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'}`}>
-                  <div className="flex items-start gap-3">
-                    {testResult.success ? (
-                      <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
-                    ) : (
-                      <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
-                    )}
-                    <div>
-                      <p className={`text-sm font-semibold ${testResult.success ? 'text-green-900' : 'text-red-900'}`}>{testResult.message}</p>
-                      {testResult.artifact_id && <p className="text-xs text-slate-600 mt-2">ID: {testResult.artifact_id}</p>}
-                    </div>
-                  </div>
-                </div>
-              )}
             </CardContent>
           </Card>
         </TabsContent>
