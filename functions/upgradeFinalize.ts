@@ -260,3 +260,18 @@ Deno.serve(async (req) => {
 function sanitizeForFilename(str) {
   return str.replace(/[^a-zA-Z0-9_-]/g, '_').replace(/_+/g, '_').substring(0, 50);
 }
+
+function calculateTotalRecords(validation) {
+  const inserted = Object.values(validation.records_inserted || {}).reduce((sum, count) => sum + count, 0);
+  const updated = Object.values(validation.records_updated || {}).reduce((sum, count) => sum + count, 0);
+  const deleted = Object.values(validation.records_deleted || {}).reduce((sum, count) => sum + count, 0);
+  return inserted + updated + deleted;
+}
+
+function calculateTotalFiles(impact) {
+  const entities = (impact.entities_affected || []).length;
+  const pages = (impact.pages_affected || []).length;
+  const functions = (impact.functions_affected || []).length;
+  const components = (impact.components_affected || []).length;
+  return entities + pages + functions + components;
+}
