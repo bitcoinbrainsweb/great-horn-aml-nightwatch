@@ -100,7 +100,6 @@ export default function ChangeLog() {
         .slice()
         .sort((a, b) => new Date(b.published_at || b.created_date) - new Date(a.published_at || a.created_date))
         .slice(0, 10);
-      const publishedRecords = allRecords.filter(r => r.status === 'published');
       setDiagnostics({
         counts: {
           total: allRecords.length,
