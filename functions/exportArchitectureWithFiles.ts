@@ -75,11 +75,9 @@ Deno.serve(async (req) => {
 
     const functions = [
       { function_name: "calculateRiskCoverage", file_path: "functions/calculateRiskCoverage.js", description: "Deterministic engine calculating risk coverage status based on linked controls and test effectiveness", trigger_type: "manual", entities_accessed: ["RiskLibrary", "ControlLibrary", "ControlTest"], entities_written: [] },
-      { function_name: "createVerificationArtifact", file_path: "functions/createVerificationArtifact.js", description: "Creates and publishes verification artifacts for upgrade records", trigger_type: "internal", entities_accessed: ["UpgradeRegistry", "PublishedOutput"], entities_written: ["PublishedOutput"] },
-      { function_name: "generateVerificationArtifact", file_path: "functions/generateVerificationArtifact.js", description: "Generates verification records with comprehensive system state snapshots", trigger_type: "internal", entities_accessed: ["UpgradeRegistry"], entities_written: ["PublishedOutput"] },
-      { function_name: "publishVerificationRecord", file_path: "functions/publishVerificationRecord.js", description: "Publishes verified records to appropriate display zones", trigger_type: "internal", entities_accessed: ["PublishedOutput"], entities_written: ["PublishedOutput"] },
-      { function_name: "repairVerificationArtifacts", file_path: "functions/repairVerificationArtifacts.js", description: "Repairs incomplete or malformed verification artifacts", trigger_type: "manual", entities_accessed: ["PublishedOutput"], entities_written: ["PublishedOutput"] },
-      { function_name: "runDeliveryGateChecks", file_path: "functions/runDeliveryGateChecks.js", description: "Executes delivery gate verification checks for upgrades", trigger_type: "internal", entities_accessed: ["UpgradeRegistry", "GovernanceRule"], entities_written: ["UpgradeAuditLog"] }
+       { function_name: "createVerificationArtifact", file_path: "functions/createVerificationArtifact.js", description: "CANONICAL: Creates verification_record artifacts (sole approved writer)", trigger_type: "internal", entities_accessed: ["UpgradeRegistry"], entities_written: ["PublishedOutput"] },
+       { function_name: "exportArchitectureWithFiles", file_path: "functions/exportArchitectureWithFiles.js", description: "CANONICAL: Creates system_export artifacts with embedded file_manifest (sole approved writer)", trigger_type: "manual", entities_accessed: [], entities_written: ["PublishedOutput"] },
+       { function_name: "runDeliveryGateChecks", file_path: "functions/runDeliveryGateChecks.js", description: "Executes delivery gate verification checks for upgrades", trigger_type: "internal", entities_accessed: ["UpgradeRegistry", "GovernanceRule"], entities_written: ["UpgradeAuditLog"] }
     ];
 
     const agents = [
