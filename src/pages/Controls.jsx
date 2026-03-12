@@ -1,178 +1,207 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import PageHeader from '@/components/ui/PageHeader';
+import { Plus, Pencil, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Shield, Plus, Edit, Search } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import PageHeader from '../components/ui/PageHeader';
+import EmptyState from '../components/ui/EmptyState';
+import { Shield } from 'lucide-react';
 
 export default function Controls() {
-  const [search, setSearch] = useState('');
-  const [editControl, setEditControl] = useState(null);
-  const queryClient = useQueryClient();
-
-  const { data: controls = [], isLoading } = useQuery({
-    queryKey: ['controls'],
-    queryFn: () => base44.entities.Control.list()
+  const [controls, setControls] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [showDialog, setShowDialog] = useState(false);
+  const [editing, setEditing] = useState(null);
+  const [formData, setFormData] = useState({
+    name: '',
+    description: '',
+    owner: '',
+    department: '',
+    testing_method: '',
+    testing_frequency: '',
+    scope_tags: []
   });
 
-  const createMutation = useMutation({
-    mutationFn: (data) => base44.entities.Control.create(data),
-    onSuccess: () => {
-      queryClient.invalidateQueries(['controls']);
-      setEditControl(null);
+  useEffect(() => {
+    loadControls();
+  }, []);
+
+  async function loadControls() {
+    setLoading(true);
+    try {
+      const data = await base44.entities.Control.list('-created_date');
+      setControls(data);
+    } catch (error) {
+      console.error('Error loading controls:', error);
+    } finally {
+      setLoading(false);
     }
-  });
+  }
 
-  const updateMutation = useMutation({
-    mutationFn: ({ id, data }) => base44.entities.Control.update(id, data),
-    onSuccess: () => {
-      queryClient.invalidateQueries(['controls']);
-      setEditControl(null);
+  function openDialog(control = null) {
+    if (control) {
+      setEditing(control);
+      setFormData({
+        name: control.name || '',
+        description: control.description || '',
+        owner: control.owner || '',
+        department: control.department || '',
+        testing_method: control.testing_method || '',
+        testing_frequency: control.testing_frequency || '',
+        scope_tags: control.scope_tags || []
+      });
+    } else {
+      setEditing(null);
+      setFormData({
+        name: '',
+        description: '',
+        owner: '',
+        department: '',
+        testing_method: '',
+        testing_frequency: '',
+        scope_tags: []
+      });
     }
-  });
+    setShowDialog(true);
+  }
 
-  const filtered = controls.filter(c => 
-    c.name?.toLowerCase().includes(search.toLowerCase()) ||
-    c.department?.toLowerCase().includes(search.toLowerCase())
-  );
+  async function handleSubmit(e) {
+    e.preventDefault();
+    try {
+      if (editing) {
+        await base44.entities.Control.update(editing.id, formData);
+      } else {
+        await base44.entities.Control.create(formData);
+      }
+      setShowDialog(false);
+      loadControls();
+    } catch (error) {
+      console.error('Error saving control:', error);
+    }
+  }
+
+  async function handleDelete(id) {
+    if (!confirm('Delete this control?')) return;
+    try {
+      await base44.entities.Control.delete(id);
+      loadControls();
+    } catch (error) {
+      console.error('Error deleting control:', error);
+    }
+  }
+
+  if (loading) {
+    return <div className="flex items-center justify-center h-64"><div className="w-8 h-8 border-2 border-slate-300 border-t-slate-800 rounded-full animate-spin" /></div>;
+  }
 
   return (
     <div>
-      <PageHeader title="Controls" subtitle="Manage control framework">
-        <Button onClick={() => setEditControl({})}>
+      <PageHeader title="Controls" subtitle="Internal controls and testing procedures">
+        <Button onClick={() => openDialog()} size="sm">
           <Plus className="w-4 h-4 mr-2" />
-          Add Control
+          New Control
         </Button>
       </PageHeader>
 
-      <div className="mb-4">
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-          <Input
-            placeholder="Search controls..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="pl-9"
-          />
-        </div>
-      </div>
-
-      {isLoading ? (
-        <div className="text-center py-12 text-slate-500">Loading...</div>
+      {controls.length === 0 ? (
+        <EmptyState icon={Shield} title="No controls" description="Create your first control to begin testing." />
       ) : (
-        <div className="grid gap-4">
-          {filtered.map(control => (
-            <div key={control.id} className="bg-white border border-slate-200 rounded-lg p-4 hover:shadow-md transition-shadow">
-              <div className="flex items-start justify-between">
-                <div className="flex-1">
-                  <div className="flex items-center gap-3 mb-2">
-                    <Shield className="w-5 h-5 text-slate-600" />
-                    <h3 className="font-semibold text-slate-900">{control.name}</h3>
-                  </div>
-                  <p className="text-sm text-slate-600 mb-3">{control.description}</p>
-                  <div className="flex flex-wrap gap-2 text-xs">
-                    {control.department && (
-                      <span className="px-2 py-1 bg-slate-100 text-slate-700 rounded">{control.department}</span>
-                    )}
-                    {control.testing_frequency && (
-                      <span className="px-2 py-1 bg-blue-100 text-blue-700 rounded">{control.testing_frequency}</span>
-                    )}
-                    {control.testing_method && (
-                      <span className="px-2 py-1 bg-purple-100 text-purple-700 rounded">{control.testing_method}</span>
-                    )}
-                  </div>
-                </div>
-                <Button variant="ghost" size="sm" onClick={() => setEditControl(control)}>
-                  <Edit className="w-4 h-4" />
-                </Button>
+        <div className="bg-white rounded-lg border border-slate-200 overflow-hidden">
+          <table className="w-full">
+            <thead className="bg-slate-50 border-b border-slate-200">
+              <tr>
+                <th className="px-4 py-3 text-left text-xs font-semibold text-slate-700">Name</th>
+                <th className="px-4 py-3 text-left text-xs font-semibold text-slate-700">Owner</th>
+                <th className="px-4 py-3 text-left text-xs font-semibold text-slate-700">Department</th>
+                <th className="px-4 py-3 text-left text-xs font-semibold text-slate-700">Testing Frequency</th>
+                <th className="px-4 py-3 text-right text-xs font-semibold text-slate-700">Actions</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-100">
+              {controls.map(c => (
+                <tr key={c.id} className="hover:bg-slate-50">
+                  <td className="px-4 py-3 text-sm font-medium text-slate-900">{c.name}</td>
+                  <td className="px-4 py-3 text-sm text-slate-600">{c.owner}</td>
+                  <td className="px-4 py-3 text-sm text-slate-600">{c.department || '—'}</td>
+                  <td className="px-4 py-3 text-sm text-slate-600">{c.testing_frequency || '—'}</td>
+                  <td className="px-4 py-3 text-right space-x-2">
+                    <Button variant="ghost" size="sm" onClick={() => openDialog(c)}>
+                      <Pencil className="w-3 h-3" />
+                    </Button>
+                    <Button variant="ghost" size="sm" onClick={() => handleDelete(c.id)}>
+                      <Trash2 className="w-3 h-3 text-red-600" />
+                    </Button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      <Dialog open={showDialog} onOpenChange={setShowDialog}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>{editing ? 'Edit Control' : 'New Control'}</DialogTitle>
+          </DialogHeader>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div>
+              <label className="text-xs font-medium text-slate-700">Name *</label>
+              <Input value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} required />
+            </div>
+            <div>
+              <label className="text-xs font-medium text-slate-700">Description</label>
+              <Textarea value={formData.description} onChange={e => setFormData({...formData, description: e.target.value})} />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="text-xs font-medium text-slate-700">Owner *</label>
+                <Input value={formData.owner} onChange={e => setFormData({...formData, owner: e.target.value})} required />
+              </div>
+              <div>
+                <label className="text-xs font-medium text-slate-700">Department</label>
+                <Input value={formData.department} onChange={e => setFormData({...formData, department: e.target.value})} />
               </div>
             </div>
-          ))}
-        </div>
-      )}
-
-      {editControl && (
-        <Dialog open={!!editControl} onOpenChange={() => setEditControl(null)}>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>{editControl.id ? 'Edit Control' : 'New Control'}</DialogTitle>
-            </DialogHeader>
-            <ControlForm
-              control={editControl}
-              onSave={(data) => {
-                if (editControl.id) {
-                  updateMutation.mutate({ id: editControl.id, data });
-                } else {
-                  createMutation.mutate(data);
-                }
-              }}
-              onCancel={() => setEditControl(null)}
-            />
-          </DialogContent>
-        </Dialog>
-      )}
-    </div>
-  );
-}
-
-function ControlForm({ control, onSave, onCancel }) {
-  const [form, setForm] = useState(control || {});
-
-  return (
-    <div className="space-y-4">
-      <Input
-        placeholder="Control Name"
-        value={form.name || ''}
-        onChange={(e) => setForm({ ...form, name: e.target.value })}
-      />
-      <Textarea
-        placeholder="Description"
-        value={form.description || ''}
-        onChange={(e) => setForm({ ...form, description: e.target.value })}
-      />
-      <Input
-        placeholder="Owner Email"
-        value={form.owner || ''}
-        onChange={(e) => setForm({ ...form, owner: e.target.value })}
-      />
-      <Input
-        placeholder="Department"
-        value={form.department || ''}
-        onChange={(e) => setForm({ ...form, department: e.target.value })}
-      />
-      <Select value={form.testing_method || ''} onValueChange={(v) => setForm({ ...form, testing_method: v })}>
-        <SelectTrigger>
-          <SelectValue placeholder="Testing Method" />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem value="Inquiry">Inquiry</SelectItem>
-          <SelectItem value="Observation">Observation</SelectItem>
-          <SelectItem value="Inspection">Inspection</SelectItem>
-          <SelectItem value="Re-performance">Re-performance</SelectItem>
-        </SelectContent>
-      </Select>
-      <Select value={form.testing_frequency || ''} onValueChange={(v) => setForm({ ...form, testing_frequency: v })}>
-        <SelectTrigger>
-          <SelectValue placeholder="Testing Frequency" />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem value="Daily">Daily</SelectItem>
-          <SelectItem value="Weekly">Weekly</SelectItem>
-          <SelectItem value="Monthly">Monthly</SelectItem>
-          <SelectItem value="Quarterly">Quarterly</SelectItem>
-          <SelectItem value="Semi-Annually">Semi-Annually</SelectItem>
-          <SelectItem value="Annually">Annually</SelectItem>
-          <SelectItem value="Ad-hoc">Ad-hoc</SelectItem>
-        </SelectContent>
-      </Select>
-      <div className="flex gap-2">
-        <Button onClick={() => onSave(form)} className="flex-1">Save</Button>
-        <Button variant="outline" onClick={onCancel}>Cancel</Button>
-      </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="text-xs font-medium text-slate-700">Testing Method</label>
+                <Select value={formData.testing_method} onValueChange={v => setFormData({...formData, testing_method: v})}>
+                  <SelectTrigger><SelectValue placeholder="Select..." /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Inquiry">Inquiry</SelectItem>
+                    <SelectItem value="Observation">Observation</SelectItem>
+                    <SelectItem value="Inspection">Inspection</SelectItem>
+                    <SelectItem value="Re-performance">Re-performance</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <label className="text-xs font-medium text-slate-700">Testing Frequency</label>
+                <Select value={formData.testing_frequency} onValueChange={v => setFormData({...formData, testing_frequency: v})}>
+                  <SelectTrigger><SelectValue placeholder="Select..." /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Daily">Daily</SelectItem>
+                    <SelectItem value="Weekly">Weekly</SelectItem>
+                    <SelectItem value="Monthly">Monthly</SelectItem>
+                    <SelectItem value="Quarterly">Quarterly</SelectItem>
+                    <SelectItem value="Semi-Annually">Semi-Annually</SelectItem>
+                    <SelectItem value="Annually">Annually</SelectItem>
+                    <SelectItem value="Ad-hoc">Ad-hoc</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <DialogFooter>
+              <Button type="button" variant="outline" onClick={() => setShowDialog(false)}>Cancel</Button>
+              <Button type="submit">{editing ? 'Update' : 'Create'}</Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

@@ -15,6 +15,7 @@ const NAV_ITEMS = [
   { name: 'Tasks', icon: ListTodo, page: 'Tasks' },
   { name: 'Reports', icon: FileBarChart, page: 'Reports' },
   { name: 'Controls', icon: Shield, page: 'Controls' },
+  { name: 'Test Cycles', icon: Shield, page: 'TestCycles' },
   { name: 'Control Tests', icon: Shield, page: 'ControlTests' },
   { name: 'Reviewer', icon: Shield, page: 'ReviewerDashboard' },
   { name: 'Admin', icon: Settings, page: 'Admin' },

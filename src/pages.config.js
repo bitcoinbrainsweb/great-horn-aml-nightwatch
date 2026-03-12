@@ -63,9 +63,12 @@ import AdminRiskProposals from './pages/AdminRiskProposals';
 import AdminSuggestions from './pages/AdminSuggestions';
 import AdminTestScenarios from './pages/AdminTestScenarios';
 import AdminUsers from './pages/AdminUsers';
+import ArtifactDiagnostics from './pages/ArtifactDiagnostics';
 import ChangeLog from './pages/ChangeLog';
 import ClientDetail from './pages/ClientDetail';
 import Clients from './pages/Clients';
+import ControlTests from './pages/ControlTests';
+import Controls from './pages/Controls';
 import Dashboard from './pages/Dashboard';
 import DeterministicEngineArchitecture from './pages/DeterministicEngineArchitecture';
 import DeterministicEngineUpgradeSummary from './pages/DeterministicEngineUpgradeSummary';
@@ -87,9 +90,7 @@ import ReportPublicationDebug from './pages/ReportPublicationDebug';
 import Reports from './pages/Reports';
 import ReviewerDashboard from './pages/ReviewerDashboard';
 import Tasks from './pages/Tasks';
-import Controls from './pages/Controls';
-import ControlTests from './pages/ControlTests';
-import ArtifactDiagnostics from './pages/ArtifactDiagnostics';
+import TestCycles from './pages/TestCycles';
 import __Layout from './Layout.jsx';
 
 
@@ -110,9 +111,12 @@ export const PAGES = {
     "AdminSuggestions": AdminSuggestions,
     "AdminTestScenarios": AdminTestScenarios,
     "AdminUsers": AdminUsers,
+    "ArtifactDiagnostics": ArtifactDiagnostics,
     "ChangeLog": ChangeLog,
     "ClientDetail": ClientDetail,
     "Clients": Clients,
+    "ControlTests": ControlTests,
+    "Controls": Controls,
     "Dashboard": Dashboard,
     "DeterministicEngineArchitecture": DeterministicEngineArchitecture,
     "DeterministicEngineUpgradeSummary": DeterministicEngineUpgradeSummary,
@@ -134,9 +138,7 @@ export const PAGES = {
     "Reports": Reports,
     "ReviewerDashboard": ReviewerDashboard,
     "Tasks": Tasks,
-    "Controls": Controls,
-    "ControlTests": ControlTests,
-    "ArtifactDiagnostics": ArtifactDiagnostics,
+    "TestCycles": TestCycles,
 }
 
 export const pagesConfig = {

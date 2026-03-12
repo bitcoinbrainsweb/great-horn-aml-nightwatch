@@ -1,251 +1,379 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import PageHeader from '@/components/ui/PageHeader';
+import { Plus, Pencil, FileText, Paperclip } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { ClipboardCheck, Plus, Upload } from 'lucide-react';
-import { format } from 'date-fns';
+import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { Checkbox } from '@/components/ui/checkbox';
+import PageHeader from '../components/ui/PageHeader';
+import EmptyState from '../components/ui/EmptyState';
+import { Badge } from '@/components/ui/badge';
 
 export default function ControlTests() {
-  const [editTest, setEditTest] = useState(null);
-  const [evidenceDialog, setEvidenceDialog] = useState(null);
-  const queryClient = useQueryClient();
-
-  const { data: tests = [] } = useQuery({
-    queryKey: ['control-tests'],
-    queryFn: () => base44.entities.ControlTest.list()
+  const [tests, setTests] = useState([]);
+  const [controls, setControls] = useState([]);
+  const [cycles, setCycles] = useState([]);
+  const [evidence, setEvidence] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [showTestDialog, setShowTestDialog] = useState(false);
+  const [showEvidenceDialog, setShowEvidenceDialog] = useState(false);
+  const [editingTest, setEditingTest] = useState(null);
+  const [selectedTest, setSelectedTest] = useState(null);
+  const [testFormData, setTestFormData] = useState({
+    control_id: '',
+    test_cycle_id: '',
+    status: 'Draft',
+    effectiveness_rating: '',
+    prepared_by: '',
+    reviewed_by: '',
+    review_date: '',
+    remediation_required: false,
+    remediation_notes: '',
+    remediation_target_date: '',
+    evidence_sufficiency: 'Pending'
+  });
+  const [evidenceFormData, setEvidenceFormData] = useState({
+    evidence_type: 'Text',
+    text_description: '',
+    evidence_date: '',
+    sufficiency_flag: true,
+    notes: ''
   });
 
-  const { data: controls = [] } = useQuery({
-    queryKey: ['controls'],
-    queryFn: () => base44.entities.Control.list()
-  });
+  useEffect(() => {
+    loadData();
+  }, []);
 
-  const { data: cycles = [] } = useQuery({
-    queryKey: ['test-cycles'],
-    queryFn: () => base44.entities.TestCycle.list()
-  });
-
-  const createMutation = useMutation({
-    mutationFn: (data) => base44.entities.ControlTest.create(data),
-    onSuccess: () => {
-      queryClient.invalidateQueries(['control-tests']);
-      setEditTest(null);
+  async function loadData() {
+    setLoading(true);
+    try {
+      const [testsData, controlsData, cyclesData] = await Promise.all([
+        base44.entities.ControlTest.list('-created_date'),
+        base44.entities.Control.list(),
+        base44.entities.TestCycle.list()
+      ]);
+      setTests(testsData);
+      setControls(controlsData);
+      setCycles(cyclesData);
+    } catch (error) {
+      console.error('Error loading data:', error);
+    } finally {
+      setLoading(false);
     }
-  });
+  }
 
-  const updateMutation = useMutation({
-    mutationFn: ({ id, data }) => base44.entities.ControlTest.update(id, data),
-    onSuccess: () => {
-      queryClient.invalidateQueries(['control-tests']);
-      setEditTest(null);
+  async function loadEvidence(testId) {
+    try {
+      const data = await base44.entities.Evidence.filter({ control_test_id: testId });
+      setEvidence(data);
+    } catch (error) {
+      console.error('Error loading evidence:', error);
     }
-  });
+  }
 
-  const getControlName = (id) => controls.find(c => c.id === id)?.name || 'Unknown';
-  const getCycleName = (id) => cycles.find(c => c.id === id)?.name || 'Unknown';
+  function openTestDialog(test = null) {
+    if (test) {
+      setEditingTest(test);
+      setTestFormData({
+        control_id: test.control_id || '',
+        test_cycle_id: test.test_cycle_id || '',
+        status: test.status || 'Draft',
+        effectiveness_rating: test.effectiveness_rating || '',
+        prepared_by: test.prepared_by || '',
+        reviewed_by: test.reviewed_by || '',
+        review_date: test.review_date || '',
+        remediation_required: test.remediation_required || false,
+        remediation_notes: test.remediation_notes || '',
+        remediation_target_date: test.remediation_target_date || '',
+        evidence_sufficiency: test.evidence_sufficiency || 'Pending'
+      });
+    } else {
+      setEditingTest(null);
+      setTestFormData({
+        control_id: '',
+        test_cycle_id: '',
+        status: 'Draft',
+        effectiveness_rating: '',
+        prepared_by: '',
+        reviewed_by: '',
+        review_date: '',
+        remediation_required: false,
+        remediation_notes: '',
+        remediation_target_date: '',
+        evidence_sufficiency: 'Pending'
+      });
+    }
+    setShowTestDialog(true);
+  }
+
+  async function openEvidenceDialog(test) {
+    setSelectedTest(test);
+    await loadEvidence(test.id);
+    setEvidenceFormData({
+      evidence_type: 'Text',
+      text_description: '',
+      evidence_date: '',
+      sufficiency_flag: true,
+      notes: ''
+    });
+    setShowEvidenceDialog(true);
+  }
+
+  async function handleTestSubmit(e) {
+    e.preventDefault();
+    try {
+      if (editingTest) {
+        await base44.entities.ControlTest.update(editingTest.id, testFormData);
+      } else {
+        const user = await base44.auth.me();
+        const control = controls.find(c => c.id === testFormData.control_id);
+        await base44.entities.ControlTest.create({
+          ...testFormData,
+          prepared_by: user.email,
+          control_snapshot: control ? JSON.stringify(control) : null
+        });
+      }
+      setShowTestDialog(false);
+      loadData();
+    } catch (error) {
+      console.error('Error saving test:', error);
+    }
+  }
+
+  async function handleEvidenceSubmit(e) {
+    e.preventDefault();
+    try {
+      const user = await base44.auth.me();
+      await base44.entities.Evidence.create({
+        control_test_id: selectedTest.id,
+        uploaded_by: user.email,
+        upload_timestamp: new Date().toISOString(),
+        ...evidenceFormData
+      });
+      await loadEvidence(selectedTest.id);
+      setEvidenceFormData({
+        evidence_type: 'Text',
+        text_description: '',
+        evidence_date: '',
+        sufficiency_flag: true,
+        notes: ''
+      });
+    } catch (error) {
+      console.error('Error saving evidence:', error);
+    }
+  }
+
+  const statusColors = {
+    'Draft': 'bg-slate-100 text-slate-600',
+    'In Progress': 'bg-blue-100 text-blue-800',
+    'Complete': 'bg-amber-100 text-amber-800',
+    'Reviewed': 'bg-green-100 text-green-800'
+  };
+
+  const ratingColors = {
+    'Effective': 'bg-green-100 text-green-800',
+    'Partially Effective': 'bg-amber-100 text-amber-800',
+    'Ineffective': 'bg-red-100 text-red-800',
+    'Not Tested': 'bg-slate-100 text-slate-600'
+  };
+
+  if (loading) {
+    return <div className="flex items-center justify-center h-64"><div className="w-8 h-8 border-2 border-slate-300 border-t-slate-800 rounded-full animate-spin" /></div>;
+  }
 
   return (
     <div>
-      <PageHeader title="Control Tests" subtitle="Testing execution and evidence">
-        <Button onClick={() => setEditTest({})}>
+      <PageHeader title="Control Tests" subtitle="Control testing results and evidence">
+        <Button onClick={() => openTestDialog()} size="sm">
           <Plus className="w-4 h-4 mr-2" />
           New Test
         </Button>
       </PageHeader>
 
-      <div className="grid gap-4">
-        {tests.map(test => (
-          <div key={test.id} className="bg-white border border-slate-200 rounded-lg p-4">
-            <div className="flex items-start justify-between mb-3">
-              <div className="flex items-center gap-3">
-                <ClipboardCheck className="w-5 h-5 text-slate-600" />
-                <div>
-                  <h3 className="font-semibold text-slate-900">{getControlName(test.control_id)}</h3>
-                  <p className="text-xs text-slate-500">{getCycleName(test.test_cycle_id)}</p>
+      {tests.length === 0 ? (
+        <EmptyState icon={FileText} title="No control tests" description="Create a control test to record testing results." />
+      ) : (
+        <div className="grid gap-4">
+          {tests.map(t => {
+            const control = controls.find(c => c.id === t.control_id);
+            const cycle = cycles.find(c => c.id === t.test_cycle_id);
+            return (
+              <div key={t.id} className="bg-white rounded-lg border border-slate-200 p-4">
+                <div className="flex items-start justify-between mb-3">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-3 mb-2">
+                      <h3 className="text-sm font-semibold text-slate-900">{control?.name || 'Unknown Control'}</h3>
+                      <Badge className={statusColors[t.status]}>{t.status}</Badge>
+                      {t.effectiveness_rating && (
+                        <Badge className={ratingColors[t.effectiveness_rating]}>{t.effectiveness_rating}</Badge>
+                      )}
+                    </div>
+                    <div className="text-xs text-slate-500 space-y-1">
+                      <div>Cycle: {cycle?.name || 'Unknown'}</div>
+                      {t.prepared_by && <div>Prepared by: {t.prepared_by}</div>}
+                      {t.reviewed_by && <div>Reviewed by: {t.reviewed_by} on {t.review_date}</div>}
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Button variant="ghost" size="sm" onClick={() => openEvidenceDialog(t)}>
+                      <Paperclip className="w-3 h-3 mr-1" />
+                      Evidence
+                    </Button>
+                    <Button variant="ghost" size="sm" onClick={() => openTestDialog(t)}>
+                      <Pencil className="w-3 h-3" />
+                    </Button>
+                  </div>
                 </div>
+                {t.remediation_required && (
+                  <div className="bg-amber-50 border border-amber-200 rounded p-3 text-xs">
+                    <div className="font-medium text-amber-900 mb-1">Remediation Required</div>
+                    <div className="text-amber-700">{t.remediation_notes}</div>
+                    {t.remediation_target_date && <div className="text-amber-600 mt-1">Target: {t.remediation_target_date}</div>}
+                  </div>
+                )}
               </div>
-              <div className="flex gap-2">
-                <Button variant="ghost" size="sm" onClick={() => setEvidenceDialog(test)}>
-                  <Upload className="w-4 h-4 mr-1" />
-                  Evidence
-                </Button>
-                <Button variant="ghost" size="sm" onClick={() => setEditTest(test)}>Edit</Button>
-              </div>
-            </div>
-            <div className="flex flex-wrap gap-2 text-xs">
-              <span className={`px-2 py-1 rounded ${test.status === 'Reviewed' ? 'bg-green-100 text-green-700' : 'bg-slate-100 text-slate-700'}`}>
-                {test.status}
-              </span>
-              {test.effectiveness_rating && (
-                <span className={`px-2 py-1 rounded ${test.effectiveness_rating === 'Effective' ? 'bg-emerald-100 text-emerald-700' : test.effectiveness_rating === 'Ineffective' ? 'bg-red-100 text-red-700' : 'bg-amber-100 text-amber-700'}`}>
-                  {test.effectiveness_rating}
-                </span>
-              )}
-              <span className="px-2 py-1 bg-blue-100 text-blue-700 rounded">{test.evidence_sufficiency}</span>
-            </div>
-          </div>
-        ))}
-      </div>
-
-      {editTest && (
-        <Dialog open={!!editTest} onOpenChange={() => setEditTest(null)}>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>{editTest.id ? 'Edit Test' : 'New Test'}</DialogTitle>
-            </DialogHeader>
-            <TestForm
-              test={editTest}
-              controls={controls}
-              cycles={cycles}
-              onSave={(data) => {
-                if (editTest.id) {
-                  updateMutation.mutate({ id: editTest.id, data });
-                } else {
-                  createMutation.mutate(data);
-                }
-              }}
-              onCancel={() => setEditTest(null)}
-            />
-          </DialogContent>
-        </Dialog>
-      )}
-
-      {evidenceDialog && (
-        <EvidenceDialog test={evidenceDialog} onClose={() => setEvidenceDialog(null)} />
-      )}
-    </div>
-  );
-}
-
-function TestForm({ test, controls, cycles, onSave, onCancel }) {
-  const [form, setForm] = useState(test || {});
-
-  return (
-    <div className="space-y-4">
-      <Select value={form.control_id || ''} onValueChange={(v) => setForm({ ...form, control_id: v })}>
-        <SelectTrigger>
-          <SelectValue placeholder="Select Control" />
-        </SelectTrigger>
-        <SelectContent>
-          {controls.map(c => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
-        </SelectContent>
-      </Select>
-      <Select value={form.test_cycle_id || ''} onValueChange={(v) => setForm({ ...form, test_cycle_id: v })}>
-        <SelectTrigger>
-          <SelectValue placeholder="Select Test Cycle" />
-        </SelectTrigger>
-        <SelectContent>
-          {cycles.map(c => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
-        </SelectContent>
-      </Select>
-      <Select value={form.status || 'Draft'} onValueChange={(v) => setForm({ ...form, status: v })}>
-        <SelectTrigger>
-          <SelectValue placeholder="Status" />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem value="Draft">Draft</SelectItem>
-          <SelectItem value="In Progress">In Progress</SelectItem>
-          <SelectItem value="Complete">Complete</SelectItem>
-          <SelectItem value="Reviewed">Reviewed</SelectItem>
-        </SelectContent>
-      </Select>
-      <Select value={form.effectiveness_rating || ''} onValueChange={(v) => setForm({ ...form, effectiveness_rating: v })}>
-        <SelectTrigger>
-          <SelectValue placeholder="Effectiveness Rating" />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem value="Effective">Effective</SelectItem>
-          <SelectItem value="Partially Effective">Partially Effective</SelectItem>
-          <SelectItem value="Ineffective">Ineffective</SelectItem>
-          <SelectItem value="Not Tested">Not Tested</SelectItem>
-        </SelectContent>
-      </Select>
-      <div className="flex gap-2">
-        <Button onClick={() => onSave(form)} className="flex-1">Save</Button>
-        <Button variant="outline" onClick={onCancel}>Cancel</Button>
-      </div>
-    </div>
-  );
-}
-
-function EvidenceDialog({ test, onClose }) {
-  const [form, setForm] = useState({});
-  const queryClient = useQueryClient();
-
-  const { data: evidence = [] } = useQuery({
-    queryKey: ['evidence', test.id],
-    queryFn: () => base44.entities.Evidence.filter({ control_test_id: test.id })
-  });
-
-  const createMutation = useMutation({
-    mutationFn: (data) => base44.entities.Evidence.create(data),
-    onSuccess: () => {
-      queryClient.invalidateQueries(['evidence', test.id]);
-      setForm({});
-    }
-  });
-
-  return (
-    <Dialog open={true} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl">
-        <DialogHeader>
-          <DialogTitle>Evidence</DialogTitle>
-        </DialogHeader>
-        <div className="space-y-4">
-          <div className="space-y-2">
-            {evidence.map(e => (
-              <div key={e.id} className="p-3 bg-slate-50 rounded border border-slate-200 text-sm">
-                <div className="flex items-center gap-2 mb-1">
-                  <span className="px-2 py-0.5 bg-slate-200 text-slate-700 rounded text-xs">{e.evidence_type}</span>
-                  {e.evidence_date && <span className="text-xs text-slate-500">{format(new Date(e.evidence_date), 'MMM d, yyyy')}</span>}
-                </div>
-                <p className="text-slate-700">{e.text_description || e.url_reference || e.file_reference}</p>
-              </div>
-            ))}
-          </div>
-          <div className="border-t pt-4 space-y-3">
-            <Select value={form.evidence_type || ''} onValueChange={(v) => setForm({ ...form, evidence_type: v })}>
-              <SelectTrigger>
-                <SelectValue placeholder="Evidence Type" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="Text">Text</SelectItem>
-                <SelectItem value="URL">URL</SelectItem>
-                <SelectItem value="File">File</SelectItem>
-              </SelectContent>
-            </Select>
-            <Textarea
-              placeholder="Evidence description..."
-              value={form.text_description || ''}
-              onChange={(e) => setForm({ ...form, text_description: e.target.value })}
-            />
-            <Input
-              type="date"
-              placeholder="Evidence Date"
-              value={form.evidence_date || ''}
-              onChange={(e) => setForm({ ...form, evidence_date: e.target.value })}
-            />
-            <Button onClick={() => {
-              createMutation.mutate({
-                control_test_id: test.id,
-                evidence_type: form.evidence_type || 'Text',
-                text_description: form.text_description,
-                evidence_date: form.evidence_date,
-                uploaded_by: 'system',
-                upload_timestamp: new Date().toISOString(),
-                sufficiency_flag: true
-              });
-            }}>
-              Add Evidence
-            </Button>
-          </div>
+            );
+          })}
         </div>
-      </DialogContent>
-    </Dialog>
+      )}
+
+      <Dialog open={showTestDialog} onOpenChange={setShowTestDialog}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>{editingTest ? 'Edit Control Test' : 'New Control Test'}</DialogTitle>
+          </DialogHeader>
+          <form onSubmit={handleTestSubmit} className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="text-xs font-medium text-slate-700">Control *</label>
+                <Select value={testFormData.control_id} onValueChange={v => setTestFormData({...testFormData, control_id: v})} required>
+                  <SelectTrigger><SelectValue placeholder="Select control..." /></SelectTrigger>
+                  <SelectContent>
+                    {controls.map(c => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <label className="text-xs font-medium text-slate-700">Test Cycle *</label>
+                <Select value={testFormData.test_cycle_id} onValueChange={v => setTestFormData({...testFormData, test_cycle_id: v})} required>
+                  <SelectTrigger><SelectValue placeholder="Select cycle..." /></SelectTrigger>
+                  <SelectContent>
+                    {cycles.map(c => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="text-xs font-medium text-slate-700">Status</label>
+                <Select value={testFormData.status} onValueChange={v => setTestFormData({...testFormData, status: v})}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Draft">Draft</SelectItem>
+                    <SelectItem value="In Progress">In Progress</SelectItem>
+                    <SelectItem value="Complete">Complete</SelectItem>
+                    <SelectItem value="Reviewed">Reviewed</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <label className="text-xs font-medium text-slate-700">Effectiveness Rating</label>
+                <Select value={testFormData.effectiveness_rating} onValueChange={v => setTestFormData({...testFormData, effectiveness_rating: v})}>
+                  <SelectTrigger><SelectValue placeholder="Select..." /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Effective">Effective</SelectItem>
+                    <SelectItem value="Partially Effective">Partially Effective</SelectItem>
+                    <SelectItem value="Ineffective">Ineffective</SelectItem>
+                    <SelectItem value="Not Tested">Not Tested</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="text-xs font-medium text-slate-700">Reviewed By</label>
+                <Input value={testFormData.reviewed_by} onChange={e => setTestFormData({...testFormData, reviewed_by: e.target.value})} />
+              </div>
+              <div>
+                <label className="text-xs font-medium text-slate-700">Review Date</label>
+                <Input type="date" value={testFormData.review_date} onChange={e => setTestFormData({...testFormData, review_date: e.target.value})} />
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <Checkbox checked={testFormData.remediation_required} onCheckedChange={v => setTestFormData({...testFormData, remediation_required: v})} />
+              <label className="text-xs font-medium text-slate-700">Remediation Required</label>
+            </div>
+            {testFormData.remediation_required && (
+              <>
+                <div>
+                  <label className="text-xs font-medium text-slate-700">Remediation Notes</label>
+                  <Textarea value={testFormData.remediation_notes} onChange={e => setTestFormData({...testFormData, remediation_notes: e.target.value})} />
+                </div>
+                <div>
+                  <label className="text-xs font-medium text-slate-700">Remediation Target Date</label>
+                  <Input type="date" value={testFormData.remediation_target_date} onChange={e => setTestFormData({...testFormData, remediation_target_date: e.target.value})} />
+                </div>
+              </>
+            )}
+            <DialogFooter>
+              <Button type="button" variant="outline" onClick={() => setShowTestDialog(false)}>Cancel</Button>
+              <Button type="submit">{editingTest ? 'Update' : 'Create'}</Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={showEvidenceDialog} onOpenChange={setShowEvidenceDialog}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Evidence for {controls.find(c => c.id === selectedTest?.control_id)?.name}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            {evidence.length > 0 && (
+              <div className="space-y-2">
+                {evidence.map(e => (
+                  <div key={e.id} className="bg-slate-50 rounded p-3 text-xs">
+                    <div className="flex items-start justify-between mb-1">
+                      <Badge variant="outline">{e.evidence_type}</Badge>
+                      {e.evidence_date && <span className="text-slate-500">{e.evidence_date}</span>}
+                    </div>
+                    {e.text_description && <p className="text-slate-700 mt-2">{e.text_description}</p>}
+                    {e.notes && <p className="text-slate-500 mt-1">{e.notes}</p>}
+                  </div>
+                ))}
+              </div>
+            )}
+            <form onSubmit={handleEvidenceSubmit} className="space-y-3 pt-3 border-t">
+              <div>
+                <label className="text-xs font-medium text-slate-700">Evidence Type</label>
+                <Select value={evidenceFormData.evidence_type} onValueChange={v => setEvidenceFormData({...evidenceFormData, evidence_type: v})}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Text">Text</SelectItem>
+                    <SelectItem value="File">File</SelectItem>
+                    <SelectItem value="URL">URL</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <label className="text-xs font-medium text-slate-700">Description</label>
+                <Textarea value={evidenceFormData.text_description} onChange={e => setEvidenceFormData({...evidenceFormData, text_description: e.target.value})} />
+              </div>
+              <div>
+                <label className="text-xs font-medium text-slate-700">Evidence Date</label>
+                <Input type="date" value={evidenceFormData.evidence_date} onChange={e => setEvidenceFormData({...evidenceFormData, evidence_date: e.target.value})} />
+              </div>
+              <div>
+                <label className="text-xs font-medium text-slate-700">Notes</label>
+                <Textarea value={evidenceFormData.notes} onChange={e => setEvidenceFormData({...evidenceFormData, notes: e.target.value})} />
+              </div>
+              <Button type="submit" className="w-full">Add Evidence</Button>
+            </form>
+          </div>
+        </DialogContent>
+      </Dialog>
+    </div>
   );
 }
