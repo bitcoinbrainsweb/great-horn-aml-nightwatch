@@ -85,139 +85,37 @@ Deno.serve(async (req) => {
       );
     }
 
-    // From this point on, use version from UpgradeRegistry as source of truth
-    const productVersion = registryVersion;
+    // From this point on, use version from UpgradeRegistry as source of truth,
+    // but all completion logic is delegated to ReleaseController.
+    console.log('[UpgradeFinalizer] Delegating upgrade completion to ReleaseController...');
 
-    // Build structured verification artifact content (used for summary only; canonical writer will own persistence)
-    console.log('[UpgradeFinalizer] Building verification artifact payload for canonical writer...');
+    const controllerResponse = await base44.functions.invoke('releaseController', {
+      upgrade_id: input.upgrade_id
+    } as any);
 
-    const artifactName = `Nightwatch_VerificationRecord_${sanitizeForFilename(input.title)}_${productVersion}_${input.upgrade_id}_${timestamp.split('T')[0]}`;
+    const data = controllerResponse?.data ?? controllerResponse;
 
-    const validation = input.validation_results || {};
-    const impact = input.system_impact || {};
-    const issues = input.known_issues || {};
-
-    // Calculate status
-    const hasFailures = (issues.failures || []).length > 0;
-    const hasWarnings = (issues.warnings || []).length > 0;
-    const status = hasFailures ? 'FAIL' : hasWarnings ? 'PASS_WITH_WARNINGS' : 'PASS';
-
-    // Build verification content (matches VerificationReportEngine structure)
-    const verificationContent = {
-      upgrade_metadata: {
-        upgrade_id: input.upgrade_id,
-        prompt_id: input.prompt_id,
-        product_version: productVersion,
-        timestamp: timestamp,
-        actor: user.email,
-        actor_role: user.role
-      },
-      upgrade_summary: {
-        title: input.title,
-        description: input.description,
-        purpose: input.purpose || input.description,
-        components_modified: input.components_modified || []
-      },
-      validation_results: {
-        checks_performed: validation.checks_performed || [],
-        records_inserted: validation.records_inserted || {},
-        records_updated: validation.records_updated || {},
-        records_deleted: validation.records_deleted || {},
-        schema_changes: validation.schema_changes || [],
-        ui_verification: validation.ui_checks || [],
-        integration_checks: validation.integration_checks || [],
-        total_records_affected: calculateTotalRecords(validation)
-      },
-      system_impact: {
-        entities_affected: impact.entities_affected || [],
-        pages_affected: impact.pages_affected || [],
-        functions_affected: impact.functions_affected || [],
-        components_affected: impact.components_affected || [],
-        total_files_modified: calculateTotalFiles(impact)
-      },
-      known_issues: {
-        validation_failures: issues.failures || [],
-        warnings: issues.warnings || [],
-        unexpected_conditions: issues.notes || [],
-        total_issues: (issues.failures || []).length + (issues.warnings || []).length
-      },
-      verification_status: {
-        overall_status: status,
-        passed: status === 'PASS',
-        passed_with_warnings: status === 'PASS_WITH_WARNINGS',
-        failed: status === 'FAIL'
-      },
-      delivery_gate_results: input.delivery_gate_results || {},
-      test_results: input.test_results || [],
-      architectural_compliance: input.architectural_compliance || {}
-    };
-
-    // PRIMARY WRITE: Route verification artifact creation through canonical writer
-    console.log('[UpgradeFinalizer] Invoking canonical verification artifact writer (createVerificationArtifact)...');
-
-    const canonicalPayload = {
-      upgrade_id: input.upgrade_id,
-      prompt_id: input.prompt_id,
-      product_version: productVersion,
-      title: input.title,
-      description: input.description,
-      purpose: input.purpose || input.description,
-      components_modified: input.components_modified || [],
-      validation_results: validation,
-      system_impact: impact,
-      known_issues: issues,
-      delivery_gate_results: input.delivery_gate_results || {},
-      test_results: input.test_results || []
-    };
-
-    let canonicalResponse;
-    try {
-      canonicalResponse = await base44.functions.invoke('createVerificationArtifact', canonicalPayload as any);
-    } catch (err) {
-      console.error('[UpgradeFinalizer] Error invoking createVerificationArtifact:', err);
+    if (!data?.success) {
       return Response.json(
         {
           success: false,
           finalization_status: 'verification_failed',
-          error: 'Canonical verification artifact writer invocation failed',
-          canonical_writer_error: (err as Error).message
+          error: 'ReleaseController reported failure',
+          release_controller_response: data
         },
         { status: 500 }
       );
     }
 
-    if (!canonicalResponse?.data?.success) {
-      console.error('[UpgradeFinalizer] Canonical writer returned failure:', canonicalResponse?.data);
-      return Response.json(
-        {
-          success: false,
-          finalization_status: 'verification_failed',
-          error: 'Canonical verification artifact writer reported failure',
-          canonical_writer_response: canonicalResponse?.data
-        },
-        { status: 500 }
-      );
-    }
-
-    console.log('[UpgradeFinalizer] Canonical verification artifact created successfully');
-
-    const artifactId = canonicalResponse.data.artifact_id;
-
-    // Success: canonical writer has already enforced ChangeLog visibility and validation
     return Response.json({
       success: true,
       finalization_status: 'complete',
-      artifact_id: artifactId,
-      artifact_name: artifactName,
-      verification_status: status,
-      verification_checks: canonicalResponse.data.verification_checks,
-      verification_summary: {
-        total_records_affected: verificationContent.validation_results.total_records_affected,
-        total_files_modified: verificationContent.system_impact.total_files_modified,
-        total_issues: verificationContent.known_issues.total_issues,
-        status: status
-      },
-      message: `Upgrade ${input.upgrade_id} finalized successfully - verification artifact confirmed in ChangeLog`
+      artifact_id: data.verification_record_id,
+      artifact_name: data.artifact_name || undefined,
+      verification_status: data.verification_status || 'PASS',
+      verification_checks: data.artifact_verification_checks || undefined,
+      verification_summary: data.verification_summary || undefined,
+      message: data.message || `Upgrade ${input.upgrade_id} finalized via ReleaseController`
     });
 
   } catch (error) {
