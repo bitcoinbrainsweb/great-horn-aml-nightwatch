@@ -1,44 +1,14 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.20';
 
 /**
- * Verification Report Engine
+ * DEPRECATED: generateVerificationArtifact
  * 
- * Automatically generates structured verification artifacts for Nightwatch engineering upgrades.
- * Enforces consistent verification artifact structure with comprehensive validation results.
+ * This function is replaced by createVerificationArtifact (canonical writer).
+ * Left in codebase for backward compatibility only—do not use for new upgrades.
  * 
- * Target Structure:
- * - Upgrade Metadata (upgrade_id, prompt_id, product_version, timestamp, actor)
- * - Upgrade Summary (purpose, components_modified)
- * - Validation Results (checks_performed, record_counts, schema_verification, ui_verification)
- * - System Impact (entities_affected, pages_affected, functions_affected)
- * - Known Issues (validation_failures, warnings, unexpected_conditions)
- * - Status (PASS | PASS_WITH_WARNINGS | FAIL)
- * 
- * Usage:
- * POST /generateVerificationArtifact
- * Body: {
- *   upgrade_id: "NW-UPGRADE-###",
- *   prompt_id: "NW-UPGRADE-###-PROMPT-###",
- *   product_version: "v0.6.0",
- *   title: "Upgrade Title",
- *   description: "What this upgrade does",
- *   validation_results: {
- *     records_inserted: { entity_name: count },
- *     records_updated: { entity_name: count },
- *     schema_changes: ["field added", ...],
- *     ui_checks: ["check passed", ...]
- *   },
- *   system_impact: {
- *     entities_affected: ["Entity1", ...],
- *     pages_affected: ["Page1", ...],
- *     functions_affected: ["func1", ...]
- *   },
- *   known_issues: {
- *     failures: [],
- *     warnings: [],
- *     notes: []
- *   }
- * }
+ * NW-UPGRADE-031 REFACTOR: All verification artifact creation must route through
+ * createVerificationArtifact, which is the sole canonical publisher for verification_record
+ * classification in the Nightwatch platform.
  */
 
 Deno.serve(async (req) => {
