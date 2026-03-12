@@ -98,11 +98,12 @@ Deno.serve(async (req) => {
       }, { status: 400 });
     }
 
-    const timestamp = new Date().toISOString();
+    // Use upgrade completion time if available (aligns with upgrade lifecycle), otherwise current time
+    const artifactTimestamp = payload.published_at || new Date().toISOString();
     
     // Build artifact name
     const titleSlug = payload.title.replace(/[^a-zA-Z0-9]+/g, '_').replace(/^_|_$/g, '');
-    const artifactName = `Nightwatch_VerificationRecord_${titleSlug}_${payload.product_version}_${payload.upgrade_id}_${timestamp.split('T')[0]}`;
+    const artifactName = `Nightwatch_VerificationRecord_${titleSlug}_${payload.product_version}_${payload.upgrade_id}_${artifactTimestamp.split('T')[0]}`;
     
     // Build structured content
     const content = {
