@@ -125,56 +125,59 @@ Deno.serve(async (req) => {
       }
     };
 
-    // STEP 2: Upload files to persistent storage using platform's UploadFile integration
+    // STEP 2: Generate canonical file manifest for persistent storage
     const now = new Date().toISOString();
     const dateStr = now.split('T')[0];
-    const uploadedFiles = {};
 
-    const files = {
-      'entities.json': JSON.stringify(entities, null, 2),
-      'enums.json': JSON.stringify(enums, null, 2),
-      'functions.json': JSON.stringify(functions, null, 2),
-      'agents.json': JSON.stringify(agents, null, 2),
-      'pages.json': JSON.stringify(pages, null, 2),
-      'artifact_pipeline.json': JSON.stringify(artifactPipeline, null, 2),
-      'scheduled_jobs.json': JSON.stringify([{ job_name: "none_currently_configured", schedule: "N/A", description: "No automated scheduled jobs are currently configured in this version", function_called: "N/A", entities_accessed: [], entities_written: [] }], null, 2),
-      'system_architecture_summary.md': `# Nightwatch Architecture Summary\n\n## Export Date\n${now}\n\n## Product Version\nv0.7.0\n\n## System Architecture\n\n${summary.system_architecture.description}\n\n### Core Domains\n${summary.system_architecture.core_domains.map(d => `- ${d}`).join('\n')}\n\n### Statistics\n- Entities: ${entities.length}\n- Enums: ${Object.keys(enums).length}\n- Functions: ${functions.length}\n- Agents: ${agents.length}\n- Pages: ${pages.length}`
+    const fileManifest = {
+      entities_export: {
+        filename: `Nightwatch_Architecture_Entities_v0.7.0_${dateStr}.json`,
+        size_kb: Math.round(JSON.stringify(entities, null, 2).length / 1024),
+        count: entities.length,
+        content: JSON.stringify(entities, null, 2)
+      },
+      enums_export: {
+        filename: `Nightwatch_Architecture_Enums_v0.7.0_${dateStr}.json`,
+        size_kb: Math.round(JSON.stringify(enums, null, 2).length / 1024),
+        count: Object.keys(enums).length,
+        content: JSON.stringify(enums, null, 2)
+      },
+      functions_export: {
+        filename: `Nightwatch_Architecture_Functions_v0.7.0_${dateStr}.json`,
+        size_kb: Math.round(JSON.stringify(functions, null, 2).length / 1024),
+        count: functions.length,
+        content: JSON.stringify(functions, null, 2)
+      },
+      agents_export: {
+        filename: `Nightwatch_Architecture_Agents_v0.7.0_${dateStr}.json`,
+        size_kb: Math.round(JSON.stringify(agents, null, 2).length / 1024),
+        count: agents.length,
+        content: JSON.stringify(agents, null, 2)
+      },
+      pages_export: {
+        filename: `Nightwatch_Architecture_Pages_v0.7.0_${dateStr}.json`,
+        size_kb: Math.round(JSON.stringify(pages, null, 2).length / 1024),
+        count: pages.length,
+        content: JSON.stringify(pages, null, 2)
+      },
+      artifact_pipeline_export: {
+        filename: `Nightwatch_Architecture_ArtifactPipeline_v0.7.0_${dateStr}.json`,
+        size_kb: Math.round(JSON.stringify(artifactPipeline, null, 2).length / 1024),
+        content: JSON.stringify(artifactPipeline, null, 2)
+      },
+      scheduled_jobs_export: {
+        filename: `Nightwatch_Architecture_ScheduledJobs_v0.7.0_${dateStr}.json`,
+        size_kb: Math.round(JSON.stringify([{ job_name: "none_currently_configured", schedule: "N/A" }], null, 2).length / 1024),
+        content: JSON.stringify([{ job_name: "none_currently_configured", schedule: "N/A", description: "No automated scheduled jobs are currently configured" }], null, 2)
+      },
+      architecture_summary_export: {
+        filename: `Nightwatch_Architecture_Summary_v0.7.0_${dateStr}.json`,
+        size_kb: Math.round(JSON.stringify(summary.system_architecture, null, 2).length / 1024),
+        content: JSON.stringify(summary.system_architecture, null, 2)
+      }
     };
 
-    // Upload each file
-    for (const [filename, content] of Object.entries(files)) {
-      try {
-        // Create a text file blob and upload
-        const blob = new TextEncoder().encode(content);
-        const uploadResult = await base44.integrations.Core.UploadFile({
-          file: blob
-        });
-        uploadedFiles[filename] = {
-          url: uploadResult.file_url,
-          size: Math.round(content.length / 1024),
-          uploaded_at: now
-        };
-        console.log(`[exportArchitectureWithFiles] Uploaded ${filename}`);
-      } catch (uploadError) {
-        console.error(`[exportArchitectureWithFiles] Failed to upload ${filename}:`, uploadError);
-        return Response.json({
-          error: 'File upload failed',
-          file: filename,
-          details: uploadError.message
-        }, { status: 500 });
-      }
-    }
-
-    // STEP 3: Verify all files were uploaded
-    if (Object.keys(uploadedFiles).length !== Object.keys(files).length) {
-      return Response.json({
-        error: 'File upload incomplete',
-        uploaded: Object.keys(uploadedFiles).length,
-        expected: Object.keys(files).length
-      }, { status: 206 });
-    }
-
-    // STEP 4: Create artifact with file references
+    // STEP 3: Create artifact with file_manifest
     const artifactRecord = await base44.asServiceRole.entities.PublishedOutput.create({
       outputName: 'Nightwatch Architecture Export',
       classification: 'system_export',
@@ -192,17 +195,18 @@ Deno.serve(async (req) => {
         title: 'Nightwatch Architecture Export',
         description: 'Complete system architecture snapshot with all entities, enums, functions, agents, pages, and artifact pipeline definitions',
         export_date: now,
-        product_version: 'v0.7.0'
+        product_version: 'v0.7.0',
+        total_files: 8
       }),
-      summary: `Complete v0.7.0 system architecture: ${entities.length} entities, ${Object.keys(enums).length} enums, ${functions.length} functions, ${pages.length} pages. All files persisted and downloadable.`,
+      summary: `Complete v0.7.0 system architecture: ${entities.length} entities, ${Object.keys(enums).length} enums, ${functions.length} functions, ${pages.length} pages. All files ready for download.`,
       metadata: JSON.stringify({
         export_version: 'v0.7.0',
         export_upgrade_id: 'NW-UPGRADE-031G',
         export_timestamp: now,
         total_files: 8,
-        files: uploadedFiles,
-        canonical_shape: 'files_in_metadata.files',
-        implementation: 'Real persistent file storage via UploadFile integration'
+        file_manifest: fileManifest,
+        canonical_shape: 'file_manifest_in_metadata',
+        implementation: 'NW-UPGRADE-031G: Embedded file_manifest in metadata for downloadable system_export artifacts'
       })
     });
 
@@ -215,9 +219,8 @@ Deno.serve(async (req) => {
         product_version: artifactRecord.product_version,
         upgrade_id: artifactRecord.upgrade_id
       },
-      files_uploaded: Object.keys(uploadedFiles).length,
-      files: uploadedFiles,
-      message: 'Architecture export successfully generated with real persistent files'
+      files_embedded: 8,
+      message: 'Architecture export successfully generated with all files embedded in metadata'
     });
 
   } catch (error) {
