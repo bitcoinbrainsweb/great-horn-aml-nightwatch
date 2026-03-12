@@ -266,7 +266,14 @@ function generateMarkdown(record, content, passedTests, totalTests) {
       lines.push('## Description', '', content.upgrade_summary?.description || content.description, '');
     }
 
-   const gateResults = content.delivery_gate_results || {};
+   let gateResults = content.delivery_gate_results || {};
+   if (typeof gateResults === 'string') {
+     try {
+       gateResults = JSON.parse(gateResults);
+     } catch (e) {
+       gateResults = {};
+     }
+   }
    if (Object.keys(gateResults).length > 0) {
      lines.push('## Delivery Gate Results', '');
      Object.entries(gateResults).forEach(([testKey, test]) => {
