@@ -1,4 +1,5 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.20';
+import { ArtifactClassification } from './artifactClassifications.ts';
 
 // NW-UPGRADE-031: Canonical System Export Publisher
 // Single approved path for system_export classification (architecture exports)
@@ -188,7 +189,7 @@ Deno.serve(async (req) => {
     // STEP 3: Create artifact with file_manifest (canonical system_export publisher)
     const artifactRecord = await base44.asServiceRole.entities.PublishedOutput.create({
       outputName: `Nightwatch_SystemArchitecture_v0.7.0_NW-UPGRADE-031_${now.split('T')[0]}`,
-      classification: 'system_export',
+      classification: ArtifactClassification.SYSTEM_EXPORT,
       subtype: 'architecture_export',
       is_runnable: false,
       is_user_visible: false,

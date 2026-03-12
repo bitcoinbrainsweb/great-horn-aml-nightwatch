@@ -32,7 +32,7 @@ export default function ChangeLog() {
     // Subscribe to real-time PublishedOutput changes
     const unsubscribe = base44.entities.PublishedOutput.subscribe((event) => {
       // Reload when verification records are created or updated
-      if (['verification_record', 'audit_record', 'delivery_gate_record'].includes(event.data?.classification)) {
+      if (event.data?.classification === 'verification_record') {
         console.log('[ChangeLog] Real-time update detected, reloading...');
         loadVerificationRecords();
       }
@@ -67,13 +67,15 @@ export default function ChangeLog() {
       const changelogArtifacts = await getChangeLogArtifacts();
       setRecords(changelogArtifacts);
       
-      // Load system artifacts separately
-      const systemArtifacts = await base44.entities.PublishedOutput.filter({
-        status: 'published',
-        classification: 'system_export'
+      // Load system artifacts separately (system_export + audit_record)
+      const allSystem = await base44.entities.PublishedOutput.filter({
+        status: 'published'
       });
+      const systemArtifacts = allSystem.filter(r =>
+        r.classification === 'system_export' || r.classification === 'audit_record'
+      );
       setSystemArtifacts(systemArtifacts);
-      console.log('[ChangeLog] Loaded', changelogArtifacts.length, 'verification artifacts and', systemArtifacts.length, 'system artifacts');
+      console.log('[ChangeLog] Loaded', changelogArtifacts.length, 'verification artifacts and', systemArtifacts.length, 'system/audit artifacts');
     } catch (error) {
       console.error('Error loading records:', error);
     } finally {
@@ -89,14 +91,21 @@ export default function ChangeLog() {
         const cls = r.classification || 'unclassified';
         classificationCounts[cls] = (classificationCounts[cls] || 0) + 1;
       });
-      const changelogRecords = await getChangeLogArtifacts();
-      const recent = changelogRecords.slice(0, 10);
+      // Diagnostics: diagnostic_record + delivery_gate_record only
+      const publishedRecords = allRecords.filter(r => r.status === 'published');
+      const diagnosticRecords = publishedRecords.filter(r =>
+        r.classification === 'diagnostic_record' || r.classification === 'delivery_gate_record'
+      );
+      const recent = diagnosticRecords
+        .slice()
+        .sort((a, b) => new Date(b.published_at || b.created_date) - new Date(a.published_at || a.created_date))
+        .slice(0, 10);
       const publishedRecords = allRecords.filter(r => r.status === 'published');
       setDiagnostics({
         counts: {
           total: allRecords.length,
           published: publishedRecords.length,
-          changelogVisible: changelogRecords.length,
+          changelogVisible: recent.length,
           byClassification: classificationCounts
         },
         recent: recent
@@ -111,7 +120,7 @@ export default function ChangeLog() {
     setTestResult(null);
     try {
       const timestamp = new Date().toISOString();
-      const artifactName = `Nightwatch_VerificationRecord_DiagnosticsTest_v0.6.0_NW-UPGRADE-029_${timestamp.split('T')[0]}`;
+      const artifactName = `Nightwatch_DiagnosticsRecord_ChangeLogTest_v0.6.0_NW-UPGRADE-029_${timestamp.split('T')[0]}`;
       const testContent = {
         upgrade_metadata: {
           upgrade_id: 'NW-UPGRADE-029',
@@ -125,7 +134,7 @@ export default function ChangeLog() {
       
       const artifact = await base44.entities.PublishedOutput.create({
         outputName: artifactName,
-        classification: 'verification_record',
+        classification: 'diagnostic_record',
         subtype: 'diagnostic_test',
         is_runnable: false,
         is_user_visible: false,

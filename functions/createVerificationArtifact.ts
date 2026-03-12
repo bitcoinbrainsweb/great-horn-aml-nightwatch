@@ -1,4 +1,5 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.20';
+import { ArtifactClassification, ALLOWED_ARTIFACT_CLASSIFICATIONS } from './artifactClassifications.ts';
 
 /**
  * CANONICAL VERIFICATION ARTIFACT WRITER - NW-UPGRADE-031
@@ -109,6 +110,20 @@ Deno.serve(async (req) => {
       }, { status: 409 });
     }
 
+    // Enforce classification for this canonical writer
+    const classification = ArtifactClassification.VERIFICATION_RECORD;
+    if (!ALLOWED_ARTIFACT_CLASSIFICATIONS.includes(classification)) {
+      console.error('[CanonicalWriter] Invalid classification requested for verification artifact:', classification);
+      return Response.json(
+        {
+          success: false,
+          error: 'Invalid artifact classification for canonical verification writer',
+          attempted_classification: classification
+        },
+        { status: 500 }
+      );
+    }
+
     // Use upgrade completion time if available (aligns with upgrade lifecycle), otherwise current time
     const artifactTimestamp = payload.published_at || new Date().toISOString();
     
@@ -164,7 +179,7 @@ Deno.serve(async (req) => {
     // Check for existing artifact (deduplication)
     const existingArtifacts = await base44.asServiceRole.entities.PublishedOutput.filter({
       upgrade_id: payload.upgrade_id,
-      classification: 'verification_record'
+      classification
     });
 
     let artifact;
@@ -192,8 +207,8 @@ Deno.serve(async (req) => {
       console.log('[CanonicalWriter] Creating new artifact');
       // Write directly to PublishedOutput (ChangeLog source)
       artifact = await base44.asServiceRole.entities.PublishedOutput.create({
-        outputName: artifactName,
-        classification: 'verification_record',
+      outputName: artifactName,
+      classification,
         subtype: 'upgrade_verification',
         is_runnable: false,
         is_user_visible: false,

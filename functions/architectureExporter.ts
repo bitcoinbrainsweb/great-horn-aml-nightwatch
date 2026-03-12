@@ -1,4 +1,5 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.20';
+import { ArtifactClassification } from './artifactClassifications.ts';
 
 // NW-UPGRADE-031A: Architecture Export for External Code Audit
 // Provides complete system architecture snapshot including entities, enums, functions, pages, and artifact pipeline
@@ -529,7 +530,7 @@ Deno.serve(async (req) => {
 
       const publishedOutput = await base44.asServiceRole.entities.PublishedOutput.create({
         outputName: `Nightwatch Architecture Export`,
-        classification: "system_export",
+        classification: ArtifactClassification.SYSTEM_EXPORT,
         subtype: "architecture_export",
         is_runnable: false,
         is_user_visible: false,

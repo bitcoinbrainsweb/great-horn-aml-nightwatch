@@ -49,10 +49,10 @@ export default function ArtifactDiagnostics() {
         classificationCounts[cls] = (classificationCounts[cls] || 0) + 1;
       });
 
-      // Use SHARED ChangeLog query logic
+      // Use SHARED ChangeLog query logic (Verification tab: verification_record only)
       const changelogRecords = await getChangeLogArtifacts();
 
-      // Recent artifacts (latest 10)
+      // Recent artifacts (latest 10) from verification tab
       const recent = changelogRecords.slice(0, 10);
 
       const publishedRecords = allRecords.filter(r => r.status === 'published');
@@ -89,7 +89,7 @@ export default function ArtifactDiagnostics() {
 
     try {
       const timestamp = new Date().toISOString();
-      const artifactName = `Nightwatch_VerificationRecord_ArtifactDiagnosticTest_v0.6.0_NW-UPGRADE-021A_${timestamp.split('T')[0]}`;
+      const artifactName = `Nightwatch_DiagnosticsRecord_ArtifactDiagnosticTest_v0.6.0_NW-UPGRADE-021A_${timestamp.split('T')[0]}`;
 
       const testContent = {
         upgrade_metadata: {
@@ -113,10 +113,10 @@ export default function ArtifactDiagnostics() {
       };
 
       // DIRECT WRITE: Create PublishedOutput record
-      console.log('[ArtifactDiagnostics] Creating test verification record...');
+      console.log('[ArtifactDiagnostics] Creating test diagnostics record...');
       const artifact = await base44.entities.PublishedOutput.create({
         outputName: artifactName,
-        classification: 'verification_record',
+        classification: 'diagnostic_record',
         subtype: 'diagnostic_test',
         is_runnable: false,
         is_user_visible: false,
@@ -154,7 +154,7 @@ export default function ArtifactDiagnostics() {
         const retrieved = readBack[0];
 
         // Check 2: Classification
-        if (retrieved.classification === 'verification_record') {
+        if (retrieved.classification === 'diagnostic_record') {
           checks.classification_correct = true;
         }
 
