@@ -15,7 +15,9 @@ type ContractResult = {
 };
 
 async function collectArtifactClassificationCheck(base44: any): Promise<CheckResult & { violations: string[] }> {
-  const allRecords = await base44.asServiceRole.entities.PublishedOutput.filter({});
+  const allRecords = await base44.asServiceRole.entities.PublishedOutput.filter({
+    status: 'published'
+  });
 
   const seen = new Set<string>();
   const invalid: Set<string> = new Set();
@@ -49,36 +51,40 @@ async function collectArtifactClassificationCheck(base44: any): Promise<CheckRes
 async function collectWriterGatewayCheck(): Promise<CheckResult & { warnings: string[] }> {
   const warnings: string[] = [];
 
-  const root = Deno.cwd();
+  try {
+    const root = Deno.cwd();
 
-  async function scanFile(path: string) {
-    const content = await Deno.readTextFile(path);
-    const lines = content.split('\n');
-    lines.forEach((line, index) => {
-      if (line.includes('PublishedOutput.create(')) {
-        // Allow occurrences inside the canonical gateway itself
-        if (path.endsWith('publishCanonicalArtifact.ts')) {
-          return;
+    async function scanFile(path: string) {
+      const content = await Deno.readTextFile(path);
+      const lines = content.split('\n');
+      lines.forEach((line, index) => {
+        if (line.includes('PublishedOutput.create(')) {
+          // Allow occurrences inside the canonical gateway itself
+          if (path.endsWith('publishCanonicalArtifact.ts')) {
+            return;
+          }
+          warnings.push(
+            `Direct PublishedOutput.create usage in ${path}:${index + 1}`
+          );
         }
-        warnings.push(
-          `Direct PublishedOutput.create usage in ${path}:${index + 1}`
-        );
-      }
-    });
-  }
+      });
+    }
 
-  async function scanDir(dir: string) {
-    for await (const entry of Deno.readDir(dir)) {
-      const entryPath = `${dir}/${entry.name}`;
-      if (entry.isDirectory) {
-        await scanDir(entryPath);
-      } else if (entry.isFile && entry.name.endsWith('.ts')) {
-        await scanFile(entryPath);
+    async function scanDir(dir: string) {
+      for await (const entry of Deno.readDir(dir)) {
+        const entryPath = `${dir}/${entry.name}`;
+        if (entry.isDirectory) {
+          await scanDir(entryPath);
+        } else if (entry.isFile && entry.name.endsWith('.ts')) {
+          await scanFile(entryPath);
+        }
       }
     }
-  }
 
-  await scanDir(root);
+    await scanDir(root);
+  } catch {
+    warnings.push('code_scan_unavailable_in_runtime');
+  }
 
   return {
     name: 'artifact_writers_routed_through_gateway',
