@@ -102,7 +102,53 @@ Deno.serve(async (req) => {
       }, { status: 409 });
     }
 
-    // 3. Update registry to completed
+    // 3. GATE: Verify artifact is persisted and valid before marking complete
+    const artifactVerification = {
+      artifact_exists: !!published,
+      classification_correct: published?.classification === 'verification_record',
+      status_published: published?.status === 'published',
+      content_present: !!published?.content && published.content.length > 0,
+      is_valid_json: false
+    };
+    
+    if (artifactVerification.content_present) {
+      try {
+        JSON.parse(published.content);
+        artifactVerification.is_valid_json = true;
+      } catch (e) {
+        artifactVerification.is_valid_json = false;
+      }
+    }
+    
+    const allArtifactChecksPassed = Object.values(artifactVerification).every(v => v === true);
+    if (!allArtifactChecksPassed) {
+      console.error(`[completeUpgrade] GATE FAILED: Artifact verification checks failed for ${upgrade_id}`, artifactVerification);
+      
+      await base44.asServiceRole.entities.UpgradeAuditLog.create({
+        upgrade_id,
+        action: 'completion_blocked_artifact_verification_failed',
+        prior_status: registry.status,
+        new_status: registry.status,
+        triggering_function: 'completeUpgrade',
+        actor: 'system',
+        timestamp: now,
+        context: JSON.stringify({
+          reason: 'Artifact verification gate failed',
+          checks: artifactVerification
+        })
+      });
+      
+      return Response.json({
+        success: false,
+        error: 'Completion blocked: Artifact verification gate failed',
+        upgrade_id,
+        verification_checks: artifactVerification,
+        message: 'Artifact persisted but does not meet publication standards',
+        remediation: 'Verify artifact content, ensure it is valid JSON, and has status=published'
+      }, { status: 409 });
+    }
+
+    // 4. Update registry to completed (only after artifact gating passes)
     const final = await base44.asServiceRole.entities.UpgradeRegistry.update(
       registry.id,
       {
