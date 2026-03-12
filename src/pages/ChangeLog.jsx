@@ -127,13 +127,31 @@ export default function ChangeLog() {
               <span className="text-slate-500">Filtered Display:</span>
               <span className="ml-2 text-blue-400 font-bold">{filtered.length}</span>
             </div>
+            <div>
+              <span className="text-slate-500">Sort Field:</span>
+              <span className="ml-2 text-white">{CHANGELOG_QUERY_CONFIG.sortField}</span>
+            </div>
+            <div>
+              <span className="text-slate-500">Sort Order:</span>
+              <span className="ml-2 text-white">{CHANGELOG_QUERY_CONFIG.sortOrder}</span>
+            </div>
             {records.length > 0 && (
-              <div className="col-span-2">
-                <span className="text-slate-500">Latest Record IDs:</span>
-                <div className="mt-1 text-slate-400 text-[10px] break-all">
-                  {records.slice(0, 3).map(r => r.id).join(', ')}
+              <>
+                <div className="col-span-2">
+                  <span className="text-slate-500">Latest Record IDs:</span>
+                  <div className="mt-1 text-slate-400 text-[10px] break-all">
+                    {records.slice(0, 3).map(r => r.id).join(', ')}
+                  </div>
                 </div>
-              </div>
+                <div className="col-span-2">
+                  <span className="text-slate-500">Latest Timestamps (published_at):</span>
+                  <div className="mt-1 text-slate-400 text-[10px]">
+                    {records.slice(0, 5).map((r, i) => (
+                      <div key={i}>{r.upgrade_id}: {r.published_at || r.created_date}</div>
+                    ))}
+                  </div>
+                </div>
+              </>
             )}
           </div>
         </div>
