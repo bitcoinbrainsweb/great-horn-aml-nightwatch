@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { base44 } from '@/api/base44Client';
 import FeedbackButton from '@/components/feedback/FeedbackButton';
+import GlobalSearch from '@/components/search/GlobalSearch';
 import {
   LayoutDashboard, Building2, FileStack, ListTodo, FileBarChart, Settings,
   ChevronLeft, ChevronRight, LogOut, Shield, Menu, Bell, HelpCircle, GitBranch
@@ -195,6 +196,13 @@ export default function Layout({ children, currentPageName }) {
             </div>
           )}
         </div>
+
+        {/* Search */}
+         {!collapsed && (
+           <div className="px-2 py-3 border-t border-white/10">
+             <GlobalSearch />
+           </div>
+         )}
 
         {/* Nav */}
          <nav className="flex-1 py-4 px-2 overflow-y-auto">
