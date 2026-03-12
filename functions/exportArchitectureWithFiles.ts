@@ -92,11 +92,16 @@ Deno.serve(async (req) => {
     ];
 
     const artifactPipeline = {
-      artifact_types: [
-        { type: "verification_record", description: "Verification artifacts documenting feature implementation and testing", creation_trigger: "upgrade_completion", publication_trigger: "delivery_gate_pass", routing_surfaces: ["ChangeLog"], classification: "verification_record" },
-        { type: "system_export", description: "System architecture and configuration exports", creation_trigger: "manual_export", publication_trigger: "files_persisted", routing_surfaces: ["ChangeLog"], classification: "system_export" }
+      canonical_publishers: [
+        { classification: "verification_record", canonical_writer: "createVerificationArtifact", description: "Canonical publisher for all verification_record artifacts", trigger: "upgrade_completion", routing: "ChangeLog.Verification" },
+        { classification: "system_export", canonical_writer: "exportArchitectureWithFiles", description: "Canonical publisher for all system_export artifacts (architecture snapshots)", trigger: "manual_admin_invocation", routing: "ChangeLog.SystemArtifacts" }
       ],
-      pipeline_flow: "Generate Data → Persist Files → Create Artifact → Publish → Display Zone Routing"
+      deprecated_writers: [
+        { function: "generateVerificationArtifact", reason: "Replaced by createVerificationArtifact", status: "DEPRECATED" },
+        { function: "publishVerificationRecord", reason: "Replaced by createVerificationArtifact", status: "DEPRECATED" },
+        { function: "CentralPublisher", reason: "Replaced by classification-specific canonical publishers", status: "DEPRECATED" }
+      ],
+      pipeline_flow: "NW-UPGRADE-031: Single canonical writer per classification → Persistent storage → ChangeLog routing"
     };
 
     const summary = {
