@@ -111,7 +111,7 @@ Deno.serve(async (req) => {
         upgrade_id: payload.upgrade_id,
         prompt_id: payload.prompt_id,
         product_version: payload.product_version,
-        timestamp,
+        timestamp: artifactTimestamp,
         actor: user.email,
         actor_role: user.role
       },
