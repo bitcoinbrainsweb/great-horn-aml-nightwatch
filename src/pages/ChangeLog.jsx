@@ -19,6 +19,21 @@ export default function ChangeLog() {
     checkAccess();
   }, []);
 
+  useEffect(() => {
+    if (!user || !['admin', 'super_admin'].includes(user?.role)) return;
+    
+    // Subscribe to real-time PublishedOutput changes
+    const unsubscribe = base44.entities.PublishedOutput.subscribe((event) => {
+      // Reload when verification records are created or updated
+      if (['verification_record', 'audit_record', 'delivery_gate_record'].includes(event.data?.classification)) {
+        console.log('[ChangeLog] Real-time update detected, reloading...');
+        loadVerificationRecords();
+      }
+    });
+
+    return unsubscribe;
+  }, [user]);
+
   async function checkAccess() {
     try {
       const me = await base44.auth.me();
