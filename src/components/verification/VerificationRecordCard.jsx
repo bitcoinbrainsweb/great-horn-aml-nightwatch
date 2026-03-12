@@ -77,7 +77,7 @@ export default function VerificationRecordCard({ record }) {
         {/* Main Content */}
         <div className="flex-1 text-left min-w-0">
           <div className="flex items-center gap-2 mb-1">
-            <h3 className="font-semibold text-slate-900 text-sm">{content.title || record.outputName}</h3>
+            <h3 className="font-semibold text-slate-900 text-sm">{content.upgrade_summary?.title || content.title || record.outputName}</h3>
             {isLegacy && (
               <span className="px-2 py-0.5 bg-amber-100 text-amber-800 text-[10px] font-semibold rounded">Legacy</span>
             )}
@@ -126,17 +126,17 @@ export default function VerificationRecordCard({ record }) {
             </div>
           )}
           {/* Executive Summary */}
-          {content.title && (
+          {(content.upgrade_summary?.title || content.title) && (
             <div>
               <h4 className="font-semibold text-slate-900 mb-1">Title</h4>
-              <p>{content.title}</p>
+              <p>{content.upgrade_summary?.title || content.title}</p>
             </div>
           )}
 
-          {content.description && (
+          {(content.upgrade_summary?.description || content.description) && (
             <div>
               <h4 className="font-semibold text-slate-900 mb-1">Description</h4>
-              <p className="text-xs">{content.description}</p>
+              <p className="text-xs">{content.upgrade_summary?.description || content.description}</p>
             </div>
           )}
 
@@ -240,21 +240,21 @@ const downloadFile = (filename, content) => {
 
 function generateMarkdown(record, content, passedTests, totalTests) {
    const lines = [
-     `# ${content.title || record.outputName}`,
-     '',
-     `**Upgrade ID:** ${record.upgrade_id}`,
-     `**Product Version:** ${record.product_version}`,
-     `**Published:** ${record.published_at ? format(new Date(record.published_at), 'MMM d, yyyy HH:mm') : 'N/A'}`,
-     '',
-     `## Status`,
-     '',
-     `**Delivery Gates:** ${passedTests}/${totalTests} passed`,
-     '',
-   ];
+      `# ${content.upgrade_summary?.title || content.title || record.outputName}`,
+      '',
+      `**Upgrade ID:** ${record.upgrade_id}`,
+      `**Product Version:** ${record.product_version}`,
+      `**Published:** ${record.published_at ? format(new Date(record.published_at), 'MMM d, yyyy HH:mm') : 'N/A'}`,
+      '',
+      `## Status`,
+      '',
+      `**Delivery Gates:** ${passedTests}/${totalTests} passed`,
+      '',
+    ];
 
-   if (content.description) {
-     lines.push('## Description', '', content.description, '');
-   }
+    if (content.upgrade_summary?.description || content.description) {
+      lines.push('## Description', '', content.upgrade_summary?.description || content.description, '');
+    }
 
    const gateResults = content.delivery_gate_results || {};
    if (Object.keys(gateResults).length > 0) {
