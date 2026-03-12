@@ -114,11 +114,11 @@ export default function ChangeLog() {
     }
   }
 
-  async function runClassificationRepair() {
+  async function handleRunClassificationRepair() {
     setRunningRepair(true);
     setRepairResult(null);
     try {
-      const result = await base44.functions.invoke('repairArtifactClassificationsNW034', {} as any);
+      const result = await base44.functions.invoke('repairArtifactClassificationsNW034', {});
       const data = result?.data ?? result;
       setRepairResult(data);
       // Refresh diagnostics after repair
@@ -269,7 +269,7 @@ export default function ChangeLog() {
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
-                <Button onClick={runClassificationRepair} disabled={runningRepair} className="w-full">
+                <Button onClick={handleRunClassificationRepair} disabled={runningRepair} className="w-full">
                   {runningRepair ? 'Running Repair...' : 'Run NW-034 Classification Repair'}
                 </Button>
                 {repairResult && (
