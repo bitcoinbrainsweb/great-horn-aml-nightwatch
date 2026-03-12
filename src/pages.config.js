@@ -89,6 +89,7 @@ import ReviewerDashboard from './pages/ReviewerDashboard';
 import Tasks from './pages/Tasks';
 import Controls from './pages/Controls';
 import ControlTests from './pages/ControlTests';
+import ArtifactDiagnostics from './pages/ArtifactDiagnostics';
 import __Layout from './Layout.jsx';
 
 
@@ -135,6 +136,7 @@ export const PAGES = {
     "Tasks": Tasks,
     "Controls": Controls,
     "ControlTests": ControlTests,
+    "ArtifactDiagnostics": ArtifactDiagnostics,
 }
 
 export const pagesConfig = {

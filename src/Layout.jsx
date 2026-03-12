@@ -19,6 +19,7 @@ const NAV_ITEMS = [
   { name: 'Reviewer', icon: Shield, page: 'ReviewerDashboard' },
   { name: 'Admin', icon: Settings, page: 'Admin' },
   { name: 'ChangeLog', icon: GitBranch, page: 'ChangeLog', adminOnly: true },
+  { name: 'Artifact Diagnostics', icon: Settings, page: 'ArtifactDiagnostics', adminOnly: true },
   { name: 'Feedback', icon: HelpCircle, page: 'Feedback' },
 ];
 
@@ -194,6 +195,7 @@ export default function Layout({ children, currentPageName }) {
               (item.page === 'Engagements' && currentPageName === 'EngagementDetail') ||
               (item.page === 'Feedback' && ['Feedback'].includes(currentPageName)) ||
               (item.page === 'ChangeLog' && currentPageName === 'ChangeLog') ||
+              (item.page === 'ArtifactDiagnostics' && currentPageName === 'ArtifactDiagnostics') ||
               (item.page === 'Admin' && ['AdminRiskLibrary', 'AdminControlLibrary', 'AdminMethodologies', 'AdminNarratives', 'AdminUsers', 'AdminAuditLog', 'AdminJurisdictions', 'AdminIndustries', 'AdminTestScenarios', 'AdminInvitations', 'AdminRiskProposals', 'AdminFeatureFlags', 'AdminReleaseLog', 'LibraryReviewDashboard', 'AdminGovernance'].includes(currentPageName));
             return (
               <Link
