@@ -75,6 +75,29 @@ Deno.serve(async (req) => {
       }, { status: 400 });
     }
 
+    // LIFECYCLE CONTROL: Fetch UpgradeRegistry to validate version and state
+    const registries = await base44.asServiceRole.entities.UpgradeRegistry.filter({
+      upgrade_id: payload.upgrade_id
+    });
+    
+    if (registries.length === 0) {
+      return Response.json({ 
+        error: 'Upgrade not found in registry', 
+        upgrade_id: payload.upgrade_id 
+      }, { status: 404 });
+    }
+    
+    const registry = registries[0];
+    
+    // Enforce product_version from UpgradeRegistry (source of truth)
+    if (payload.product_version !== registry.product_version) {
+      return Response.json({ 
+        error: 'Product version mismatch with UpgradeRegistry',
+        provided_version: payload.product_version,
+        registry_version: registry.product_version
+      }, { status: 400 });
+    }
+
     const timestamp = new Date().toISOString();
     
     // Build artifact name
