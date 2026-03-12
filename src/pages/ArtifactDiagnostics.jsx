@@ -21,7 +21,8 @@ export default function ArtifactDiagnostics() {
     try {
       const me = await base44.auth.me();
       setUser(me);
-      if (me?.role !== 'admin') {
+      // Technical Admin access: admin or super_admin roles
+      if (!['admin', 'super_admin'].includes(me?.role)) {
         setAccessDenied(true);
         setLoading(false);
         return;
