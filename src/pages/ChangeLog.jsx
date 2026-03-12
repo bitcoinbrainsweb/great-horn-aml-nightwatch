@@ -22,6 +22,7 @@ export default function ChangeLog() {
   const [repairLoading, setRepairLoading] = useState(false);
   const [repairError, setRepairError] = useState('');
   const [repairResultText, setRepairResultText] = useState('');
+  const [nw034Triggered, setNw034Triggered] = useState(false);
 
   useEffect(() => {
     checkAccess();
@@ -41,6 +42,23 @@ export default function ChangeLog() {
 
     return unsubscribe;
   }, [user]);
+
+  useEffect(() => {
+    if (nw034Triggered) return;
+    if (activeTab !== 'diagnostics') return;
+    if (!user || user.role !== 'admin') return;
+
+    (async () => {
+      try {
+        const result = await base44.functions.invoke('repairArtifactClassificationsNW034', {});
+        console.log('NW-034 repair result:', result);
+      } catch (error) {
+        console.error('NW-034 repair invocation failed:', error);
+      } finally {
+        setNw034Triggered(true);
+      }
+    })();
+  }, [activeTab, user, nw034Triggered]);
 
   async function checkAccess() {
     try {
