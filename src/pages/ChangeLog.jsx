@@ -12,11 +12,12 @@ import { getChangeLogArtifacts, CHANGELOG_QUERY_CONFIG } from '../components/cha
 
 export default function ChangeLog() {
   const [records, setRecords] = useState([]);
+  const [systemArtifacts, setSystemArtifacts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [user, setUser] = useState(null);
   const [accessDenied, setAccessDenied] = useState(false);
-  const [activeTab, setActiveTab] = useState('records');
+  const [activeTab, setActiveTab] = useState('verification');
   const [diagnostics, setDiagnostics] = useState(null);
   const [testResult, setTestResult] = useState(null);
   const [testing, setTesting] = useState(false);
@@ -62,14 +63,19 @@ export default function ChangeLog() {
   async function loadVerificationRecords() {
     setLoading(true);
     try {
-      // Use shared ChangeLog query logic
-      console.log('[ChangeLog] Loading artifacts via getChangeLogArtifacts()...');
+      console.log('[ChangeLog] Loading verification artifacts...');
       const changelogArtifacts = await getChangeLogArtifacts();
-      console.log('[ChangeLog] Loaded', changelogArtifacts.length, 'artifacts');
-      console.log('[ChangeLog] Latest artifact IDs:', changelogArtifacts.slice(0, 5).map(r => r.id));
       setRecords(changelogArtifacts);
+      
+      // Load system artifacts separately
+      const systemArtifacts = await base44.entities.PublishedOutput.filter({
+        status: 'published',
+        classification: 'system_export'
+      });
+      setSystemArtifacts(systemArtifacts);
+      console.log('[ChangeLog] Loaded', changelogArtifacts.length, 'verification artifacts and', systemArtifacts.length, 'system artifacts');
     } catch (error) {
-      console.error('Error loading verification records:', error);
+      console.error('Error loading records:', error);
     } finally {
       setLoading(false);
     }
@@ -192,11 +198,12 @@ export default function ChangeLog() {
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
         <TabsList>
-          <TabsTrigger value="records">Records</TabsTrigger>
+          <TabsTrigger value="verification">Verification</TabsTrigger>
+          <TabsTrigger value="system">System Artifacts</TabsTrigger>
           <TabsTrigger value="diagnostics">Diagnostics</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="records" className="space-y-6">
+        <TabsContent value="verification" className="space-y-6">
           <div className="mb-6">
             <div className="relative max-w-sm">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
@@ -220,6 +227,40 @@ export default function ChangeLog() {
               {filtered.map(r => (
                 <VerificationRecordCard key={r.id} record={r} />
               ))}
+            </div>
+          )}
+        </TabsContent>
+
+        <TabsContent value="system" className="space-y-6">
+          <div className="mb-6">
+            <div className="relative max-w-sm">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+              <Input
+                placeholder="Search system artifacts..."
+                value={search}
+                onChange={e => setSearch(e.target.value)}
+                className="pl-9"
+              />
+            </div>
+          </div>
+
+          {systemArtifacts.length === 0 ? (
+            <EmptyState
+              icon={FileCheck}
+              title="No system artifacts"
+              description="System exports and audit artifacts will appear here."
+            />
+          ) : (
+            <div className="space-y-3">
+              {systemArtifacts
+                .filter(r =>
+                  !search ||
+                  r.outputName?.toLowerCase().includes(search.toLowerCase()) ||
+                  r.upgrade_id?.toLowerCase().includes(search.toLowerCase())
+                )
+                .map(r => (
+                  <VerificationRecordCard key={r.id} record={r} />
+                ))}
             </div>
           )}
         </TabsContent>
