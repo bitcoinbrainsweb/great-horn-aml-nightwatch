@@ -165,7 +165,7 @@ Deno.serve(async (req) => {
         {
           outputName: artifactName,
           status: 'published',
-          published_at: timestamp,
+          published_at: artifactTimestamp,
           content: JSON.stringify(content),
           summary: payload.summary || `${payload.title} verification complete (updated)`,
           metadata: JSON.stringify({
@@ -192,7 +192,7 @@ Deno.serve(async (req) => {
         product_version: payload.product_version,
         upgrade_id: payload.upgrade_id,
         status: 'published',
-        published_at: timestamp,
+        published_at: artifactTimestamp,
         content: JSON.stringify(content),
         summary: payload.summary || `${payload.title} verification complete`,
         metadata: JSON.stringify({
