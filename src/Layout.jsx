@@ -17,6 +17,8 @@ const NAV_ITEMS = [
   { name: 'Controls', icon: Shield, page: 'Controls' },
   { name: 'Test Cycles', icon: Shield, page: 'TestCycles' },
   { name: 'Control Tests', icon: Shield, page: 'ControlTests' },
+  { name: 'Findings', icon: Shield, page: 'Findings' },
+  { name: 'Remediation Actions', icon: Shield, page: 'RemediationActions' },
   { name: 'Reviewer', icon: Shield, page: 'ReviewerDashboard' },
   { name: 'Admin', icon: Settings, page: 'Admin' },
   { name: 'ChangeLog', icon: GitBranch, page: 'ChangeLog', adminOnly: true },

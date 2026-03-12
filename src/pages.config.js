@@ -91,6 +91,8 @@ import Reports from './pages/Reports';
 import ReviewerDashboard from './pages/ReviewerDashboard';
 import Tasks from './pages/Tasks';
 import TestCycles from './pages/TestCycles';
+import Findings from './pages/Findings';
+import RemediationActions from './pages/RemediationActions';
 import __Layout from './Layout.jsx';
 
 
@@ -139,6 +141,8 @@ export const PAGES = {
     "ReviewerDashboard": ReviewerDashboard,
     "Tasks": Tasks,
     "TestCycles": TestCycles,
+    "Findings": Findings,
+    "RemediationActions": RemediationActions,
 }
 
 export const pagesConfig = {
