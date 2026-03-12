@@ -107,17 +107,21 @@ Deno.serve(async (req) => {
     const summary = {
       export_date: new Date().toISOString(),
       product_version: "v0.7.0",
-      upgrade_id: "NW-UPGRADE-031G",
+      upgrade_id: "NW-UPGRADE-031",
+      upgrade_name: "Canonical Artifact Publishing & Code Audit",
       summary_statistics: {
         total_entities: entities.length,
         total_enums: Object.keys(enums).length,
         total_functions: functions.length,
         total_agents: agents.length,
         total_pages: pages.length,
-        artifact_pipeline_stages: 2
+        canonical_artifact_writers: 2,
+        deprecated_writers_retired: 3
       },
       system_architecture: {
-        description: "Nightwatch AML Compliance Platform - v0.7 Complete Architecture",
+        description: "Nightwatch AML Compliance Platform - v0.7.0 Complete Architecture (Post-NW-UPGRADE-031 Refactor)",
+        canonical_model: "Single canonical writer per classification - verification_record (createVerificationArtifact), system_export (exportArchitectureWithFiles)",
+        version_normalization: "All active paths use v0.7.0",
         core_domains: [
           "Client & Engagement Management",
           "Risk Library & Library Management",
