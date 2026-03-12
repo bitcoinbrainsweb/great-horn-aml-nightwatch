@@ -56,10 +56,42 @@ Deno.serve(async (req) => {
 
     console.log(`[UpgradeFinalizer] Starting finalization for ${input.upgrade_id}`);
 
-    // Build structured verification artifact
-    console.log('[UpgradeFinalizer] Building verification artifact...');
+    // Look up UpgradeRegistry to enforce canonical product_version and lifecycle
+    const registries = await base44.asServiceRole.entities.UpgradeRegistry.filter({
+      upgrade_id: input.upgrade_id
+    });
 
-    const artifactName = `Nightwatch_VerificationRecord_${sanitizeForFilename(input.title)}_${input.product_version}_${input.upgrade_id}_${timestamp.split('T')[0]}`;
+    if (registries.length === 0) {
+      return Response.json(
+        {
+          error: 'Upgrade not found in registry',
+          upgrade_id: input.upgrade_id
+        },
+        { status: 404 }
+      );
+    }
+
+    const registry = registries[0];
+    const registryVersion = registry.product_version;
+
+    if (input.product_version !== registryVersion) {
+      return Response.json(
+        {
+          error: 'Product version mismatch with UpgradeRegistry',
+          provided_version: input.product_version,
+          registry_version: registryVersion
+        },
+        { status: 400 }
+      );
+    }
+
+    // From this point on, use version from UpgradeRegistry as source of truth
+    const productVersion = registryVersion;
+
+    // Build structured verification artifact content (used for summary only; canonical writer will own persistence)
+    console.log('[UpgradeFinalizer] Building verification artifact payload for canonical writer...');
+
+    const artifactName = `Nightwatch_VerificationRecord_${sanitizeForFilename(input.title)}_${productVersion}_${input.upgrade_id}_${timestamp.split('T')[0]}`;
 
     const validation = input.validation_results || {};
     const impact = input.system_impact || {};
@@ -75,7 +107,7 @@ Deno.serve(async (req) => {
       upgrade_metadata: {
         upgrade_id: input.upgrade_id,
         prompt_id: input.prompt_id,
-        product_version: input.product_version,
+        product_version: productVersion,
         timestamp: timestamp,
         actor: user.email,
         actor_role: user.role
@@ -120,123 +152,65 @@ Deno.serve(async (req) => {
       architectural_compliance: input.architectural_compliance || {}
     };
 
-    // PRIMARY WRITE: Create PublishedOutput verification record
-    console.log('[UpgradeFinalizer] Writing verification artifact to PublishedOutput...');
+    // PRIMARY WRITE: Route verification artifact creation through canonical writer
+    console.log('[UpgradeFinalizer] Invoking canonical verification artifact writer (createVerificationArtifact)...');
 
-    const artifact = await base44.entities.PublishedOutput.create({
-      outputName: artifactName,
-      classification: 'verification_record',
-      subtype: input.subtype || 'upgrade_verification',
-      is_runnable: false,
-      is_user_visible: false,
-      display_zone: 'internal_only',
-      source_module: input.upgrade_id,
-      source_event_type: 'verification_complete',
-      product_version: input.product_version,
+    const canonicalPayload = {
       upgrade_id: input.upgrade_id,
-      status: 'published',
-      published_at: timestamp,
-      content: JSON.stringify(verificationContent),
-      summary: input.summary || `${input.title}: ${status}`,
-      metadata: JSON.stringify({
-        prompt_id: input.prompt_id,
-        generated_by: 'UpgradeFinalizer',
-        engine_version: '2.0.0'
-      })
-    });
-
-    console.log(`[UpgradeFinalizer] Verification artifact created: ${artifact.id}`);
-
-    // POST-WRITE VERIFICATION: Ensure artifact is persisted and visible
-    console.log('[UpgradeFinalizer] Performing post-write verification...');
-
-    const verificationChecks = {
-      artifact_exists: false,
-      classification_correct: false,
-      upgrade_id_matches: false,
-      changelog_visible: false,
-      content_readable: false
+      prompt_id: input.prompt_id,
+      product_version: productVersion,
+      title: input.title,
+      description: input.description,
+      purpose: input.purpose || input.description,
+      components_modified: input.components_modified || [],
+      validation_results: validation,
+      system_impact: impact,
+      known_issues: issues,
+      delivery_gate_results: input.delivery_gate_results || {},
+      test_results: input.test_results || []
     };
 
+    let canonicalResponse;
     try {
-      // Check 1: Artifact exists in storage
-      const readBack = await base44.entities.PublishedOutput.filter({ id: artifact.id });
-      if (readBack && readBack.length === 1) {
-        verificationChecks.artifact_exists = true;
-        console.log('[UpgradeFinalizer] ✓ Artifact exists in storage');
-
-        const retrieved = readBack[0];
-
-        // Check 2: Classification correct
-        if (retrieved.classification === 'verification_record') {
-          verificationChecks.classification_correct = true;
-          console.log('[UpgradeFinalizer] ✓ Classification = verification_record');
-        }
-
-        // Check 3: Upgrade ID matches
-        if (retrieved.upgrade_id === input.upgrade_id) {
-          verificationChecks.upgrade_id_matches = true;
-          console.log('[UpgradeFinalizer] ✓ Upgrade ID matches');
-        }
-
-        // Check 4: Content readable
-        if (retrieved.content) {
-          try {
-            JSON.parse(retrieved.content);
-            verificationChecks.content_readable = true;
-            console.log('[UpgradeFinalizer] ✓ Content is valid JSON');
-          } catch (e) {
-            console.warn('[UpgradeFinalizer] ✗ Content is not valid JSON');
-          }
-        }
-      } else {
-        console.error('[UpgradeFinalizer] ✗ Artifact not found in storage');
-      }
-
-      // Check 5: ChangeLog visibility (query same as ChangeLog page)
-      const changelogQuery = await base44.entities.PublishedOutput.filter({
-        status: 'published',
-        classification: 'verification_record',
-        upgrade_id: input.upgrade_id
-      });
-
-      if (changelogQuery.find(r => r.id === artifact.id)) {
-        verificationChecks.changelog_visible = true;
-        console.log('[UpgradeFinalizer] ✓ Artifact visible in ChangeLog query');
-      } else {
-        console.warn('[UpgradeFinalizer] ✗ Artifact not visible in ChangeLog query');
-      }
-
-    } catch (verifyError) {
-      console.error('[UpgradeFinalizer] Post-write verification error:', verifyError);
+      canonicalResponse = await base44.functions.invoke('createVerificationArtifact', canonicalPayload as any);
+    } catch (err) {
+      console.error('[UpgradeFinalizer] Error invoking createVerificationArtifact:', err);
+      return Response.json(
+        {
+          success: false,
+          finalization_status: 'verification_failed',
+          error: 'Canonical verification artifact writer invocation failed',
+          canonical_writer_error: (err as Error).message
+        },
+        { status: 500 }
+      );
     }
 
-    // Evaluate verification results
-    const allChecksPassed = Object.values(verificationChecks).every(v => v === true);
-
-    if (!allChecksPassed) {
-      console.warn('[UpgradeFinalizer] Some verification checks failed:', verificationChecks);
-      return Response.json({
-        success: false,
-        finalization_status: 'verification_failed',
-        artifact_id: artifact.id,
-        artifact_name: artifactName,
-        verification_checks: verificationChecks,
-        message: 'Artifact created but post-write verification failed',
-        error: 'Upgrade completion blocked - verification checks did not pass'
-      }, { status: 500 });
+    if (!canonicalResponse?.data?.success) {
+      console.error('[UpgradeFinalizer] Canonical writer returned failure:', canonicalResponse?.data);
+      return Response.json(
+        {
+          success: false,
+          finalization_status: 'verification_failed',
+          error: 'Canonical verification artifact writer reported failure',
+          canonical_writer_response: canonicalResponse?.data
+        },
+        { status: 500 }
+      );
     }
 
-    console.log('[UpgradeFinalizer] ✓ All post-write verification checks passed');
+    console.log('[UpgradeFinalizer] Canonical verification artifact created successfully');
 
-    // Success: all checks passed
+    const artifactId = canonicalResponse.data.artifact_id;
+
+    // Success: canonical writer has already enforced ChangeLog visibility and validation
     return Response.json({
       success: true,
       finalization_status: 'complete',
-      artifact_id: artifact.id,
+      artifact_id: artifactId,
       artifact_name: artifactName,
       verification_status: status,
-      verification_checks: verificationChecks,
+      verification_checks: canonicalResponse.data.verification_checks,
       verification_summary: {
         total_records_affected: verificationContent.validation_results.total_records_affected,
         total_files_modified: verificationContent.system_impact.total_files_modified,

@@ -529,7 +529,7 @@ Deno.serve(async (req) => {
 
       const publishedOutput = await base44.asServiceRole.entities.PublishedOutput.create({
         outputName: `Nightwatch Architecture Export`,
-        classification: "verification_record",
+        classification: "system_export",
         subtype: "architecture_export",
         is_runnable: false,
         is_user_visible: false,

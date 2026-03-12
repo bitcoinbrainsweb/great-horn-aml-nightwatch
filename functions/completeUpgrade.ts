@@ -61,69 +61,151 @@ Deno.serve(async (req) => {
     // Invokes createVerificationArtifact with delivery_gate_results and change_summary
     console.log(`[completeUpgrade] Invoking canonical verification artifact writer for ${upgrade_id}`);
     
-    const changelogQuery = await base44.asServiceRole.entities.PublishedOutput.filter({
+    // 2a. Locate existing verification_record artifact (if any)
+    let publishedCandidates = await base44.asServiceRole.entities.PublishedOutput.filter({
       upgrade_id,
       classification: 'verification_record',
       status: 'published'
     });
-    
-    let published;
-    
-    if (changelogQuery.length > 0) {
-      // Artifact already exists - completion allowed
-      console.log(`[completeUpgrade] Verification artifact found for ${upgrade_id}`);
-      published = changelogQuery[0];
-    } else {
-      // Artifact missing - BLOCK COMPLETION
-      console.error(`[completeUpgrade] CRITICAL: No verification artifact found for ${upgrade_id}. Completion blocked.`);
-      
-      // Log the blocking event
-      await base44.asServiceRole.entities.UpgradeAuditLog.create({
-        upgrade_id,
-        action: 'completion_blocked_missing_artifact',
-        prior_status: registry.status,
-        new_status: registry.status,
-        triggering_function: 'completeUpgrade',
-        actor: 'system',
-        timestamp: now,
-        context: JSON.stringify({
-          reason: 'Verification artifact not found before completion',
-          expected_classification: 'verification_record',
-          expected_status: 'published'
-        })
-      });
-      
-      return Response.json({
-        success: false,
-        error: 'Completion blocked: Verification artifact missing',
-        upgrade_id,
-        message: 'Upgrade cannot be marked complete without a published verification_record artifact',
-        remediation: 'Use canonical artifact publisher (createVerificationArtifact) to generate report before completion'
-      }, { status: 409 });
-    }
 
-    // 3. GATE: Verify artifact is persisted and valid before marking complete
-    const artifactVerification = {
-      artifact_exists: !!published,
-      classification_correct: published?.classification === 'verification_record',
-      status_published: published?.status === 'published',
-      content_present: !!published?.content && published.content.length > 0,
-      is_valid_json: false
-    };
-    
-    if (artifactVerification.content_present) {
+    let published = publishedCandidates[0] || null;
+
+    // Helper to perform canonical gating checks on a candidate artifact
+    const validateCanonicalArtifact = (artifact: any) => {
+      if (!artifact) {
+        return { ok: false, reason: 'missing_artifact' };
+      }
+
+      let content: any;
+      let metadata: any;
+
       try {
-        JSON.parse(published.content);
-        artifactVerification.is_valid_json = true;
-      } catch (e) {
-        artifactVerification.is_valid_json = false;
+        content = artifact.content ? JSON.parse(artifact.content) : {};
+      } catch {
+        return { ok: false, reason: 'invalid_json' };
+      }
+
+      try {
+        metadata = artifact.metadata ? JSON.parse(artifact.metadata) : {};
+      } catch {
+        metadata = {};
+      }
+
+      const deliveryResultsRaw = content.delivery_gate_results;
+      let deliveryResults: any = deliveryResultsRaw;
+      if (typeof deliveryResultsRaw === 'string') {
+        try {
+          deliveryResults = JSON.parse(deliveryResultsRaw);
+        } catch {
+          deliveryResults = {};
+        }
+      }
+
+      const hasDeliveryResults =
+        deliveryResults && typeof deliveryResults === 'object' && Object.keys(deliveryResults).length > 0;
+
+      const isCanonicalWriter = metadata.generated_by === 'CanonicalVerificationWriter';
+      const classificationCorrect = artifact.classification === 'verification_record';
+      const statusPublished = artifact.status === 'published';
+      const versionMatches = artifact.product_version === registry.product_version;
+
+      const ok =
+        classificationCorrect &&
+        statusPublished &&
+        isCanonicalWriter &&
+        hasDeliveryResults &&
+        versionMatches;
+
+      return {
+        ok,
+        reason: ok ? null : 'failed_checks',
+        details: {
+          classification_correct: classificationCorrect,
+          status_published: statusPublished,
+          generated_by: metadata.generated_by,
+          has_delivery_gate_results: hasDeliveryResults,
+          product_version_matches_registry: versionMatches
+        }
+      };
+    };
+
+    // 2b. If no valid canonical artifact exists, invoke createVerificationArtifact using UpgradeRegistry data
+    let validation = validateCanonicalArtifact(published);
+    if (!validation.ok) {
+      console.log(
+        `[completeUpgrade] No valid canonical verification artifact found for ${upgrade_id} (reason=${validation.reason}). Invoking createVerificationArtifact.`
+      );
+
+      // Build payload for canonical writer using registry + delivery gate results
+      const canonicalPayload = {
+        upgrade_id,
+        prompt_id: `${upgrade_id}-PROMPT-COMPLETE`,
+        product_version: registry.product_version,
+        title: registry.title || upgrade_id,
+        description: registry.description || `Upgrade ${upgrade_id} completion`,
+        purpose: registry.description || `Completion of upgrade ${upgrade_id}`,
+        delivery_gate_results: results,
+        // Optional fields populated as empty structures; canonical writer will derive verification_status
+        components_modified: [],
+        validation_results: undefined,
+        system_impact: undefined,
+        known_issues: undefined,
+        test_results: []
+      };
+
+      try {
+        const canonicalResponse = await base44.functions.invoke('createVerificationArtifact', canonicalPayload as any);
+        if (!canonicalResponse?.data?.success) {
+          console.error(
+            `[completeUpgrade] Canonical writer invocation failed for ${upgrade_id}`,
+            canonicalResponse?.data
+          );
+          return Response.json(
+            {
+              success: false,
+              error: 'Completion blocked: Canonical verification artifact writer failed',
+              upgrade_id,
+              message:
+                'Upgrade cannot be marked complete without a successful canonical verification_record artifact',
+              remediation: 'Inspect createVerificationArtifact response and fix underlying validation errors',
+              canonical_writer_response: canonicalResponse?.data
+            },
+            { status: 500 }
+          );
+        }
+
+        // Reload canonical artifact after successful write
+        publishedCandidates = await base44.asServiceRole.entities.PublishedOutput.filter({
+          upgrade_id,
+          classification: 'verification_record',
+          status: 'published'
+        });
+        published = publishedCandidates[0] || null;
+        validation = validateCanonicalArtifact(published);
+      } catch (err) {
+        console.error(`[completeUpgrade] Error invoking canonical writer for ${upgrade_id}`, err);
+        return Response.json(
+          {
+            success: false,
+            error: 'Completion blocked: Error invoking canonical verification artifact writer',
+            upgrade_id,
+            message:
+              'Upgrade cannot be marked complete without a successful canonical verification_record artifact',
+            remediation: 'Retry createVerificationArtifact or contact Technical Admin',
+            canonical_writer_error: (err as Error).message
+          },
+          { status: 500 }
+        );
       }
     }
-    
-    const allArtifactChecksPassed = Object.values(artifactVerification).every(v => v === true);
-    if (!allArtifactChecksPassed) {
-      console.error(`[completeUpgrade] GATE FAILED: Artifact verification checks failed for ${upgrade_id}`, artifactVerification);
-      
+
+    // 3. Final gating: must have a valid canonical artifact or completion is blocked
+    if (!validation.ok || !published) {
+      console.error(
+        `[completeUpgrade] GATE FAILED: Canonical verification artifact validation failed for ${upgrade_id}`,
+        validation
+      );
+
       await base44.asServiceRole.entities.UpgradeAuditLog.create({
         upgrade_id,
         action: 'completion_blocked_artifact_verification_failed',
@@ -133,19 +215,24 @@ Deno.serve(async (req) => {
         actor: 'system',
         timestamp: now,
         context: JSON.stringify({
-          reason: 'Artifact verification gate failed',
-          checks: artifactVerification
+          reason: 'Canonical artifact verification gate failed',
+          checks: validation.details
         })
       });
-      
-      return Response.json({
-        success: false,
-        error: 'Completion blocked: Artifact verification gate failed',
-        upgrade_id,
-        verification_checks: artifactVerification,
-        message: 'Artifact persisted but does not meet publication standards',
-        remediation: 'Verify artifact content, ensure it is valid JSON, and has status=published'
-      }, { status: 409 });
+
+      return Response.json(
+        {
+          success: false,
+          error: 'Completion blocked: Canonical artifact verification gate failed',
+          upgrade_id,
+          verification_checks: validation.details,
+          message:
+            'Upgrade cannot be marked complete until a canonical verification_record artifact passes all gating checks',
+          remediation:
+            'Verify canonical artifact content, ensure metadata.generated_by="CanonicalVerificationWriter", product_version matches UpgradeRegistry, and delivery_gate_results are present'
+        },
+        { status: 409 }
+      );
     }
 
     // 4. Update registry to completed (only after artifact gating passes)
