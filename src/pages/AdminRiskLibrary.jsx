@@ -11,6 +11,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import PageHeader from '../components/ui/PageHeader';
 import { StatusBadge } from '../components/ui/RiskBadge';
+import CoverageBadge from '../components/coverage/CoverageBadge';
 
 const CATEGORIES = ['Products', 'Delivery Channels', 'Clients', 'Geography', 'Technology', 'Sanctions', 'Third Parties', 'Operational'];
 
@@ -23,9 +24,32 @@ export default function AdminRiskLibrary() {
   const [form, setForm] = useState({});
   const [editId, setEditId] = useState(null);
   const [saving, setSaving] = useState(false);
+  const [coverage, setCoverage] = useState({});
 
   useEffect(() => { load(); }, []);
-  async function load() { setRisks(await base44.entities.RiskLibrary.list('-risk_category', 200)); setLoading(false); }
+  async function load() { 
+    const riskList = await base44.entities.RiskLibrary.list('-risk_category', 200);
+    setRisks(riskList);
+    // Pre-calculate coverage for all risks
+    const coverageMap = {};
+    for (const risk of riskList) {
+      if (risk.linked_control_ids && risk.linked_control_ids.length > 0) {
+        try {
+          const response = await base44.functions.invoke('calculateRiskCoverage', {
+            risk_id: risk.id,
+            linked_control_ids: risk.linked_control_ids
+          });
+          coverageMap[risk.id] = response.data.coverage_status;
+        } catch (error) {
+          coverageMap[risk.id] = 'NOT_TESTED';
+        }
+      } else {
+        coverageMap[risk.id] = 'UNCONTROLLED';
+      }
+    }
+    setCoverage(coverageMap);
+    setLoading(false);
+  }
 
   async function handleSave(e) {
     e.preventDefault();
@@ -73,49 +97,53 @@ export default function AdminRiskLibrary() {
       </div>
 
       <div className="bg-white rounded-xl border border-slate-200/60 overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead><tr className="border-b border-slate-100 bg-slate-50/50">
-              <th className="text-left px-5 py-3 text-xs font-semibold text-slate-500 uppercase">Risk</th>
-              <th className="text-left px-5 py-3 text-xs font-semibold text-slate-500 uppercase hidden md:table-cell">Category</th>
-              <th className="text-left px-5 py-3 text-xs font-semibold text-slate-500 uppercase hidden lg:table-cell">Library Source</th>
-              <th className="text-left px-5 py-3 text-xs font-semibold text-slate-500 uppercase">Status</th>
-              <th className="text-left px-5 py-3 text-xs font-semibold text-slate-500 uppercase w-20">Actions</th>
-            </tr></thead>
-            <tbody className="divide-y divide-slate-100">
-              {filtered.map(r => (
-                <tr key={r.id} className="hover:bg-slate-50/50">
-                  <td className="px-5 py-3">
-                    <p className="font-medium text-slate-900">{r.risk_name}</p>
-                    <p className="text-xs text-slate-500 truncate max-w-md">{r.description}</p>
-                  </td>
-                  <td className="px-5 py-3 text-slate-600 hidden md:table-cell">{r.risk_category}</td>
-                  <td className="px-5 py-3 hidden lg:table-cell">
-                    {r.library_source === 'amanda_framework' ? (
-                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold bg-indigo-100 text-indigo-700 border border-indigo-200">
-                        <BookOpen className="w-3 h-3" /> Amanda Framework
-                      </span>
-                    ) : r.library_source === 'legacy' ? (
-                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold bg-amber-100 text-amber-700 border border-amber-200">Legacy</span>
-                    ) : r.library_source === 'proposed' ? (
-                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold bg-purple-100 text-purple-700 border border-purple-200">Proposed</span>
-                    ) : (
-                      <span className="text-xs text-slate-400">{r.source || '—'}</span>
-                    )}
-                    {r.status === 'needs_review' && (
-                      <span className="ml-1 inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold bg-amber-50 text-amber-700 border border-amber-200">⚑ Needs Review</span>
-                    )}
-                  </td>
-                  <td className="px-5 py-3"><StatusBadge status={r.status} /></td>
-                  <td className="px-5 py-3">
-                    <Button variant="ghost" size="icon" onClick={() => openEdit(r)} className="h-7 w-7"><Edit2 className="w-3.5 h-3.5" /></Button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
+         <div className="overflow-x-auto">
+           <table className="w-full text-sm">
+             <thead><tr className="border-b border-slate-100 bg-slate-50/50">
+               <th className="text-left px-5 py-3 text-xs font-semibold text-slate-500 uppercase">Risk</th>
+               <th className="text-left px-5 py-3 text-xs font-semibold text-slate-500 uppercase hidden md:table-cell">Category</th>
+               <th className="text-left px-5 py-3 text-xs font-semibold text-slate-500 uppercase">Coverage</th>
+               <th className="text-left px-5 py-3 text-xs font-semibold text-slate-500 uppercase hidden lg:table-cell">Library Source</th>
+               <th className="text-left px-5 py-3 text-xs font-semibold text-slate-500 uppercase">Status</th>
+               <th className="text-left px-5 py-3 text-xs font-semibold text-slate-500 uppercase w-20">Actions</th>
+             </tr></thead>
+             <tbody className="divide-y divide-slate-100">
+               {filtered.map(r => (
+                 <tr key={r.id} className="hover:bg-slate-50/50">
+                   <td className="px-5 py-3">
+                     <p className="font-medium text-slate-900">{r.risk_name}</p>
+                     <p className="text-xs text-slate-500 truncate max-w-md">{r.description}</p>
+                   </td>
+                   <td className="px-5 py-3 text-slate-600 hidden md:table-cell">{r.risk_category}</td>
+                   <td className="px-5 py-3">
+                     <CoverageBadge status={coverage[r.id] || 'NOT_TESTED'} />
+                   </td>
+                   <td className="px-5 py-3 hidden lg:table-cell">
+                     {r.library_source === 'amanda_framework' ? (
+                       <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold bg-indigo-100 text-indigo-700 border border-indigo-200">
+                         <BookOpen className="w-3 h-3" /> Amanda Framework
+                       </span>
+                     ) : r.library_source === 'legacy' ? (
+                       <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold bg-amber-100 text-amber-700 border border-amber-200">Legacy</span>
+                     ) : r.library_source === 'proposed' ? (
+                       <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold bg-purple-100 text-purple-700 border border-purple-200">Proposed</span>
+                     ) : (
+                       <span className="text-xs text-slate-400">{r.source || '—'}</span>
+                     )}
+                     {r.status === 'needs_review' && (
+                       <span className="ml-1 inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold bg-amber-50 text-amber-700 border border-amber-200">⚑ Needs Review</span>
+                     )}
+                   </td>
+                   <td className="px-5 py-3"><StatusBadge status={r.status} /></td>
+                   <td className="px-5 py-3">
+                     <Button variant="ghost" size="icon" onClick={() => openEdit(r)} className="h-7 w-7"><Edit2 className="w-3.5 h-3.5" /></Button>
+                   </td>
+                 </tr>
+               ))}
+             </tbody>
+           </table>
+         </div>
+       </div>
 
       <Dialog open={showForm} onOpenChange={setShowForm}>
         <DialogContent className="max-w-lg">
