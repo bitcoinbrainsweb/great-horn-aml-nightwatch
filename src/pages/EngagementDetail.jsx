@@ -12,6 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Textarea } from '@/components/ui/textarea';
 import { StatusBadge, RiskBadge, PriorityBadge } from '../components/ui/RiskBadge';
 import EmptyState from '../components/ui/EmptyState';
+import StickyHeader from '../components/detail/StickyHeader';
 import IntakeTab from '../components/engagement/IntakeTab';
 import RisksTab from '../components/engagement/RisksTab';
 import ControlsTab from '../components/engagement/ControlsTab';
@@ -192,6 +193,14 @@ export default function EngagementDetail() {
 
   return (
     <div>
+      {/* Sticky Header */}
+      <StickyHeader 
+        title={engagement.client_name}
+        status={engagement.status}
+        subtitle={engagement.engagement_type}
+        context={[engagement.methodology_name, `Risk: ${engagement.overall_risk_rating}`]}
+      />
+
       {/* Header */}
       <div className="flex items-center gap-3 mb-4">
         <Link to={createPageUrl('Engagements')} className="p-2 rounded-lg hover:bg-slate-100 text-slate-500 transition-colors">
