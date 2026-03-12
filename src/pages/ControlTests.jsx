@@ -24,7 +24,7 @@ export default function ControlTests() {
   const [testFormData, setTestFormData] = useState({
     control_library_id: '',
     test_cycle_id: '',
-    status: 'Draft',
+    status: 'Planned',
     effectiveness_rating: '',
     prepared_by: '',
     reviewed_by: '',
@@ -94,7 +94,7 @@ export default function ControlTests() {
       setTestFormData({
         control_library_id: '',
         test_cycle_id: '',
-        status: 'Draft',
+        status: 'Planned',
         effectiveness_rating: '',
         prepared_by: '',
         reviewed_by: '',
@@ -126,8 +126,14 @@ export default function ControlTests() {
     try {
       // Validate test cycle status
       const cycle = cycles.find(c => c.id === testFormData.test_cycle_id);
-      if (cycle && (cycle.status === 'Complete' || cycle.status === 'Cancelled')) {
-        alert(`Cannot create or update tests for a ${cycle.status} test cycle. Please select an active cycle.`);
+      if (cycle && cycle.status !== 'Active' && cycle.status !== 'Draft') {
+        alert(`Cannot create or update tests for a ${cycle.status} test cycle. Please select an Active or Draft cycle.`);
+        return;
+      }
+
+      // Validate state transitions
+      if (editingTest && editingTest.status === 'Completed') {
+        alert('Cannot modify Completed tests');
         return;
       }
 
@@ -194,10 +200,9 @@ export default function ControlTests() {
   }
 
   const statusColors = {
-    'Draft': 'bg-slate-100 text-slate-600',
+    'Planned': 'bg-slate-100 text-slate-600',
     'In Progress': 'bg-blue-100 text-blue-800',
-    'Complete': 'bg-amber-100 text-amber-800',
-    'Reviewed': 'bg-green-100 text-green-800'
+    'Completed': 'bg-green-100 text-green-800'
   };
 
   const ratingColors = {
@@ -249,7 +254,12 @@ export default function ControlTests() {
                       <Paperclip className="w-3 h-3 mr-1" />
                       Evidence
                     </Button>
-                    <Button variant="ghost" size="sm" onClick={() => openTestDialog(t)}>
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      onClick={() => openTestDialog(t)}
+                      disabled={t.status === 'Completed'}
+                    >
                       <Pencil className="w-3 h-3" />
                     </Button>
                   </div>
@@ -299,10 +309,9 @@ export default function ControlTests() {
                 <Select value={testFormData.status} onValueChange={v => setTestFormData({...testFormData, status: v})}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="Draft">Draft</SelectItem>
+                    <SelectItem value="Planned">Planned</SelectItem>
                     <SelectItem value="In Progress">In Progress</SelectItem>
-                    <SelectItem value="Complete">Complete</SelectItem>
-                    <SelectItem value="Reviewed">Reviewed</SelectItem>
+                    <SelectItem value="Completed">Completed</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
