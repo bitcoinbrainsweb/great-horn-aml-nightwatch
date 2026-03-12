@@ -223,6 +223,8 @@ Deno.serve(async (req) => {
 
     return Response.json({
       status: 'success',
+      canonical_writer: 'exportArchitectureWithFiles',
+      classification: 'system_export',
       artifact: {
         id: artifactRecord.id,
         title: artifactRecord.outputName,
@@ -231,7 +233,8 @@ Deno.serve(async (req) => {
         upgrade_id: artifactRecord.upgrade_id
       },
       files_embedded: 8,
-      message: 'Architecture export successfully generated with all files embedded in metadata'
+      file_manifest_keys: Object.keys(fileManifest),
+      message: 'NW-UPGRADE-031: Canonical system_export artifact created with all 8 files embedded in metadata.file_manifest. Visible in ChangeLog → System Artifacts tab.'
     });
 
   } catch (error) {
