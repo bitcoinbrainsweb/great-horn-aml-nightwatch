@@ -173,6 +173,36 @@ export default function VerificationRecordCard({ record }) {
             </div>
           )}
 
+          {/* Attached Files Section */}
+          {metadata.file_manifest && Object.keys(metadata.file_manifest).length > 0 && (
+            <div>
+              <h4 className="font-semibold text-slate-900 mb-2">Attached Files</h4>
+              <div className="space-y-2">
+                {Object.entries(metadata.file_manifest).map(([key, file]) => (
+                  <div key={key} className="flex items-center justify-between p-2 bg-white border border-slate-200 rounded text-xs">
+                    <div>
+                      <p className="font-mono text-slate-700">{file.filename}</p>
+                      {file.count !== undefined && <p className="text-slate-500">{file.count} items</p>}
+                      {file.size_kb !== undefined && <p className="text-slate-500">{file.size_kb} KB</p>}
+                    </div>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        downloadFile(file.filename, file.content);
+                      }}
+                      className="text-blue-600 hover:text-blue-700 flex-shrink-0"
+                      title="Download file"
+                    >
+                      <Download className="w-4 h-4" />
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
           {/* Metadata */}
           <div className="text-xs text-slate-500 pt-2 border-t border-slate-200 space-y-1">
             <p><strong>Source Module:</strong> {record.source_module}</p>
@@ -191,43 +221,55 @@ export default function VerificationRecordCard({ record }) {
   );
 }
 
+const downloadFile = (filename, content) => {
+  const blob = new Blob([content], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+};
+
 function generateMarkdown(record, content, passedTests, totalTests) {
-  const lines = [
-    `# ${content.title || record.outputName}`,
-    '',
-    `**Upgrade ID:** ${record.upgrade_id}`,
-    `**Product Version:** ${record.product_version}`,
-    `**Published:** ${record.published_at ? format(new Date(record.published_at), 'MMM d, yyyy HH:mm') : 'N/A'}`,
-    '',
-    `## Status`,
-    '',
-    `**Delivery Gates:** ${passedTests}/${totalTests} passed`,
-    '',
-  ];
+   const lines = [
+     `# ${content.title || record.outputName}`,
+     '',
+     `**Upgrade ID:** ${record.upgrade_id}`,
+     `**Product Version:** ${record.product_version}`,
+     `**Published:** ${record.published_at ? format(new Date(record.published_at), 'MMM d, yyyy HH:mm') : 'N/A'}`,
+     '',
+     `## Status`,
+     '',
+     `**Delivery Gates:** ${passedTests}/${totalTests} passed`,
+     '',
+   ];
 
-  if (content.description) {
-    lines.push('## Description', '', content.description, '');
-  }
+   if (content.description) {
+     lines.push('## Description', '', content.description, '');
+   }
 
-  const gateResults = content.delivery_gate_results || {};
-  if (Object.keys(gateResults).length > 0) {
-    lines.push('## Delivery Gate Results', '');
-    Object.entries(gateResults).forEach(([testKey, test]) => {
-      const status = test.status === 'pass' ? '✓' : '✗';
-      lines.push(`- **${status} ${testKey.replace(/_/g, ' ')}**: ${test.evidence || 'N/A'}`);
-    });
-    lines.push('');
-  }
+   const gateResults = content.delivery_gate_results || {};
+   if (Object.keys(gateResults).length > 0) {
+     lines.push('## Delivery Gate Results', '');
+     Object.entries(gateResults).forEach(([testKey, test]) => {
+       const status = test.status === 'pass' ? '✓' : '✗';
+       lines.push(`- **${status} ${testKey.replace(/_/g, ' ')}**: ${test.evidence || 'N/A'}`);
+     });
+     lines.push('');
+   }
 
-  if (content.change_summary && Object.keys(content.change_summary).length > 0) {
-    lines.push('## Changes Summary', '');
-    Object.entries(content.change_summary).forEach(([key, value]) => {
-      lines.push(`- **${key}:** ${value}`);
-    });
-    lines.push('');
-  }
+   if (content.change_summary && Object.keys(content.change_summary).length > 0) {
+     lines.push('## Changes Summary', '');
+     Object.entries(content.change_summary).forEach(([key, value]) => {
+       lines.push(`- **${key}:** ${value}`);
+     });
+     lines.push('');
+   }
 
-  lines.push('---', `*Generated: ${new Date().toISOString()}*`);
+   lines.push('---', `*Generated: ${new Date().toISOString()}*`);
 
-  return lines.join('\n');
+   return lines.join('\n');
 }
