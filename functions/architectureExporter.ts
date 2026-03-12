@@ -8,8 +8,12 @@ Deno.serve(async (req) => {
     const base44 = createClientFromRequest(req);
     const user = await base44.auth.me();
     
-    if (!user || user.role !== 'admin') {
-      return Response.json({ error: 'Admin access required' }, { status: 403 });
+    // Admin-only access: Technical Admin role required for external audit exports
+    if (!user) {
+      return Response.json({ error: 'Authentication required' }, { status: 401 });
+    }
+    if (user.role !== 'admin') {
+      return Response.json({ error: 'Admin access required for architecture export' }, { status: 403 });
     }
 
     const exportFormat = new URL(req.url).searchParams.get('format') || 'full';
@@ -338,37 +342,39 @@ Deno.serve(async (req) => {
 
     // PHASE 6: Page Navigation Export
     const pages = [
-      { page_name: "Dashboard", route: "/Dashboard", visible_in_navigation: true, section: "MAIN", admin_only: false },
-      { page_name: "Clients", route: "/Clients", visible_in_navigation: true, section: "WORK", admin_only: false },
-      { page_name: "ClientDetail", route: "/ClientDetail", visible_in_navigation: false, section: "WORK", admin_only: false },
-      { page_name: "Engagements", route: "/Engagements", visible_in_navigation: true, section: "WORK", admin_only: false },
-      { page_name: "EngagementDetail", route: "/EngagementDetail", visible_in_navigation: false, section: "WORK", admin_only: false },
-      { page_name: "Tasks", route: "/Tasks", visible_in_navigation: true, section: "WORK", admin_only: false },
-      { page_name: "Reports", route: "/Reports", visible_in_navigation: true, section: "WORK", admin_only: false },
-      { page_name: "TestCycles", route: "/TestCycles", visible_in_navigation: true, section: "TESTING", admin_only: false },
-      { page_name: "ControlTests", route: "/ControlTests", visible_in_navigation: true, section: "TESTING", admin_only: false },
-      { page_name: "Findings", route: "/Findings", visible_in_navigation: true, section: "ISSUES", admin_only: false },
-      { page_name: "RemediationActions", route: "/RemediationActions", visible_in_navigation: true, section: "ISSUES", admin_only: false },
-      { page_name: "ReviewerDashboard", route: "/ReviewerDashboard", visible_in_navigation: true, section: "MAIN", admin_only: false },
-      { page_name: "Admin", route: "/Admin", visible_in_navigation: true, section: "GOVERNANCE", admin_only: true },
-      { page_name: "AdminRiskLibrary", route: "/AdminRiskLibrary", visible_in_navigation: true, section: "GOVERNANCE", admin_only: true },
-      { page_name: "AdminControlLibrary", route: "/AdminControlLibrary", visible_in_navigation: true, section: "GOVERNANCE", admin_only: true },
-      { page_name: "AdminMethodologies", route: "/AdminMethodologies", visible_in_navigation: true, section: "GOVERNANCE", admin_only: true },
-      { page_name: "AdminNarratives", route: "/AdminNarratives", visible_in_navigation: true, section: "GOVERNANCE", admin_only: true },
-      { page_name: "AdminUsers", route: "/AdminUsers", visible_in_navigation: true, section: "GOVERNANCE", admin_only: true },
-      { page_name: "AdminInvitations", route: "/AdminInvitations", visible_in_navigation: true, section: "GOVERNANCE", admin_only: true },
-      { page_name: "AdminAuditLog", route: "/AdminAuditLog", visible_in_navigation: true, section: "GOVERNANCE", admin_only: true },
-      { page_name: "AdminJurisdictions", route: "/AdminJurisdictions", visible_in_navigation: true, section: "GOVERNANCE", admin_only: true },
-      { page_name: "AdminIndustries", route: "/AdminIndustries", visible_in_navigation: true, section: "GOVERNANCE", admin_only: true },
-      { page_name: "AdminTestScenarios", route: "/AdminTestScenarios", visible_in_navigation: true, section: "GOVERNANCE", admin_only: true },
-      { page_name: "AdminRiskProposals", route: "/AdminRiskProposals", visible_in_navigation: true, section: "GOVERNANCE", admin_only: true },
-      { page_name: "LibraryReviewDashboard", route: "/LibraryReviewDashboard", visible_in_navigation: true, section: "GOVERNANCE", admin_only: true },
-      { page_name: "AdminGovernance", route: "/AdminGovernance", visible_in_navigation: true, section: "GOVERNANCE", admin_only: true },
-      { page_name: "ChangeLog", route: "/ChangeLog", visible_in_navigation: true, section: "GOVERNANCE", admin_only: true },
-      { page_name: "ArtifactDiagnostics", route: "/ArtifactDiagnostics", visible_in_navigation: false, section: "GOVERNANCE", admin_only: true },
-      { page_name: "Feedback", route: "/Feedback", visible_in_navigation: true, section: "MAIN", admin_only: false },
-      { page_name: "Help", route: "/Help", visible_in_navigation: true, section: "MAIN", admin_only: false }
+    { page_name: "Dashboard", route: "/Dashboard", visible_in_navigation: true, section: "MAIN", admin_only: false },
+    { page_name: "Clients", route: "/Clients", visible_in_navigation: true, section: "WORK", admin_only: false },
+    { page_name: "ClientDetail", route: "/ClientDetail", visible_in_navigation: false, section: "WORK", admin_only: false },
+    { page_name: "Engagements", route: "/Engagements", visible_in_navigation: true, section: "WORK", admin_only: false },
+    { page_name: "EngagementDetail", route: "/EngagementDetail", visible_in_navigation: false, section: "WORK", admin_only: false },
+    { page_name: "Tasks", route: "/Tasks", visible_in_navigation: true, section: "WORK", admin_only: false },
+    { page_name: "Reports", route: "/Reports", visible_in_navigation: true, section: "WORK", admin_only: false },
+    { page_name: "TestCycles", route: "/TestCycles", visible_in_navigation: true, section: "TESTING", admin_only: false },
+    { page_name: "ControlTests", route: "/ControlTests", visible_in_navigation: true, section: "TESTING", admin_only: false },
+    { page_name: "Findings", route: "/Findings", visible_in_navigation: true, section: "ISSUES", admin_only: false },
+    { page_name: "RemediationActions", route: "/RemediationActions", visible_in_navigation: true, section: "ISSUES", admin_only: false },
+    { page_name: "ReviewerDashboard", route: "/ReviewerDashboard", visible_in_navigation: true, section: "MAIN", admin_only: false },
+    { page_name: "Admin", route: "/Admin", visible_in_navigation: true, section: "GOVERNANCE", admin_only: true },
+    { page_name: "AdminRiskLibrary", route: "/AdminRiskLibrary", visible_in_navigation: true, section: "GOVERNANCE", admin_only: true },
+    { page_name: "AdminControlLibrary", route: "/AdminControlLibrary", visible_in_navigation: true, section: "GOVERNANCE", admin_only: true },
+    { page_name: "AdminMethodologies", route: "/AdminMethodologies", visible_in_navigation: true, section: "GOVERNANCE", admin_only: true },
+    { page_name: "AdminNarratives", route: "/AdminNarratives", visible_in_navigation: true, section: "GOVERNANCE", admin_only: true },
+    { page_name: "AdminUsers", route: "/AdminUsers", visible_in_navigation: true, section: "GOVERNANCE", admin_only: true },
+    { page_name: "AdminInvitations", route: "/AdminInvitations", visible_in_navigation: true, section: "GOVERNANCE", admin_only: true },
+    { page_name: "AdminAuditLog", route: "/AdminAuditLog", visible_in_navigation: true, section: "GOVERNANCE", admin_only: true },
+    { page_name: "AdminJurisdictions", route: "/AdminJurisdictions", visible_in_navigation: true, section: "GOVERNANCE", admin_only: true },
+    { page_name: "AdminIndustries", route: "/AdminIndustries", visible_in_navigation: true, section: "GOVERNANCE", admin_only: true },
+    { page_name: "AdminTestScenarios", route: "/AdminTestScenarios", visible_in_navigation: true, section: "GOVERNANCE", admin_only: true },
+    { page_name: "AdminRiskProposals", route: "/AdminRiskProposals", visible_in_navigation: true, section: "GOVERNANCE", admin_only: true },
+    { page_name: "LibraryReviewDashboard", route: "/LibraryReviewDashboard", visible_in_navigation: true, section: "GOVERNANCE", admin_only: true },
+    { page_name: "AdminGovernance", route: "/AdminGovernance", visible_in_navigation: true, section: "GOVERNANCE", admin_only: true },
+    { page_name: "ChangeLog", route: "/ChangeLog", visible_in_navigation: true, section: "GOVERNANCE", admin_only: true },
+    { page_name: "ArtifactDiagnostics", route: "/ArtifactDiagnostics", visible_in_navigation: false, section: "GOVERNANCE", admin_only: true },
+    { page_name: "Feedback", route: "/Feedback", visible_in_navigation: true, section: "MAIN", admin_only: false },
+    { page_name: "Help", route: "/Help", visible_in_navigation: true, section: "MAIN", admin_only: false }
     ];
+
+    // Note: ArchitectureExport is function-only (no page surface)—invoked directly via architectureExporter backend function by Technical Admin
 
     // PHASE 7: Scheduled Jobs Export
     const scheduledJobs = [
