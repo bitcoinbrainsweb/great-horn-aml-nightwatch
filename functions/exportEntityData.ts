@@ -17,6 +17,31 @@ Deno.serve(async (req) => {
 
     // Fetch all records (respecting filters)
     let records = await base44.entities[entity_name].list('-created_date', 1000);
+
+    // Add coverage data for RiskLibrary exports
+    if (entity_name === 'RiskLibrary') {
+      const enhancedRecords = [];
+      for (const risk of records) {
+        let coverage_status = 'UNCONTROLLED';
+        if (risk.linked_control_ids && risk.linked_control_ids.length > 0) {
+          try {
+            const response = await base44.asServiceRole.functions.invoke('calculateRiskCoverage', {
+              risk_id: risk.id,
+              linked_control_ids: risk.linked_control_ids
+            });
+            coverage_status = response.data.coverage_status;
+          } catch (e) {
+            coverage_status = 'NOT_TESTED';
+          }
+        }
+        enhancedRecords.push({
+          ...risk,
+          coverage_status,
+          linked_controls_count: risk.linked_control_ids?.length || 0
+        });
+      }
+      records = enhancedRecords;
+    }
     
     // Apply filters
     if (Object.keys(filters).length > 0) {
