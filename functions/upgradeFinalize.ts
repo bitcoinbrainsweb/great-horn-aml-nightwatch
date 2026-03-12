@@ -147,6 +147,105 @@ Deno.serve(async (req) => {
 
     console.log(`[UpgradeFinalizer] Verification artifact created: ${artifact.id}`);
 
+    // POST-WRITE VERIFICATION: Ensure artifact is persisted and visible
+    console.log('[UpgradeFinalizer] Performing post-write verification...');
+
+    const verificationChecks = {
+      artifact_exists: false,
+      classification_correct: false,
+      upgrade_id_matches: false,
+      changelog_visible: false,
+      content_readable: false
+    };
+
+    try {
+      // Check 1: Artifact exists in storage
+      const readBack = await base44.entities.PublishedOutput.filter({ id: artifact.id });
+      if (readBack && readBack.length === 1) {
+        verificationChecks.artifact_exists = true;
+        console.log('[UpgradeFinalizer] ✓ Artifact exists in storage');
+
+        const retrieved = readBack[0];
+
+        // Check 2: Classification correct
+        if (retrieved.classification === 'verification_record') {
+          verificationChecks.classification_correct = true;
+          console.log('[UpgradeFinalizer] ✓ Classification = verification_record');
+        }
+
+        // Check 3: Upgrade ID matches
+        if (retrieved.upgrade_id === input.upgrade_id) {
+          verificationChecks.upgrade_id_matches = true;
+          console.log('[UpgradeFinalizer] ✓ Upgrade ID matches');
+        }
+
+        // Check 4: Content readable
+        if (retrieved.content) {
+          try {
+            JSON.parse(retrieved.content);
+            verificationChecks.content_readable = true;
+            console.log('[UpgradeFinalizer] ✓ Content is valid JSON');
+          } catch (e) {
+            console.warn('[UpgradeFinalizer] ✗ Content is not valid JSON');
+          }
+        }
+      } else {
+        console.error('[UpgradeFinalizer] ✗ Artifact not found in storage');
+      }
+
+      // Check 5: ChangeLog visibility (query same as ChangeLog page)
+      const changelogQuery = await base44.entities.PublishedOutput.filter({
+        status: 'published',
+        classification: 'verification_record',
+        upgrade_id: input.upgrade_id
+      });
+
+      if (changelogQuery.find(r => r.id === artifact.id)) {
+        verificationChecks.changelog_visible = true;
+        console.log('[UpgradeFinalizer] ✓ Artifact visible in ChangeLog query');
+      } else {
+        console.warn('[UpgradeFinalizer] ✗ Artifact not visible in ChangeLog query');
+      }
+
+    } catch (verifyError) {
+      console.error('[UpgradeFinalizer] Post-write verification error:', verifyError);
+    }
+
+    // Evaluate verification results
+    const allChecksPassed = Object.values(verificationChecks).every(v => v === true);
+
+    if (!allChecksPassed) {
+      console.warn('[UpgradeFinalizer] Some verification checks failed:', verificationChecks);
+      return Response.json({
+        success: false,
+        finalization_status: 'verification_failed',
+        artifact_id: artifact.id,
+        artifact_name: artifactName,
+        verification_checks: verificationChecks,
+        message: 'Artifact created but post-write verification failed',
+        error: 'Upgrade completion blocked - verification checks did not pass'
+      }, { status: 500 });
+    }
+
+    console.log('[UpgradeFinalizer] ✓ All post-write verification checks passed');
+
+    // Success: all checks passed
+    return Response.json({
+      success: true,
+      finalization_status: 'complete',
+      artifact_id: artifact.id,
+      artifact_name: artifactName,
+      verification_status: status,
+      verification_checks: verificationChecks,
+      verification_summary: {
+        total_records_affected: verificationContent.validation_results.total_records_affected,
+        total_files_modified: verificationContent.system_impact.total_files_modified,
+        total_issues: verificationContent.known_issues.total_issues,
+        status: status
+      },
+      message: `Upgrade ${input.upgrade_id} finalized successfully - verification artifact confirmed in ChangeLog`
+    });
+
   } catch (error) {
     console.error('[UpgradeFinalizer] Critical error:', error);
     return Response.json({
