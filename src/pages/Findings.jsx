@@ -1,22 +1,25 @@
 import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
-import { Plus, Pencil, Trash2, AlertCircle } from 'lucide-react';
+import { Plus, Pencil, Trash2, AlertCircle, Download } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { Checkbox } from '@/components/ui/checkbox';
 import PageHeader from '../components/ui/PageHeader';
 import EmptyState from '../components/ui/EmptyState';
 import { Badge } from '@/components/ui/badge';
 import { createPageUrl } from '@/utils';
 import { useNavigate } from 'react-router-dom';
+import BulkActionBar from '@/components/bulk/BulkActionBar';
 
 export default function Findings() {
   const [findings, setFindings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showDialog, setShowDialog] = useState(false);
   const [editing, setEditing] = useState(null);
+  const [selectedIds, setSelectedIds] = useState(new Set());
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -97,14 +100,75 @@ export default function Findings() {
   }
 
   async function handleDelete(id) {
-    if (!confirm('Delete this finding?')) return;
-    try {
-      await base44.entities.Finding.delete(id);
-      loadFindings();
-    } catch (error) {
-      console.error('Error deleting finding:', error);
-    }
-  }
+     if (!confirm('Delete this finding?')) return;
+     try {
+       await base44.entities.Finding.delete(id);
+       loadFindings();
+     } catch (error) {
+       console.error('Error deleting finding:', error);
+     }
+   }
+
+   function toggleSelect(id) {
+     const newSet = new Set(selectedIds);
+     if (newSet.has(id)) {
+       newSet.delete(id);
+     } else {
+       newSet.add(id);
+     }
+     setSelectedIds(newSet);
+   }
+
+   function toggleSelectAll() {
+     if (selectedIds.size === findings.length) {
+       setSelectedIds(new Set());
+     } else {
+       setSelectedIds(new Set(findings.map(f => f.id)));
+     }
+   }
+
+   async function handleBulkAction(action, value) {
+     try {
+       const ids = Array.from(selectedIds);
+       const response = await base44.functions.invoke('bulkUpdateEntities', {
+         entity_name: 'Finding',
+         ids: ids,
+         action: action,
+         value: value
+       });
+       if (response.data.success) {
+         alert(`Updated ${response.data.results.success} findings`);
+         setSelectedIds(new Set());
+         loadFindings();
+       }
+     } catch (error) {
+       console.error('Error:', error);
+       alert('Bulk action failed');
+     }
+   }
+
+   async function handleExport() {
+     try {
+       const response = await base44.functions.invoke('exportEntityData', {
+         entity_name: 'Finding',
+         format: 'csv'
+       });
+       if (response.data.success) {
+         const blob = new Blob([response.data.csv], { type: 'text/csv' });
+         const url = window.URL.createObjectURL(blob);
+         const a = document.createElement('a');
+         a.href = url;
+         a.download = `findings-${new Date().toISOString().split('T')[0]}.csv`;
+         document.body.appendChild(a);
+         a.click();
+         window.URL.revokeObjectURL(url);
+         document.body.removeChild(a);
+       }
+     } catch (error) {
+       console.error('Error:', error);
+       alert('Export failed');
+     }
+   }
 
   const severityColors = {
     'Low': 'bg-blue-100 text-blue-800',
@@ -134,13 +198,26 @@ export default function Findings() {
       </PageHeader>
 
       {findings.length === 0 ? (
-        <EmptyState icon={AlertCircle} title="No findings" description="Create findings from control tests or manually." />
-      ) : (
-        <div className="grid gap-4">
-          {findings.map(f => (
-            <div key={f.id} className="bg-white rounded-lg border border-slate-200 p-4">
-              <div className="flex items-start justify-between mb-3">
-                <div className="flex-1">
+         <EmptyState icon={AlertCircle} title="No findings" description="Create findings from control tests or manually." />
+       ) : (
+         <>
+           <BulkActionBar 
+             selectedIds={selectedIds} 
+             onBulkAction={handleBulkAction}
+             onExport={handleExport}
+             entity_type="Finding"
+             bulkActions={['status', 'owner']}
+           />
+           <div className="grid gap-4">
+             {findings.map(f => (
+               <div key={f.id} className="bg-white rounded-lg border border-slate-200 p-4 relative">
+                 <Checkbox 
+                   checked={selectedIds.has(f.id)}
+                   onCheckedChange={() => toggleSelect(f.id)}
+                   className="absolute top-4 right-4"
+                 />
+                 <div className="flex items-start justify-between mb-3">
+                   <div className="flex-1">
                   <div className="flex items-center gap-3 mb-2">
                     <h3 className="text-sm font-semibold text-slate-900">{f.title}</h3>
                     <Badge className={severityColors[f.severity]}>{f.severity}</Badge>
@@ -177,8 +254,9 @@ export default function Findings() {
               </div>
             </div>
           ))}
-        </div>
-      )}
+          </div>
+          </>
+          )}
 
       <Dialog open={showDialog} onOpenChange={setShowDialog}>
         <DialogContent className="max-w-2xl">
