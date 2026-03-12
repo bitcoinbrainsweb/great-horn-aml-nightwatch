@@ -10,18 +10,25 @@ import {
 
 const NAV_ITEMS = [
   { name: 'Dashboard', icon: LayoutDashboard, page: 'Dashboard' },
+  // WORK section
+  { label: 'WORK' },
   { name: 'Clients', icon: Building2, page: 'Clients' },
   { name: 'Engagements', icon: FileStack, page: 'Engagements' },
   { name: 'Tasks', icon: ListTodo, page: 'Tasks' },
   { name: 'Reports', icon: FileBarChart, page: 'Reports' },
+  // TESTING section
+  { label: 'TESTING' },
   { name: 'Test Cycles', icon: Shield, page: 'TestCycles' },
   { name: 'Control Tests', icon: Shield, page: 'ControlTests' },
+  { name: 'Reviewer', icon: Shield, page: 'ReviewerDashboard' },
+  // ISSUES section
+  { label: 'ISSUES' },
   { name: 'Findings', icon: Shield, page: 'Findings' },
   { name: 'Remediation Actions', icon: Shield, page: 'RemediationActions' },
-  { name: 'Reviewer', icon: Shield, page: 'ReviewerDashboard' },
+  // GOVERNANCE section
+  { label: 'GOVERNANCE' },
   { name: 'Admin', icon: Settings, page: 'Admin' },
   { name: 'ChangeLog', icon: GitBranch, page: 'ChangeLog', adminOnly: true },
-  { name: 'Artifact Diagnostics', icon: Settings, page: 'ArtifactDiagnostics', adminOnly: true },
   { name: 'Feedback', icon: HelpCircle, page: 'Feedback' },
 ];
 
@@ -190,34 +197,42 @@ export default function Layout({ children, currentPageName }) {
         </div>
 
         {/* Nav */}
-        <nav className="flex-1 py-4 px-2 space-y-1 overflow-y-auto">
-          {NAV_ITEMS.filter(item => !item.adminOnly || ['admin', 'super_admin'].includes(user?.role)).map(item => {
-            const isActive = currentPageName === item.page || 
-              (item.page === 'Clients' && currentPageName === 'ClientDetail') ||
-              (item.page === 'Engagements' && currentPageName === 'EngagementDetail') ||
-              (item.page === 'Feedback' && ['Feedback'].includes(currentPageName)) ||
-              (item.page === 'ChangeLog' && currentPageName === 'ChangeLog') ||
-              (item.page === 'ArtifactDiagnostics' && currentPageName === 'ArtifactDiagnostics') ||
-              (item.page === 'Admin' && ['AdminRiskLibrary', 'AdminControlLibrary', 'AdminMethodologies', 'AdminNarratives', 'AdminUsers', 'AdminAuditLog', 'AdminJurisdictions', 'AdminIndustries', 'AdminTestScenarios', 'AdminInvitations', 'AdminRiskProposals', 'LibraryReviewDashboard', 'AdminGovernance'].includes(currentPageName));
-            return (
-              <Link
-                key={item.page}
-                to={createPageUrl(item.page)}
-                onClick={() => setMobileOpen(false)}
-                className={`
-                  flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-150
-                  ${isActive
-                    ? 'bg-white/10 text-amber-400'
-                    : 'text-slate-400 hover:text-white hover:bg-white/5'}
-                  ${collapsed ? 'justify-center' : ''}
-                `}
-              >
-                <item.icon className="w-[18px] h-[18px] flex-shrink-0" />
-                {!collapsed && <span>{item.name}</span>}
-              </Link>
-            );
-          })}
-        </nav>
+         <nav className="flex-1 py-4 px-2 overflow-y-auto">
+           {NAV_ITEMS.filter(item => !item.adminOnly || ['admin', 'super_admin'].includes(user?.role)).map((item, idx) => {
+             // Section label
+             if (item.label) {
+               return (
+                 <div key={`label-${idx}`} className={`mt-3 first:mt-0 px-3 py-2 text-xs font-semibold text-slate-500 uppercase tracking-wider ${idx > 0 ? 'border-t border-white/10 pt-3' : ''}`}>
+                   {!collapsed && item.label}
+                 </div>
+               );
+             }
+
+             const isActive = currentPageName === item.page || 
+               (item.page === 'Clients' && currentPageName === 'ClientDetail') ||
+               (item.page === 'Engagements' && currentPageName === 'EngagementDetail') ||
+               (item.page === 'Feedback' && ['Feedback'].includes(currentPageName)) ||
+               (item.page === 'ChangeLog' && ['ChangeLog', 'ArtifactDiagnostics'].includes(currentPageName)) ||
+               (item.page === 'Admin' && ['AdminRiskLibrary', 'AdminControlLibrary', 'AdminMethodologies', 'AdminNarratives', 'AdminUsers', 'AdminAuditLog', 'AdminJurisdictions', 'AdminIndustries', 'AdminTestScenarios', 'AdminInvitations', 'AdminRiskProposals', 'LibraryReviewDashboard', 'AdminGovernance'].includes(currentPageName));
+             return (
+               <Link
+                 key={item.page}
+                 to={createPageUrl(item.page)}
+                 onClick={() => setMobileOpen(false)}
+                 className={`
+                   flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-150
+                   ${isActive
+                     ? 'bg-white/10 text-amber-400'
+                     : 'text-slate-400 hover:text-white hover:bg-white/5'}
+                   ${collapsed ? 'justify-center' : ''}
+                 `}
+               >
+                 <item.icon className="w-[18px] h-[18px] flex-shrink-0" />
+                 {!collapsed && <span>{item.name}</span>}
+               </Link>
+             );
+           })}
+         </nav>
 
         {/* User */}
         <div className={`border-t border-white/10 p-3 ${collapsed ? 'flex justify-center' : ''}`}>
