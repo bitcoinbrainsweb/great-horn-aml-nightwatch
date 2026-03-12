@@ -14,6 +14,8 @@ const NAV_ITEMS = [
   { name: 'Engagements', icon: FileStack, page: 'Engagements' },
   { name: 'Tasks', icon: ListTodo, page: 'Tasks' },
   { name: 'Reports', icon: FileBarChart, page: 'Reports' },
+  { name: 'Controls', icon: Shield, page: 'Controls' },
+  { name: 'Control Tests', icon: Shield, page: 'ControlTests' },
   { name: 'Reviewer', icon: Shield, page: 'ReviewerDashboard' },
   { name: 'Admin', icon: Settings, page: 'Admin' },
   { name: 'ChangeLog', icon: GitBranch, page: 'ChangeLog', adminOnly: true },
