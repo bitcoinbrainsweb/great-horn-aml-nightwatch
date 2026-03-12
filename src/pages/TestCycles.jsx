@@ -56,7 +56,7 @@ export default function TestCycles() {
         description: '',
         start_date: '',
         end_date: '',
-        status: 'Planned'
+        status: 'Draft'
       });
     }
     setShowDialog(true);
@@ -65,7 +65,13 @@ export default function TestCycles() {
   async function handleSubmit(e) {
     e.preventDefault();
     try {
+      // Validate workflow state transitions
       if (editing) {
+        const isImmutable = editing.status === 'Complete' || editing.status === 'Archived';
+        if (isImmutable && editing.status !== formData.status) {
+          alert(`Cannot modify ${editing.status} test cycles`);
+          return;
+        }
         await base44.entities.TestCycle.update(editing.id, formData);
       } else {
         await base44.entities.TestCycle.create(formData);
@@ -74,6 +80,7 @@ export default function TestCycles() {
       loadCycles();
     } catch (error) {
       console.error('Error saving test cycle:', error);
+      alert(error.message || 'Error saving test cycle');
     }
   }
 
@@ -88,10 +95,10 @@ export default function TestCycles() {
   }
 
   const statusColors = {
-    'Planned': 'bg-blue-100 text-blue-800',
-    'In Progress': 'bg-amber-100 text-amber-800',
+    'Draft': 'bg-slate-100 text-slate-600',
+    'Active': 'bg-blue-100 text-blue-800',
     'Complete': 'bg-green-100 text-green-800',
-    'Cancelled': 'bg-slate-100 text-slate-600'
+    'Archived': 'bg-slate-400 text-slate-50'
   };
 
   if (loading) {
@@ -126,10 +133,20 @@ export default function TestCycles() {
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
-                  <Button variant="ghost" size="sm" onClick={() => openDialog(c)}>
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    onClick={() => openDialog(c)}
+                    disabled={c.status === 'Complete' || c.status === 'Archived'}
+                  >
                     <Pencil className="w-3 h-3" />
                   </Button>
-                  <Button variant="ghost" size="sm" onClick={() => handleDelete(c.id)}>
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    onClick={() => handleDelete(c.id)}
+                    disabled={c.status === 'Complete' || c.status === 'Archived'}
+                  >
                     <Trash2 className="w-3 h-3 text-red-600" />
                   </Button>
                 </div>
@@ -168,10 +185,10 @@ export default function TestCycles() {
               <Select value={formData.status} onValueChange={v => setFormData({...formData, status: v})}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="Planned">Planned</SelectItem>
-                  <SelectItem value="In Progress">In Progress</SelectItem>
+                  <SelectItem value="Draft">Draft</SelectItem>
+                  <SelectItem value="Active">Active</SelectItem>
                   <SelectItem value="Complete">Complete</SelectItem>
-                  <SelectItem value="Cancelled">Cancelled</SelectItem>
+                  <SelectItem value="Archived">Archived</SelectItem>
                 </SelectContent>
               </Select>
             </div>
