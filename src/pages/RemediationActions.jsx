@@ -90,6 +90,12 @@ export default function RemediationActions() {
   async function handleSubmit(e) {
     e.preventDefault();
     try {
+      // Validate verified actions cannot be modified
+      if (editing && editing.status === 'Verified') {
+        alert('Cannot modify verified remediation actions');
+        return;
+      }
+
       if (editing) {
         await base44.entities.RemediationAction.update(editing.id, formData);
       } else {
@@ -99,6 +105,7 @@ export default function RemediationActions() {
       loadData();
     } catch (error) {
       console.error('Error saving remediation action:', error);
+      alert(error.message || 'Error saving remediation action');
     }
   }
 
@@ -113,11 +120,10 @@ export default function RemediationActions() {
   }
 
   const statusColors = {
-    'Open': 'bg-red-100 text-red-800',
+    'Planned': 'bg-slate-100 text-slate-600',
     'In Progress': 'bg-blue-100 text-blue-800',
-    'Complete': 'bg-amber-100 text-amber-800',
-    'Verified': 'bg-green-100 text-green-800',
-    'Closed': 'bg-slate-100 text-slate-600'
+    'Completed': 'bg-amber-100 text-amber-800',
+    'Verified': 'bg-green-100 text-green-800'
   };
 
   const filteredActions = filterFindingId 
@@ -174,10 +180,20 @@ export default function RemediationActions() {
                     )}
                   </div>
                   <div className="flex items-center gap-2">
-                    <Button variant="ghost" size="sm" onClick={() => openDialog(a)}>
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      onClick={() => openDialog(a)}
+                      disabled={a.status === 'Verified'}
+                    >
                       <Pencil className="w-3 h-3" />
                     </Button>
-                    <Button variant="ghost" size="sm" onClick={() => handleDelete(a.id)}>
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      onClick={() => handleDelete(a.id)}
+                      disabled={a.status === 'Verified'}
+                    >
                       <Trash2 className="w-3 h-3 text-red-600" />
                     </Button>
                   </div>
@@ -221,11 +237,10 @@ export default function RemediationActions() {
                 <Select value={formData.status} onValueChange={v => setFormData({...formData, status: v})}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="Open">Open</SelectItem>
+                    <SelectItem value="Planned">Planned</SelectItem>
                     <SelectItem value="In Progress">In Progress</SelectItem>
-                    <SelectItem value="Complete">Complete</SelectItem>
+                    <SelectItem value="Completed">Completed</SelectItem>
                     <SelectItem value="Verified">Verified</SelectItem>
-                    <SelectItem value="Closed">Closed</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
