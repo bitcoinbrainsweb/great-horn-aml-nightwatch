@@ -14,7 +14,6 @@ const NAV_ITEMS = [
   { name: 'Engagements', icon: FileStack, page: 'Engagements' },
   { name: 'Tasks', icon: ListTodo, page: 'Tasks' },
   { name: 'Reports', icon: FileBarChart, page: 'Reports' },
-  { name: 'Controls', icon: Shield, page: 'Controls' },
   { name: 'Test Cycles', icon: Shield, page: 'TestCycles' },
   { name: 'Control Tests', icon: Shield, page: 'ControlTests' },
   { name: 'Findings', icon: Shield, page: 'Findings' },
