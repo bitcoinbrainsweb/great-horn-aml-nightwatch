@@ -19,8 +19,9 @@ export default function ChangeLog() {
   const [accessDenied, setAccessDenied] = useState(false);
   const [activeTab, setActiveTab] = useState('verification');
   const [diagnostics, setDiagnostics] = useState(null);
-  const [repairResult, setRepairResult] = useState(null);
-  const [runningRepair, setRunningRepair] = useState(false);
+  const [repairLoading, setRepairLoading] = useState(false);
+  const [repairError, setRepairError] = useState('');
+  const [repairResultText, setRepairResultText] = useState('');
 
   useEffect(() => {
     checkAccess();
@@ -115,22 +116,19 @@ export default function ChangeLog() {
   }
 
   async function handleRunClassificationRepair() {
-    setRunningRepair(true);
-    setRepairResult(null);
+    setRepairLoading(true);
+    setRepairError('');
+    setRepairResultText('');
     try {
       const result = await base44.functions.invoke('repairArtifactClassificationsNW034', {});
-      const data = result?.data ?? result;
-      setRepairResult(data);
-      // Refresh diagnostics after repair
-      await loadDiagnostics();
+      const data = result && result.data !== undefined ? result.data : result;
+      const text = JSON.stringify(data, null, 2);
+      setRepairResultText(text);
     } catch (error) {
-      console.error('NW-034 repair failed:', error);
-      setRepairResult({
-        success: false,
-        error: error.message
-      });
+      const message = error && error.message ? error.message : 'NW-034 classification repair failed';
+      setRepairError(message);
     } finally {
-      setRunningRepair(false);
+      setRepairLoading(false);
     }
   }
 
@@ -139,12 +137,6 @@ export default function ChangeLog() {
     r.outputName?.toLowerCase().includes(search.toLowerCase()) ||
     r.upgrade_id?.toLowerCase().includes(search.toLowerCase())
   );
-
-  const classificationEntries =
-    repairResult?.published_by_classification &&
-    typeof repairResult.published_by_classification === 'object'
-      ? Object.entries(repairResult.published_by_classification)
-      : [];
 
   if (loading) {
     return <div className="flex items-center justify-center h-64"><div className="w-8 h-8 border-2 border-slate-300 border-t-slate-800 rounded-full animate-spin" /></div>;
@@ -263,64 +255,29 @@ export default function ChangeLog() {
                   <p className="text-xs text-green-600">ChangeLog Visible</p>
                 </div>
               </div>
+              {user?.role === 'admin' && (
+                <div className="mt-4">
+                  <Button
+                    onClick={handleRunClassificationRepair}
+                    disabled={repairLoading}
+                    className="w-full"
+                  >
+                    {repairLoading
+                      ? 'Running NW-034 Classification Repair...'
+                      : 'Run NW-034 Classification Repair'}
+                  </Button>
+                  {repairError ? (
+                    <p className="mt-2 text-xs text-red-700">{repairError}</p>
+                  ) : null}
+                  {repairResultText ? (
+                    <pre className="mt-2 p-2 bg-slate-50 border border-slate-200 text-xs overflow-x-auto">
+                      {repairResultText}
+                    </pre>
+                  ) : null}
+                </div>
+              )}
             </CardContent>
           </Card>
-
-          {user?.role === 'admin' && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-base">
-                  <TestTube className="w-4 h-4" />
-                  Run NW-034 Classification Repair
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                <Button onClick={handleRunClassificationRepair} disabled={runningRepair} className="w-full">
-                  {runningRepair ? 'Running Repair...' : 'Run NW-034 Classification Repair'}
-                </Button>
-                {repairResult && (
-                  <div
-                    className={`border rounded-lg p-4 text-xs ${
-                      repairResult.success ? 'bg-green-50 border-green-200 text-green-900' : 'bg-red-50 border-red-200 text-red-900'
-                    }`}
-                  >
-                    <p className="font-semibold mb-2">
-                      {repairResult.success
-                        ? 'Classification repair completed successfully.'
-                        : 'Classification repair failed.'}
-                    </p>
-                    {repairResult.message && (
-                      <p className="mb-2 text-slate-700">{repairResult.message}</p>
-                    )}
-                    <div className="space-y-1">
-                      {typeof repairResult.total_records === 'number' && (
-                        <p>Records scanned: <span className="font-mono">{repairResult.total_records}</span></p>
-                      )}
-                      {typeof repairResult.updated_records === 'number' && (
-                        <p>Records updated: <span className="font-mono">{repairResult.updated_records}</span></p>
-                      )}
-                      {typeof repairResult.published_records === 'number' && (
-                        <p>Published records: <span className="font-mono">{repairResult.published_records}</span></p>
-                      )}
-                      {classificationEntries.length > 0 && (
-                        <div className="pt-2 border-t border-slate-200 mt-2">
-                          <p className="font-semibold mb-1">Published by classification:</p>
-                          <div className="space-y-0.5">
-                            {classificationEntries.map(([cls, count]) => (
-                              <p key={cls}>
-                                <span className="font-mono">{cls}</span>:{' '}
-                                <span className="font-mono">{count as number}</span>
-                              </p>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          )}
         </TabsContent>
       </Tabs>
 
