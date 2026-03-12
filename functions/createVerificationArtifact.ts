@@ -1,5 +1,6 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.20';
 import { ArtifactClassification, ALLOWED_ARTIFACT_CLASSIFICATIONS } from './artifactClassifications.ts';
+import { publishCanonicalArtifact } from './publishCanonicalArtifact.ts';
 
 /**
  * CANONICAL VERIFICATION ARTIFACT WRITER - NW-UPGRADE-031
@@ -204,11 +205,11 @@ Deno.serve(async (req) => {
         }
       );
     } else {
-      console.log('[CanonicalWriter] Creating new artifact');
-      // Write directly to PublishedOutput (ChangeLog source)
-      artifact = await base44.asServiceRole.entities.PublishedOutput.create({
-      outputName: artifactName,
-      classification,
+      console.log('[CanonicalWriter] Creating new artifact via publishCanonicalArtifact gateway');
+      // Write directly to PublishedOutput (ChangeLog source) via canonical gateway
+      artifact = await publishCanonicalArtifact(base44, {
+        outputName: artifactName,
+        classification,
         subtype: 'upgrade_verification',
         is_runnable: false,
         is_user_visible: false,
