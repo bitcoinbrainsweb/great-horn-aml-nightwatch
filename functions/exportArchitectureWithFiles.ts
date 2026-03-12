@@ -1,8 +1,9 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.20';
 
-// NW-UPGRADE-031G: Architecture Export with Real Persistent Files
-// Generates export data, uploads files to persistent storage, then creates artifact
-// Files FIRST, then artifact, never the reverse
+// NW-UPGRADE-031: Canonical System Export Publisher
+// Single approved path for system_export classification (architecture exports)
+// Generates complete system architecture snapshot with all files embedded in metadata.file_manifest
+// Guaranteed persistence: Files embedded FIRST, then artifact created with file_manifest reference
 
 Deno.serve(async (req) => {
   try {
