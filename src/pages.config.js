@@ -87,6 +87,8 @@ import ReportPublicationDebug from './pages/ReportPublicationDebug';
 import Reports from './pages/Reports';
 import ReviewerDashboard from './pages/ReviewerDashboard';
 import Tasks from './pages/Tasks';
+import Controls from './pages/Controls';
+import ControlTests from './pages/ControlTests';
 import __Layout from './Layout.jsx';
 
 
@@ -131,6 +133,8 @@ export const PAGES = {
     "Reports": Reports,
     "ReviewerDashboard": ReviewerDashboard,
     "Tasks": Tasks,
+    "Controls": Controls,
+    "ControlTests": ControlTests,
 }
 
 export const pagesConfig = {
