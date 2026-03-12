@@ -185,9 +185,9 @@ Deno.serve(async (req) => {
       }
     };
 
-    // STEP 3: Create artifact with file_manifest
+    // STEP 3: Create artifact with file_manifest (canonical system_export publisher)
     const artifactRecord = await base44.asServiceRole.entities.PublishedOutput.create({
-      outputName: 'Nightwatch Architecture Export',
+      outputName: `Nightwatch_SystemArchitecture_v0.7.0_NW-UPGRADE-031_${now.split('T')[0]}`,
       classification: 'system_export',
       subtype: 'architecture_export',
       is_runnable: false,
@@ -196,25 +196,28 @@ Deno.serve(async (req) => {
       source_module: 'exportArchitectureWithFiles',
       source_event_type: 'architecture_export_complete',
       product_version: 'v0.7.0',
-      upgrade_id: 'NW-UPGRADE-031G',
+      upgrade_id: 'NW-UPGRADE-031',
       status: 'published',
       published_at: now,
       content: JSON.stringify({
         title: 'Nightwatch Architecture Export',
-        description: 'Complete system architecture snapshot with all entities, enums, functions, agents, pages, and artifact pipeline definitions',
+        description: 'Complete system architecture snapshot with all entities, enums, functions, agents, pages, and artifact pipeline definitions. Canonical export from NW-UPGRADE-031 refactor.',
         export_date: now,
         product_version: 'v0.7.0',
-        total_files: 8
+        upgrade_id: 'NW-UPGRADE-031',
+        total_files: 8,
+        canonical_publisher: 'exportArchitectureWithFiles'
       }),
-      summary: `Complete v0.7.0 system architecture: ${entities.length} entities, ${Object.keys(enums).length} enums, ${functions.length} functions, ${pages.length} pages. All files ready for download.`,
+      summary: `NW-UPGRADE-031: v0.7.0 system architecture: ${entities.length} entities, ${Object.keys(enums).length} enums, ${functions.length} functions. Canonical export with 8 downloadable files.`,
       metadata: JSON.stringify({
         export_version: 'v0.7.0',
-        export_upgrade_id: 'NW-UPGRADE-031G',
+        export_upgrade_id: 'NW-UPGRADE-031',
         export_timestamp: now,
+        canonical_writer: 'exportArchitectureWithFiles',
         total_files: 8,
         file_manifest: fileManifest,
         canonical_shape: 'file_manifest_in_metadata',
-        implementation: 'NW-UPGRADE-031G: Embedded file_manifest in metadata for downloadable system_export artifacts'
+        implementation_note: 'NW-UPGRADE-031: Canonical publisher for system_export classification. Embedded file_manifest guarantees persistence.'
       })
     });
 
