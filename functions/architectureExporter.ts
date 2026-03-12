@@ -434,8 +434,8 @@ Deno.serve(async (req) => {
     const fullExport = {
       export_metadata: {
         export_date: new Date().toISOString(),
-        product_version: "v0.6.0",
-        upgrade_id: "NW-UPGRADE-031A",
+        product_version: "v0.7.0",
+        upgrade_id: "NW-UPGRADE-031C",
         format: "complete"
       },
       phase1_entities: entities,
@@ -448,7 +448,69 @@ Deno.serve(async (req) => {
       phase8_summary: summary
     };
 
-    return Response.json(fullExport);
+    // PHASE 2-3: Persist export files and create ChangeLog artifact
+    try {
+      // Create PublishedOutput artifact for ChangeLog with full export content
+      const now = new Date().toISOString();
+      const artifactContent = JSON.stringify(fullExport, null, 2);
+      const systemArchitectureSummary = JSON.stringify(summary.system_architecture, null, 2);
+
+      const publishedOutput = await base44.asServiceRole.entities.PublishedOutput.create({
+        outputName: `Nightwatch_ArchitectureExport_v0.7.0_NW-UPGRADE-031C_${new Date().toISOString().split('T')[0]}`,
+        classification: "verification_record",
+        subtype: "architecture_export",
+        is_runnable: false,
+        is_user_visible: false,
+        display_zone: "internal_only",
+        source_module: "architectureExporter",
+        source_event_type: "architecture_export_complete",
+        product_version: "v0.7.0",
+        upgrade_id: "NW-UPGRADE-031C",
+        status: "published",
+        published_at: now,
+        content: artifactContent,
+        summary: `Complete system architecture snapshot: ${entities.length} entities, ${Object.keys(enums).length} enums, ${functions.length} backend functions, ${pages.length} pages`,
+        metadata: JSON.stringify({
+          export_phases: 8,
+          total_entities: entities.length,
+          total_enums: Object.keys(enums).length,
+          total_functions: functions.length,
+          total_agents: agents.length,
+          total_pages: pages.length,
+          export_timestamp: now,
+          architecture_summary: summary.system_architecture,
+          file_manifest: {
+            entities_export: "18 entity schemas",
+            enums_export: "22 enum definitions",
+            functions_export: "15 backend functions",
+            agents_export: "1 agent definition",
+            artifact_pipeline_export: "4 pipeline stages",
+            pages_export: "30 pages",
+            scheduled_jobs_export: "current configuration",
+            architecture_summary_export: "system overview"
+          }
+        })
+      });
+
+      // Return full export with artifact reference
+      return Response.json({
+        ...fullExport,
+        artifact_created: true,
+        artifact_id: publishedOutput.id,
+        artifact_name: publishedOutput.outputName,
+        display_location: "ChangeLog",
+        message: "Architecture export successfully generated and persisted to ChangeLog"
+      });
+
+    } catch (artifactError) {
+      // If artifact creation fails, still return the export data but log the error
+      return Response.json({
+        ...fullExport,
+        artifact_created: false,
+        artifact_error: artifactError.message,
+        message: "Architecture export generated but artifact persistence failed"
+      }, { status: 206 });
+    }
 
   } catch (error) {
     return Response.json({ error: error.message }, { status: 500 });
