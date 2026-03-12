@@ -140,6 +140,12 @@ export default function ChangeLog() {
     r.upgrade_id?.toLowerCase().includes(search.toLowerCase())
   );
 
+  const classificationEntries =
+    repairResult?.published_by_classification &&
+    typeof repairResult.published_by_classification === 'object'
+      ? Object.entries(repairResult.published_by_classification)
+      : [];
+
   if (loading) {
     return <div className="flex items-center justify-center h-64"><div className="w-8 h-8 border-2 border-slate-300 border-t-slate-800 rounded-full animate-spin" /></div>;
   }
@@ -296,13 +302,14 @@ export default function ChangeLog() {
                       {typeof repairResult.published_records === 'number' && (
                         <p>Published records: <span className="font-mono">{repairResult.published_records}</span></p>
                       )}
-                      {repairResult.published_by_classification && (
+                      {classificationEntries.length > 0 && (
                         <div className="pt-2 border-t border-slate-200 mt-2">
                           <p className="font-semibold mb-1">Published by classification:</p>
                           <div className="space-y-0.5">
-                            {Object.entries(repairResult.published_by_classification).map(([cls, count]) => (
+                            {classificationEntries.map(([cls, count]) => (
                               <p key={cls}>
-                                <span className="font-mono">{cls}</span>: <span className="font-mono">{count as number}</span>
+                                <span className="font-mono">{cls}</span>:{' '}
+                                <span className="font-mono">{count as number}</span>
                               </p>
                             ))}
                           </div>
