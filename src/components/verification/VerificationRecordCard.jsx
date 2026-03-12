@@ -238,15 +238,6 @@ const downloadFile = (filename, content) => {
   URL.revokeObjectURL(url);
 };
 
-const downloadFileFromUrl = (filename, fileUrl) => {
-  const a = document.createElement('a');
-  a.href = fileUrl;
-  a.download = filename;
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-};
-
 function generateMarkdown(record, content, passedTests, totalTests) {
    const lines = [
      `# ${content.title || record.outputName}`,
