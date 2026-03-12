@@ -24,7 +24,7 @@ export default function RemediationActions() {
     owner: '',
     target_date: '',
     completion_date: '',
-    status: 'Open',
+    status: 'Planned',
     evidence_of_completion: '',
     notes: ''
   });
@@ -79,7 +79,7 @@ export default function RemediationActions() {
         owner: '',
         target_date: '',
         completion_date: '',
-        status: 'Open',
+        status: 'Planned',
         evidence_of_completion: '',
         notes: ''
       });
