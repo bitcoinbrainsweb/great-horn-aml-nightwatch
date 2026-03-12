@@ -196,8 +196,10 @@ Deno.serve(async (req) => {
       upgrade_id,
       status: 'completed',
       verification_record_id: published.id,
-      record_name: recordName,
-      message: 'Upgrade completed with automatic artifact generation'
+      artifact_name: published.outputName,
+      artifact_gating_passed: true,
+      artifact_verification_checks: artifactVerification,
+      message: 'Upgrade completed - verification artifact confirmed via gating'
     });
   } catch (error) {
     return Response.json({ error: error.message }, { status: 500 });
