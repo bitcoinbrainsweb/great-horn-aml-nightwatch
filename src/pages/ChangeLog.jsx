@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
-import { Search, FileCheck } from 'lucide-react';
+import { Search, FileCheck, RefreshCw } from 'lucide-react';
 import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
 import PageHeader from '../components/ui/PageHeader';
 import EmptyState from '../components/ui/EmptyState';
 import VerificationRecordCard from '../components/verification/VerificationRecordCard';
-import { getChangeLogArtifacts } from '../components/changelog/ChangeLogQuery';
+import { getChangeLogArtifacts, CHANGELOG_QUERY_CONFIG } from '../components/changelog/ChangeLogQuery';
 
 export default function ChangeLog() {
   const [records, setRecords] = useState([]);
@@ -22,7 +23,8 @@ export default function ChangeLog() {
     try {
       const me = await base44.auth.me();
       setUser(me);
-      if (!['technical_admin', 'super_admin'].includes(me?.role)) {
+      // Technical Admin access: admin or super_admin roles
+      if (!['admin', 'super_admin'].includes(me?.role)) {
         setAccessDenied(true);
         setLoading(false);
         return;
@@ -36,9 +38,13 @@ export default function ChangeLog() {
   }
 
   async function loadVerificationRecords() {
+    setLoading(true);
     try {
       // Use shared ChangeLog query logic
+      console.log('[ChangeLog] Loading artifacts via getChangeLogArtifacts()...');
       const changelogArtifacts = await getChangeLogArtifacts();
+      console.log('[ChangeLog] Loaded', changelogArtifacts.length, 'artifacts');
+      console.log('[ChangeLog] Latest artifact IDs:', changelogArtifacts.slice(0, 5).map(r => r.id));
       setRecords(changelogArtifacts);
     } catch (error) {
       console.error('Error loading verification records:', error);
@@ -71,7 +77,52 @@ export default function ChangeLog() {
       <PageHeader
         title="ChangeLog"
         subtitle="Software development and upgrade verification records"
-      />
+      >
+        <Button onClick={loadVerificationRecords} variant="outline" size="sm" disabled={loading}>
+          <RefreshCw className="w-4 h-4 mr-2" />
+          Refresh
+        </Button>
+      </PageHeader>
+
+      {/* Technical Admin Debug Block */}
+      {['admin', 'super_admin'].includes(user?.role) && (
+        <div className="mb-6 p-4 bg-slate-900 border border-slate-700 rounded-lg text-xs text-slate-300 font-mono">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-amber-400 font-semibold">🔧 Technical Admin Debug</span>
+            <span className="text-slate-400">Live ChangeLog Query Status</span>
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <span className="text-slate-500">Source Entity:</span>
+              <span className="ml-2 text-white">{CHANGELOG_QUERY_CONFIG.entity}</span>
+            </div>
+            <div>
+              <span className="text-slate-500">Status Filter:</span>
+              <span className="ml-2 text-white">{CHANGELOG_QUERY_CONFIG.statusFilter}</span>
+            </div>
+            <div className="col-span-2">
+              <span className="text-slate-500">Classification Filter:</span>
+              <span className="ml-2 text-white">{JSON.stringify(CHANGELOG_QUERY_CONFIG.classificationFilter)}</span>
+            </div>
+            <div>
+              <span className="text-slate-500">Records Returned:</span>
+              <span className="ml-2 text-green-400 font-bold">{records.length}</span>
+            </div>
+            <div>
+              <span className="text-slate-500">Filtered Display:</span>
+              <span className="ml-2 text-blue-400 font-bold">{filtered.length}</span>
+            </div>
+            {records.length > 0 && (
+              <div className="col-span-2">
+                <span className="text-slate-500">Latest Record IDs:</span>
+                <div className="mt-1 text-slate-400 text-[10px] break-all">
+                  {records.slice(0, 3).map(r => r.id).join(', ')}
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
 
       <div className="mb-6">
         <div className="relative max-w-sm">
