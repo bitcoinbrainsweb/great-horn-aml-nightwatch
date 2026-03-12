@@ -1,15 +1,17 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.20';
 
 /**
- * Canonical Verification Artifact Writer
+ * CANONICAL VERIFICATION ARTIFACT WRITER - NW-UPGRADE-031
  * 
- * Single source of truth for creating verification records that appear in ChangeLog.
- * All verification artifacts MUST use this writer to ensure consistency and visibility.
+ * Single source of truth for creating verification_record artifacts.
+ * This is the ONLY approved path for verification_record classification in Nightwatch.
+ * All other verification writers (generateVerificationArtifact, publishVerificationRecord, CentralPublisher)
+ * have been deprecated and removed from active use.
  * 
  * Required Fields:
- * - upgrade_id: Canonical upgrade identifier
+ * - upgrade_id: Canonical upgrade identifier (e.g., NW-UPGRADE-031)
  * - prompt_id: Prompt identifier
- * - product_version: Semantic version (e.g., v0.6.0)
+ * - product_version: Semantic version (e.g., v0.7.0)
  * - title: Human-readable upgrade title
  * - description: Upgrade description
  * - purpose: Why this upgrade was needed
@@ -21,6 +23,15 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.20';
  * - known_issues: Object with failures, warnings, notes
  * - delivery_gate_results: Object with test results
  * - test_results: Array of test objects
+ * - summary: Brief summary of verification result
+ * 
+ * Post-Write Verification:
+ * This function performs mandatory post-write checks to ensure:
+ * 1. Artifact was persisted to database
+ * 2. Classification is correct (verification_record)
+ * 3. Upgrade ID matches request
+ * 4. Artifact is visible in ChangeLog query
+ * 5. Content is valid JSON
  * 
  * Returns:
  * {
