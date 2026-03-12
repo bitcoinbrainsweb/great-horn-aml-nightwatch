@@ -56,119 +56,96 @@ Deno.serve(async (req) => {
 
     console.log(`[UpgradeFinalizer] Starting finalization for ${input.upgrade_id}`);
 
-    // Attempt to invoke Verification Report Engine
-    let verificationResult;
-    let engineSuccess = false;
+    // Build structured verification artifact
+    console.log('[UpgradeFinalizer] Building verification artifact...');
 
-    try {
-      console.log('[UpgradeFinalizer] Invoking Verification Report Engine...');
-      
-      const verificationPayload = {
+    const artifactName = `Nightwatch_VerificationRecord_${sanitizeForFilename(input.title)}_${input.product_version}_${input.upgrade_id}_${timestamp.split('T')[0]}`;
+
+    const validation = input.validation_results || {};
+    const impact = input.system_impact || {};
+    const issues = input.known_issues || {};
+
+    // Calculate status
+    const hasFailures = (issues.failures || []).length > 0;
+    const hasWarnings = (issues.warnings || []).length > 0;
+    const status = hasFailures ? 'FAIL' : hasWarnings ? 'PASS_WITH_WARNINGS' : 'PASS';
+
+    // Build verification content (matches VerificationReportEngine structure)
+    const verificationContent = {
+      upgrade_metadata: {
         upgrade_id: input.upgrade_id,
         prompt_id: input.prompt_id,
         product_version: input.product_version,
+        timestamp: timestamp,
+        actor: user.email,
+        actor_role: user.role
+      },
+      upgrade_summary: {
         title: input.title,
         description: input.description,
         purpose: input.purpose || input.description,
-        components_modified: input.components_modified || [],
-        validation_results: input.validation_results || {},
-        system_impact: input.system_impact || {},
-        known_issues: input.known_issues || {},
-        delivery_gate_results: input.delivery_gate_results || {},
-        test_results: input.test_results || [],
-        architectural_compliance: input.architectural_compliance || {},
-        summary: input.summary || `${input.title} completed`
-      };
+        components_modified: input.components_modified || []
+      },
+      validation_results: {
+        checks_performed: validation.checks_performed || [],
+        records_inserted: validation.records_inserted || {},
+        records_updated: validation.records_updated || {},
+        records_deleted: validation.records_deleted || {},
+        schema_changes: validation.schema_changes || [],
+        ui_verification: validation.ui_checks || [],
+        integration_checks: validation.integration_checks || [],
+        total_records_affected: calculateTotalRecords(validation)
+      },
+      system_impact: {
+        entities_affected: impact.entities_affected || [],
+        pages_affected: impact.pages_affected || [],
+        functions_affected: impact.functions_affected || [],
+        components_affected: impact.components_affected || [],
+        total_files_modified: calculateTotalFiles(impact)
+      },
+      known_issues: {
+        validation_failures: issues.failures || [],
+        warnings: issues.warnings || [],
+        unexpected_conditions: issues.notes || [],
+        total_issues: (issues.failures || []).length + (issues.warnings || []).length
+      },
+      verification_status: {
+        overall_status: status,
+        passed: status === 'PASS',
+        passed_with_warnings: status === 'PASS_WITH_WARNINGS',
+        failed: status === 'FAIL'
+      },
+      delivery_gate_results: input.delivery_gate_results || {},
+      test_results: input.test_results || [],
+      architectural_compliance: input.architectural_compliance || {}
+    };
 
-      verificationResult = await base44.functions.invoke('generateVerificationArtifact', verificationPayload);
-      
-      if (verificationResult.data && verificationResult.data.success) {
-        engineSuccess = true;
-        console.log(`[UpgradeFinalizer] Verification artifact generated: ${verificationResult.data.artifact_id}`);
-      } else {
-        console.warn('[UpgradeFinalizer] Verification engine returned non-success response:', verificationResult);
-      }
+    // PRIMARY WRITE: Create PublishedOutput verification record
+    console.log('[UpgradeFinalizer] Writing verification artifact to PublishedOutput...');
 
-    } catch (engineError) {
-      console.error('[UpgradeFinalizer] Verification engine failed:', engineError.message);
-      console.error('[UpgradeFinalizer] Will create fallback verification record');
-    }
-
-    // If verification engine succeeded, return success
-    if (engineSuccess) {
-      return Response.json({
-        success: true,
-        finalization_status: 'complete',
-        verification_engine_status: 'success',
-        artifact_id: verificationResult.data.artifact_id,
-        artifact_name: verificationResult.data.artifact_name,
-        verification_status: verificationResult.data.status,
-        message: `Upgrade ${input.upgrade_id} finalized successfully with verification artifact`
-      });
-    }
-
-    // FALLBACK: Create minimal verification record if engine failed
-    console.log('[UpgradeFinalizer] Creating fallback verification record...');
-
-    const fallbackArtifact = {
-      outputName: `Nightwatch_VerificationRecord_${sanitizeForFilename(input.title)}_${input.product_version}_${input.upgrade_id}_${timestamp.split('T')[0]}`,
+    const artifact = await base44.entities.PublishedOutput.create({
+      outputName: artifactName,
       classification: 'verification_record',
-      subtype: 'fallback_verification',
+      subtype: input.subtype || 'upgrade_verification',
       is_runnable: false,
       is_user_visible: false,
       display_zone: 'internal_only',
       source_module: input.upgrade_id,
-      source_event_type: 'verification_fallback',
+      source_event_type: 'verification_complete',
       product_version: input.product_version,
       upgrade_id: input.upgrade_id,
       status: 'published',
       published_at: timestamp,
-      content: JSON.stringify({
-        upgrade_metadata: {
-          upgrade_id: input.upgrade_id,
-          prompt_id: input.prompt_id,
-          product_version: input.product_version,
-          timestamp: timestamp,
-          actor: user.email,
-          fallback_mode: true
-        },
-        upgrade_summary: {
-          title: input.title,
-          description: input.description
-        },
-        validation_results: input.validation_results || {},
-        system_impact: input.system_impact || {},
-        known_issues: {
-          warnings: ['Verification engine failed - fallback record created'],
-          ...(input.known_issues || {})
-        },
-        verification_status: {
-          overall_status: 'PASS_WITH_WARNINGS',
-          fallback_mode: true
-        }
-      }),
-      summary: `${input.title} (fallback verification)`,
+      content: JSON.stringify(verificationContent),
+      summary: input.summary || `${input.title}: ${status}`,
       metadata: JSON.stringify({
         prompt_id: input.prompt_id,
         generated_by: 'UpgradeFinalizer',
-        fallback_mode: true
+        engine_version: '2.0.0'
       })
-    };
-
-    const fallbackRecord = await base44.entities.PublishedOutput.create(fallbackArtifact);
-
-    console.log(`[UpgradeFinalizer] Fallback verification record created: ${fallbackRecord.id}`);
-
-    return Response.json({
-      success: true,
-      finalization_status: 'complete_with_fallback',
-      verification_engine_status: 'failed',
-      fallback_artifact_id: fallbackRecord.id,
-      fallback_artifact_name: fallbackArtifact.outputName,
-      verification_status: 'PASS_WITH_WARNINGS',
-      message: `Upgrade ${input.upgrade_id} finalized with fallback verification record`,
-      warning: 'Verification engine failed - fallback record created'
     });
+
+    console.log(`[UpgradeFinalizer] Verification artifact created: ${artifact.id}`);
 
   } catch (error) {
     console.error('[UpgradeFinalizer] Critical error:', error);
