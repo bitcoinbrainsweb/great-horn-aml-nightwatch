@@ -22,7 +22,7 @@ export default function ControlTests() {
   const [editingTest, setEditingTest] = useState(null);
   const [selectedTest, setSelectedTest] = useState(null);
   const [testFormData, setTestFormData] = useState({
-    control_id: '',
+    control_library_id: '',
     test_cycle_id: '',
     status: 'Draft',
     effectiveness_rating: '',
@@ -51,7 +51,7 @@ export default function ControlTests() {
     try {
       const [testsData, controlsData, cyclesData] = await Promise.all([
         base44.entities.ControlTest.list('-created_date'),
-        base44.entities.Control.list(),
+        base44.entities.ControlLibrary.filter({ status: 'Active' }),
         base44.entities.TestCycle.list()
       ]);
       setTests(testsData);
@@ -77,7 +77,7 @@ export default function ControlTests() {
     if (test) {
       setEditingTest(test);
       setTestFormData({
-        control_id: test.control_id || '',
+        control_library_id: test.control_library_id || test.control_id || '',
         test_cycle_id: test.test_cycle_id || '',
         status: test.status || 'Draft',
         effectiveness_rating: test.effectiveness_rating || '',
@@ -92,7 +92,7 @@ export default function ControlTests() {
     } else {
       setEditingTest(null);
       setTestFormData({
-        control_id: '',
+        control_library_id: '',
         test_cycle_id: '',
         status: 'Draft',
         effectiveness_rating: '',
@@ -124,11 +124,18 @@ export default function ControlTests() {
   async function handleTestSubmit(e) {
     e.preventDefault();
     try {
+      // Validate test cycle status
+      const cycle = cycles.find(c => c.id === testFormData.test_cycle_id);
+      if (cycle && (cycle.status === 'Complete' || cycle.status === 'Cancelled')) {
+        alert(`Cannot create or update tests for a ${cycle.status} test cycle. Please select an active cycle.`);
+        return;
+      }
+
       if (editingTest) {
         await base44.entities.ControlTest.update(editingTest.id, testFormData);
       } else {
         const user = await base44.auth.me();
-        const control = controls.find(c => c.id === testFormData.control_id);
+        const control = controls.find(c => c.id === testFormData.control_library_id);
         await base44.entities.ControlTest.create({
           ...testFormData,
           prepared_by: user.email,
@@ -146,11 +153,32 @@ export default function ControlTests() {
     e.preventDefault();
     try {
       const user = await base44.auth.me();
+      
+      // Compute SHA-256 hash if file evidence
+      let fileHash = null;
+      let hashAlgorithm = null;
+      if (evidenceFormData.evidence_type === 'File' && evidenceFormData.file_reference) {
+        try {
+          // For demo purposes, hash the file reference string
+          // In production, hash the actual file contents
+          const encoder = new TextEncoder();
+          const data = encoder.encode(evidenceFormData.file_reference + new Date().toISOString());
+          const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+          const hashArray = Array.from(new Uint8Array(hashBuffer));
+          fileHash = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+          hashAlgorithm = 'SHA-256';
+        } catch (hashError) {
+          console.error('Error computing file hash:', hashError);
+        }
+      }
+
       await base44.entities.Evidence.create({
         control_test_id: selectedTest.id,
         uploaded_by: user.email,
         upload_timestamp: new Date().toISOString(),
-        ...evidenceFormData
+        ...evidenceFormData,
+        file_hash: fileHash,
+        hash_algorithm: hashAlgorithm
       });
       await loadEvidence(selectedTest.id);
       setEvidenceFormData({
@@ -197,14 +225,14 @@ export default function ControlTests() {
       ) : (
         <div className="grid gap-4">
           {tests.map(t => {
-            const control = controls.find(c => c.id === t.control_id);
+            const control = controls.find(c => c.id === (t.control_library_id || t.control_id));
             const cycle = cycles.find(c => c.id === t.test_cycle_id);
             return (
               <div key={t.id} className="bg-white rounded-lg border border-slate-200 p-4">
                 <div className="flex items-start justify-between mb-3">
                   <div className="flex-1">
                     <div className="flex items-center gap-3 mb-2">
-                      <h3 className="text-sm font-semibold text-slate-900">{control?.name || 'Unknown Control'}</h3>
+                      <h3 className="text-sm font-semibold text-slate-900">{control?.control_name || control?.name || 'Unknown Control'}</h3>
                       <Badge className={statusColors[t.status]}>{t.status}</Badge>
                       {t.effectiveness_rating && (
                         <Badge className={ratingColors[t.effectiveness_rating]}>{t.effectiveness_rating}</Badge>
@@ -248,10 +276,10 @@ export default function ControlTests() {
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="text-xs font-medium text-slate-700">Control *</label>
-                <Select value={testFormData.control_id} onValueChange={v => setTestFormData({...testFormData, control_id: v})} required>
+                <Select value={testFormData.control_library_id} onValueChange={v => setTestFormData({...testFormData, control_library_id: v})} required>
                   <SelectTrigger><SelectValue placeholder="Select control..." /></SelectTrigger>
                   <SelectContent>
-                    {controls.map(c => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
+                    {controls.map(c => <SelectItem key={c.id} value={c.id}>{c.control_name}</SelectItem>)}
                   </SelectContent>
                 </Select>
               </div>
@@ -328,7 +356,7 @@ export default function ControlTests() {
       <Dialog open={showEvidenceDialog} onOpenChange={setShowEvidenceDialog}>
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Evidence for {controls.find(c => c.id === selectedTest?.control_id)?.name}</DialogTitle>
+            <DialogTitle>Evidence for {controls.find(c => c.id === (selectedTest?.control_library_id || selectedTest?.control_id))?.control_name || controls.find(c => c.id === (selectedTest?.control_library_id || selectedTest?.control_id))?.name || 'Control'}</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
             {evidence.length > 0 && (

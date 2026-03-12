@@ -36,6 +36,10 @@ export default function RemediationActions() {
     loadData();
   }, []);
 
+  // Validate finding_id exists
+  const findingExists = filterFindingId ? findings.some(f => f.id === filterFindingId) : true;
+  const linkedFinding = filterFindingId ? findings.find(f => f.id === filterFindingId) : null;
+
   async function loadData() {
     setLoading(true);
     try {
@@ -126,9 +130,15 @@ export default function RemediationActions() {
 
   return (
     <div>
+      {filterFindingId && !loading && !findingExists && (
+        <div className="mb-6 bg-amber-50 border border-amber-200 rounded-lg p-4 text-sm text-amber-800">
+          <p className="font-semibold">⚠️ Warning: Finding not found</p>
+          <p className="text-xs mt-1">The finding ID in the URL does not exist. It may have been deleted.</p>
+        </div>
+      )}
       <PageHeader 
         title="Remediation Actions" 
-        subtitle={filterFindingId ? `Actions for finding: ${findings.find(f => f.id === filterFindingId)?.title || 'Unknown'}` : "Remediation actions across all findings"}
+        subtitle={filterFindingId && linkedFinding ? `Actions for finding: ${linkedFinding.title}` : filterFindingId && !linkedFinding ? "Filtered by invalid finding ID" : "Remediation actions across all findings"}
       >
         <Button onClick={() => openDialog()} size="sm">
           <Plus className="w-4 h-4 mr-2" />

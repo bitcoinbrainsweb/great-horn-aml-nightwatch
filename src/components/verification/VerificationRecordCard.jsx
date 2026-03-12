@@ -9,16 +9,28 @@ export default function VerificationRecordCard({ record }) {
   if (!record) return null;
 
   let content = {};
+  let contentParseError = false;
   try {
-    content = typeof record.content === 'string' ? JSON.parse(record.content) : record.content;
+    if (!record.content) {
+      content = {};
+    } else {
+      content = typeof record.content === 'string' ? JSON.parse(record.content) : record.content;
+    }
   } catch (e) {
+    console.error('Failed to parse verification record content:', e);
     content = {};
+    contentParseError = true;
   }
 
   let metadata = {};
   try {
-    metadata = record.metadata && typeof record.metadata === 'string' ? JSON.parse(record.metadata) : (record.metadata || {});
+    if (!record.metadata) {
+      metadata = {};
+    } else {
+      metadata = typeof record.metadata === 'string' ? JSON.parse(record.metadata) : record.metadata;
+    }
   } catch (e) {
+    console.error('Failed to parse verification record metadata:', e);
     metadata = {};
   }
 
@@ -103,6 +115,11 @@ export default function VerificationRecordCard({ record }) {
       {/* Expanded Content */}
       {expanded && (
         <div className="border-t border-slate-100 px-5 py-4 bg-slate-50/50 space-y-4 text-sm text-slate-700">
+          {contentParseError && (
+            <div className="bg-red-50 border border-red-200 rounded p-3 text-xs text-red-800">
+              ⚠️ Warning: Unable to parse artifact content. Display may be incomplete.
+            </div>
+          )}
           {/* Executive Summary */}
           {content.title && (
             <div>
