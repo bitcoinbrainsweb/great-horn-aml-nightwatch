@@ -97,6 +97,17 @@ Deno.serve(async (req) => {
         registry_version: registry.product_version
       }, { status: 400 });
     }
+    
+    // Prevent artifact creation outside canonical upgrade flow
+    // Only allow creation during delivery gate or initialization phases
+    const allowedStates = ['initialized', 'in_progress', 'delivery_gate_running', 'delivery_gate_passed'];
+    if (!allowedStates.includes(registry.status)) {
+      return Response.json({ 
+        error: 'Artifact creation blocked: Upgrade not in expected lifecycle state',
+        current_state: registry.status,
+        allowed_states: allowedStates
+      }, { status: 409 });
+    }
 
     // Use upgrade completion time if available (aligns with upgrade lifecycle), otherwise current time
     const artifactTimestamp = payload.published_at || new Date().toISOString();
