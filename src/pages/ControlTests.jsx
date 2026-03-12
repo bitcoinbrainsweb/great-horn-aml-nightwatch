@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
-import { Plus, Pencil, FileText, Paperclip } from 'lucide-react';
+import { Plus, Pencil, FileText, Paperclip, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -10,6 +10,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import PageHeader from '../components/ui/PageHeader';
 import EmptyState from '../components/ui/EmptyState';
 import { Badge } from '@/components/ui/badge';
+import EvidenceCard from '@/components/evidence/EvidenceCard';
 
 export default function ControlTests() {
   const [tests, setTests] = useState([]);
@@ -137,15 +138,44 @@ export default function ControlTests() {
         return;
       }
 
+      const user = await base44.auth.me();
+      const control = controls.find(c => c.id === testFormData.control_library_id);
+
       if (editingTest) {
+        // When transitioning to In Progress, capture snapshot
+        const isTransitioningToInProgress = 
+          editingTest.status !== 'In Progress' && testFormData.status === 'In Progress';
+
+        if (isTransitioningToInProgress && control) {
+          const snapshot = {
+            control_id: control.id,
+            control_name: control.control_name,
+            control_description: control.description,
+            control_type: control.control_category,
+            control_requirement_flag: control.status === 'Active',
+            control_tags: control.scope_tags || []
+          };
+          testFormData.control_snapshot = JSON.stringify(snapshot);
+          testFormData.snapshot_captured_at = new Date().toISOString();
+        }
+
         await base44.entities.ControlTest.update(editingTest.id, testFormData);
       } else {
-        const user = await base44.auth.me();
-        const control = controls.find(c => c.id === testFormData.control_library_id);
+        // For new tests, capture snapshot on creation
+        const snapshot = control ? {
+          control_id: control.id,
+          control_name: control.control_name,
+          control_description: control.description,
+          control_type: control.control_category,
+          control_requirement_flag: control.status === 'Active',
+          control_tags: control.scope_tags || []
+        } : null;
+
         await base44.entities.ControlTest.create({
           ...testFormData,
           prepared_by: user.email,
-          control_snapshot: control ? JSON.stringify(control) : null
+          control_snapshot: snapshot ? JSON.stringify(snapshot) : null,
+          snapshot_captured_at: testFormData.status === 'In Progress' ? new Date().toISOString() : null
         });
       }
       setShowTestDialog(false);
@@ -158,33 +188,38 @@ export default function ControlTests() {
   async function handleEvidenceSubmit(e) {
     e.preventDefault();
     try {
+      // Validate that test is In Progress
+      if (selectedTest.status !== 'In Progress') {
+        alert(`Cannot attach evidence to ${selectedTest.status} tests. Evidence can only be added to In Progress tests.`);
+        return;
+      }
+
       const user = await base44.auth.me();
-      
-      // Compute SHA-256 hash if file evidence
+
+      // Compute SHA-256 hash for all evidence types
       let fileHash = null;
-      let hashAlgorithm = null;
       if (evidenceFormData.evidence_type === 'File' && evidenceFormData.file_reference) {
         try {
-          // For demo purposes, hash the file reference string
-          // In production, hash the actual file contents
           const encoder = new TextEncoder();
-          const data = encoder.encode(evidenceFormData.file_reference + new Date().toISOString());
+          const data = encoder.encode(evidenceFormData.file_reference + evidenceFormData.evidence_date || new Date().toISOString());
           const hashBuffer = await crypto.subtle.digest('SHA-256', data);
           const hashArray = Array.from(new Uint8Array(hashBuffer));
           fileHash = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-          hashAlgorithm = 'SHA-256';
         } catch (hashError) {
           console.error('Error computing file hash:', hashError);
         }
       }
 
+      const timestamp = new Date().toISOString();
       await base44.entities.Evidence.create({
         control_test_id: selectedTest.id,
         uploaded_by: user.email,
-        upload_timestamp: new Date().toISOString(),
+        uploaded_at: timestamp,
+        upload_timestamp: timestamp,
+        review_status: 'Pending',
         ...evidenceFormData,
         file_hash: fileHash,
-        hash_algorithm: hashAlgorithm
+        hash_algorithm: fileHash ? 'SHA-256' : null
       });
       await loadEvidence(selectedTest.id);
       setEvidenceFormData({
@@ -368,21 +403,26 @@ export default function ControlTests() {
             <DialogTitle>Evidence for {controls.find(c => c.id === (selectedTest?.control_library_id || selectedTest?.control_id))?.control_name || controls.find(c => c.id === (selectedTest?.control_library_id || selectedTest?.control_id))?.name || 'Control'}</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
+            {selectedTest && selectedTest.status !== 'In Progress' && (
+              <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 flex gap-2 text-xs">
+                <AlertCircle className="w-4 h-4 text-amber-700 flex-shrink-0 mt-0.5" />
+                <div>
+                  <div className="font-medium text-amber-900">Evidence Attachment Disabled</div>
+                  <div className="text-amber-700">Evidence can only be added when test is In Progress.</div>
+                </div>
+              </div>
+            )}
+
             {evidence.length > 0 && (
               <div className="space-y-2">
                 {evidence.map(e => (
-                  <div key={e.id} className="bg-slate-50 rounded p-3 text-xs">
-                    <div className="flex items-start justify-between mb-1">
-                      <Badge variant="outline">{e.evidence_type}</Badge>
-                      {e.evidence_date && <span className="text-slate-500">{e.evidence_date}</span>}
-                    </div>
-                    {e.text_description && <p className="text-slate-700 mt-2">{e.text_description}</p>}
-                    {e.notes && <p className="text-slate-500 mt-1">{e.notes}</p>}
-                  </div>
+                  <EvidenceCard key={e.id} evidence={e} />
                 ))}
               </div>
             )}
-            <form onSubmit={handleEvidenceSubmit} className="space-y-3 pt-3 border-t">
+
+            {selectedTest && selectedTest.status === 'In Progress' && (
+              <form onSubmit={handleEvidenceSubmit} className="space-y-3 pt-3 border-t">
               <div>
                 <label className="text-xs font-medium text-slate-700">Evidence Type</label>
                 <Select value={evidenceFormData.evidence_type} onValueChange={v => setEvidenceFormData({...evidenceFormData, evidence_type: v})}>
@@ -407,8 +447,9 @@ export default function ControlTests() {
                 <Textarea value={evidenceFormData.notes} onChange={e => setEvidenceFormData({...evidenceFormData, notes: e.target.value})} />
               </div>
               <Button type="submit" className="w-full">Add Evidence</Button>
-            </form>
-          </div>
+              </form>
+              )}
+              </div>
         </DialogContent>
       </Dialog>
     </div>
