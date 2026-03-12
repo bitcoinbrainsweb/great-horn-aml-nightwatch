@@ -36,11 +36,14 @@ export default function ChangeLog() {
 
   async function loadVerificationRecords() {
     try {
-      const all = await base44.entities.PublishedOutput.filter({
-        classification: 'verification_record',
+      const allRecords = await base44.entities.PublishedOutput.filter({
         status: 'published'
       });
-      setRecords(all.sort((a, b) => new Date(b.published_at) - new Date(a.published_at)));
+      // ChangeLog shows: verification_record, audit_record, delivery_gate_record
+      const changelogArtifacts = allRecords.filter(r => 
+        ['verification_record', 'audit_record', 'delivery_gate_record'].includes(r.classification)
+      );
+      setRecords(changelogArtifacts.sort((a, b) => new Date(b.published_at) - new Date(a.published_at)));
     } catch (error) {
       console.error('Error loading verification records:', error);
     } finally {

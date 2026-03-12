@@ -63,6 +63,7 @@ import AdminRiskProposals from './pages/AdminRiskProposals';
 import AdminSuggestions from './pages/AdminSuggestions';
 import AdminTestScenarios from './pages/AdminTestScenarios';
 import AdminUsers from './pages/AdminUsers';
+import ChangeLog from './pages/ChangeLog';
 import ClientDetail from './pages/ClientDetail';
 import Clients from './pages/Clients';
 import Dashboard from './pages/Dashboard';
@@ -86,7 +87,6 @@ import ReportPublicationDebug from './pages/ReportPublicationDebug';
 import Reports from './pages/Reports';
 import ReviewerDashboard from './pages/ReviewerDashboard';
 import Tasks from './pages/Tasks';
-import ChangeLog from './pages/ChangeLog';
 import __Layout from './Layout.jsx';
 
 
@@ -107,6 +107,7 @@ export const PAGES = {
     "AdminSuggestions": AdminSuggestions,
     "AdminTestScenarios": AdminTestScenarios,
     "AdminUsers": AdminUsers,
+    "ChangeLog": ChangeLog,
     "ClientDetail": ClientDetail,
     "Clients": Clients,
     "Dashboard": Dashboard,
@@ -130,7 +131,6 @@ export const PAGES = {
     "Reports": Reports,
     "ReviewerDashboard": ReviewerDashboard,
     "Tasks": Tasks,
-    "ChangeLog": ChangeLog,
 }
 
 export const pagesConfig = {
