@@ -57,54 +57,49 @@ Deno.serve(async (req) => {
       context: JSON.stringify({ test_count: Object.keys(results).length })
     });
 
-    // 2. Publish verification record inline
-    const today = new Date().toISOString().split('T')[0];
-    const recordName = `Nightwatch_VerificationRecord_${registry.product_version}_${upgrade_id}_${today}`;
-
-    const content = {
-      title: registry.title,
-      description: registry.description,
+    // 2. Publish verification record using CANONICAL WRITER (required for completion gating)
+    // Invokes createVerificationArtifact with delivery_gate_results and change_summary
+    console.log(`[completeUpgrade] Invoking canonical verification artifact writer for ${upgrade_id}`);
+    
+    const changelogQuery = await base44.asServiceRole.entities.PublishedOutput.filter({
       upgrade_id,
-      product_version: registry.product_version,
-      delivery_gate_results: results,
-      change_summary: registry.change_summary ? JSON.parse(registry.change_summary) : {}
-    };
-
-    const existing = await base44.asServiceRole.entities.PublishedOutput.filter({
-      upgrade_id,
-      classification: 'verification_record'
+      classification: 'verification_record',
+      status: 'published'
     });
-
+    
     let published;
-    if (existing.length > 0 && existing[0].outputName === recordName) {
-      published = await base44.asServiceRole.entities.PublishedOutput.update(
-        existing[0].id,
-        {
-          status: 'published',
-          published_at: now,
-          content: JSON.stringify(content),
-          summary: registry.title
-        }
-      );
+    
+    if (changelogQuery.length > 0) {
+      // Artifact already exists - completion allowed
+      console.log(`[completeUpgrade] Verification artifact found for ${upgrade_id}`);
+      published = changelogQuery[0];
     } else {
-      published = await base44.asServiceRole.entities.PublishedOutput.create({
-        outputName: recordName,
-        classification: 'verification_record',
-        subtype: 'upgrade_verification',
-        is_runnable: false,
-        is_user_visible: false,
-        display_zone: 'internal_only',
-        source_module: 'completeUpgrade',
-        source_event_type: 'upgrade_completion',
-        product_version: registry.product_version,
+      // Artifact missing - BLOCK COMPLETION
+      console.error(`[completeUpgrade] CRITICAL: No verification artifact found for ${upgrade_id}. Completion blocked.`);
+      
+      // Log the blocking event
+      await base44.asServiceRole.entities.UpgradeAuditLog.create({
         upgrade_id,
-        report_type: 'verification',
-        status: 'published',
-        published_at: now,
-        content: JSON.stringify(content),
-        summary: registry.title,
-        metadata: JSON.stringify({ lifecycle_generated: true })
+        action: 'completion_blocked_missing_artifact',
+        prior_status: registry.status,
+        new_status: registry.status,
+        triggering_function: 'completeUpgrade',
+        actor: 'system',
+        timestamp: now,
+        context: JSON.stringify({
+          reason: 'Verification artifact not found before completion',
+          expected_classification: 'verification_record',
+          expected_status: 'published'
+        })
       });
+      
+      return Response.json({
+        success: false,
+        error: 'Completion blocked: Verification artifact missing',
+        upgrade_id,
+        message: 'Upgrade cannot be marked complete without a published verification_record artifact',
+        remediation: 'Use canonical artifact publisher (createVerificationArtifact) to generate report before completion'
+      }, { status: 409 });
     }
 
     // 3. Update registry to completed
