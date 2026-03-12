@@ -1,48 +1,42 @@
 import React from 'react';
-import { Badge } from '@/components/ui/badge';
-import { CheckCircle, AlertCircle, Circle, AlertTriangle } from 'lucide-react';
+import { CheckCircle2, AlertCircle, Clock, AlertTriangle, XCircle } from 'lucide-react';
 
-const COVERAGE_CONFIG = {
-  COVERED: {
-    bg: 'bg-green-100',
-    text: 'text-green-800',
-    label: 'Covered',
-    icon: CheckCircle
-  },
-  PARTIALLY_COVERED: {
-    bg: 'bg-amber-100',
-    text: 'text-amber-800',
-    label: 'Partial',
-    icon: AlertTriangle
-  },
-  INEFFECTIVE: {
-    bg: 'bg-red-100',
-    text: 'text-red-800',
-    label: 'Ineffective',
-    icon: AlertCircle
-  },
-  NOT_TESTED: {
-    bg: 'bg-slate-100',
-    text: 'text-slate-600',
-    label: 'Not Tested',
-    icon: Circle
-  },
-  UNCONTROLLED: {
-    bg: 'bg-rose-100',
-    text: 'text-rose-800',
-    label: 'Uncontrolled',
-    icon: AlertCircle
-  }
-};
+export default function CoverageBadge({ status }) {
+  const statusConfig = {
+    COVERED: {
+      icon: CheckCircle2,
+      color: 'bg-green-100 text-green-800',
+      label: 'Covered'
+    },
+    PARTIALLY_COVERED: {
+      icon: AlertTriangle,
+      color: 'bg-yellow-100 text-yellow-800',
+      label: 'Partially Covered'
+    },
+    INEFFECTIVE: {
+      icon: XCircle,
+      color: 'bg-red-100 text-red-800',
+      label: 'Ineffective'
+    },
+    NOT_TESTED: {
+      icon: Clock,
+      color: 'bg-slate-100 text-slate-800',
+      label: 'Not Tested'
+    },
+    UNCONTROLLED: {
+      icon: AlertCircle,
+      color: 'bg-red-100 text-red-800',
+      label: 'Uncontrolled'
+    }
+  };
 
-export default function CoverageBadge({ status, showIcon = false }) {
-  const config = COVERAGE_CONFIG[status] || COVERAGE_CONFIG.NOT_TESTED;
+  const config = statusConfig[status] || statusConfig.UNCONTROLLED;
   const Icon = config.icon;
 
   return (
-    <Badge className={`${config.bg} ${config.text} gap-1`}>
-      {showIcon && <Icon className="w-3 h-3" />}
+    <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-sm font-medium ${config.color}`}>
+      <Icon className="w-4 h-4" />
       {config.label}
-    </Badge>
+    </span>
   );
 }
