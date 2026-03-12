@@ -48,7 +48,7 @@ export default function Admin() {
   const renderSection = (title, items) => (
     <div className="mb-3">
       <div className="mb-1.5 pb-1.5 border-b border-slate-200">
-        <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wider">{title}</h3>
+        <h3 className="text-[13px] font-semibold text-slate-500 uppercase tracking-wider">{title}</h3>
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
         {items.map(section => (
@@ -62,8 +62,8 @@ export default function Admin() {
                 <section.icon className="w-3.5 h-3.5" />
               </div>
               <div className="min-w-0">
-                <h3 className="text-xs font-semibold text-slate-900 group-hover:text-blue-600 transition-colors leading-tight">{section.name}</h3>
-                <p className="text-[10px] text-slate-500 mt-0.5 leading-tight">{section.description}</p>
+                <h3 className="text-sm font-semibold text-slate-900 group-hover:text-blue-600 transition-colors leading-tight">{section.name}</h3>
+                <p className="text-[11px] text-slate-500 mt-0.5 leading-tight">{section.description}</p>
               </div>
             </div>
           </Link>
@@ -79,7 +79,7 @@ export default function Admin() {
       {/* Risk Framework Section */}
       <div className="border border-slate-200 rounded-lg p-3 mb-3 bg-slate-50/50">
         <div className="mb-1.5 pb-1.5 border-b border-slate-200">
-          <h3 className="text-sm font-semibold text-slate-700">Risk Framework</h3>
+          <h3 className="text-[15px] font-semibold text-slate-700">Risk Framework</h3>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
           {ADMIN_SECTIONS.riskFramework.map(section => (
@@ -117,7 +117,7 @@ export default function Admin() {
       {isSuperAdmin && (
         <>
           <div className="mt-3 mb-1.5">
-            <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Internal Tools</p>
+            <p className="text-[13px] font-semibold text-slate-400 uppercase tracking-wider">Internal Tools</p>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
             {SUPERADMIN_SECTIONS.map(section => (
