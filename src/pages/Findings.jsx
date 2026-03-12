@@ -77,6 +77,12 @@ export default function Findings() {
   async function handleSubmit(e) {
     e.preventDefault();
     try {
+      // Validate closed findings cannot be modified
+      if (editing && editing.status === 'Closed') {
+        alert('Cannot modify closed findings');
+        return;
+      }
+
       if (editing) {
         await base44.entities.Finding.update(editing.id, formData);
       } else {
@@ -86,6 +92,7 @@ export default function Findings() {
       loadFindings();
     } catch (error) {
       console.error('Error saving finding:', error);
+      alert(error.message || 'Error saving finding');
     }
   }
 
@@ -108,8 +115,7 @@ export default function Findings() {
 
   const statusColors = {
     'Open': 'bg-red-100 text-red-800',
-    'In Review': 'bg-amber-100 text-amber-800',
-    'Remediation In Progress': 'bg-blue-100 text-blue-800',
+    'Under Review': 'bg-amber-100 text-amber-800',
     'Resolved': 'bg-green-100 text-green-800',
     'Closed': 'bg-slate-100 text-slate-600'
   };
@@ -151,10 +157,20 @@ export default function Findings() {
                   <Button variant="ghost" size="sm" onClick={() => navigate(createPageUrl('RemediationActions') + '?finding_id=' + f.id)}>
                     Actions
                   </Button>
-                  <Button variant="ghost" size="sm" onClick={() => openDialog(f)}>
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    onClick={() => openDialog(f)}
+                    disabled={f.status === 'Closed'}
+                  >
                     <Pencil className="w-3 h-3" />
                   </Button>
-                  <Button variant="ghost" size="sm" onClick={() => handleDelete(f.id)}>
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    onClick={() => handleDelete(f.id)}
+                    disabled={f.status === 'Closed'}
+                  >
                     <Trash2 className="w-3 h-3 text-red-600" />
                   </Button>
                 </div>
@@ -208,8 +224,7 @@ export default function Findings() {
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="Open">Open</SelectItem>
-                    <SelectItem value="In Review">In Review</SelectItem>
-                    <SelectItem value="Remediation In Progress">Remediation In Progress</SelectItem>
+                    <SelectItem value="Under Review">Under Review</SelectItem>
                     <SelectItem value="Resolved">Resolved</SelectItem>
                     <SelectItem value="Closed">Closed</SelectItem>
                   </SelectContent>
