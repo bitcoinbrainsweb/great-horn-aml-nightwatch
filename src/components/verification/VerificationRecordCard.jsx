@@ -39,7 +39,17 @@ export default function VerificationRecordCard({ record }) {
     metadata = {};
   }
 
-  const gateResults = content.delivery_gate_results || {};
+  let gateResults = {};
+  try {
+    if (content.delivery_gate_results) {
+      gateResults = typeof content.delivery_gate_results === 'string' 
+        ? JSON.parse(content.delivery_gate_results) 
+        : content.delivery_gate_results;
+    }
+  } catch (e) {
+    console.error('Failed to parse delivery gate results:', e);
+    gateResults = {};
+  }
   const passedTests = Object.values(gateResults).filter(t => t.status === 'pass').length;
   const totalTests = Object.keys(gateResults).length;
   const isPassed = passedTests === totalTests && totalTests > 0;
