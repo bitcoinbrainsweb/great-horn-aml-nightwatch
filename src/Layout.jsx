@@ -100,7 +100,7 @@ export default function Layout({ children, currentPageName }) {
 
   async function reloadReports() {
     if (user?.role === 'admin') {
-      window.location.href = createPageUrl('AdminReleaseLog');
+      window.location.href = createPageUrl('ChangeLog');
     }
   }
 
@@ -198,7 +198,7 @@ export default function Layout({ children, currentPageName }) {
               (item.page === 'Feedback' && ['Feedback'].includes(currentPageName)) ||
               (item.page === 'ChangeLog' && currentPageName === 'ChangeLog') ||
               (item.page === 'ArtifactDiagnostics' && currentPageName === 'ArtifactDiagnostics') ||
-              (item.page === 'Admin' && ['AdminRiskLibrary', 'AdminControlLibrary', 'AdminMethodologies', 'AdminNarratives', 'AdminUsers', 'AdminAuditLog', 'AdminJurisdictions', 'AdminIndustries', 'AdminTestScenarios', 'AdminInvitations', 'AdminRiskProposals', 'AdminFeatureFlags', 'AdminReleaseLog', 'LibraryReviewDashboard', 'AdminGovernance'].includes(currentPageName));
+              (item.page === 'Admin' && ['AdminRiskLibrary', 'AdminControlLibrary', 'AdminMethodologies', 'AdminNarratives', 'AdminUsers', 'AdminAuditLog', 'AdminJurisdictions', 'AdminIndustries', 'AdminTestScenarios', 'AdminInvitations', 'AdminRiskProposals', 'LibraryReviewDashboard', 'AdminGovernance'].includes(currentPageName));
             return (
               <Link
                 key={item.page}
