@@ -12,6 +12,7 @@ export default function BuildVerificationDashboard() {
   const [result, setResult] = useState(null);
   const [error, setError] = useState(null);
   const [autoRanOnLoad, setAutoRanOnLoad] = useState(false);
+  const [autoRunTriggered, setAutoRunTriggered] = useState(false);
 
   // Fetch latest verification artifact from canonical store
   const { data: latestArtifact, isLoading: loadingArtifact, refetch: refetchArtifact } = useQuery({
@@ -30,10 +31,19 @@ export default function BuildVerificationDashboard() {
   });
 
   // Auto-run verification on first load if no recent result exists
+  // Safe idempotency: only runs once per session, checks for recent verification
   useEffect(() => {
-    if (!autoRanOnLoad && !loadingArtifact && !latestArtifact && !running) {
+    if (!autoRanOnLoad && !loadingArtifact && !running) {
       setAutoRanOnLoad(true);
-      runVerification();
+      
+      // Check if latest verification is recent (within last 24 hours)
+      const isRecentVerification = latestArtifact && 
+        (Date.now() - new Date(latestArtifact.published_at).getTime()) < 24 * 60 * 60 * 1000;
+      
+      if (!isRecentVerification) {
+        setAutoRunTriggered(true);
+        runVerification();
+      }
     }
   }, [autoRanOnLoad, loadingArtifact, latestArtifact, running]);
 
@@ -106,12 +116,21 @@ export default function BuildVerificationDashboard() {
 
       {/* Latest Artifact Info */}
       {latestArtifact && !result && (
-        <Card>
+        <Card className={autoRunTriggered ? 'border-amber-200 bg-amber-50' : ''}>
           <CardHeader>
-            <CardTitle className="text-base">Latest Verification Artifact</CardTitle>
+            <CardTitle className="text-base">
+              {autoRunTriggered ? 'Auto-Run Triggered' : 'Latest Verification Artifact'}
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-2 text-sm">
+              {autoRunTriggered && (
+                <div className="mb-3 p-2 bg-amber-100 border border-amber-200 rounded-lg">
+                  <p className="text-xs text-amber-900 font-medium">
+                    ⚡ No recent verification found. Auto-running verification now...
+                  </p>
+                </div>
+              )}
               <div>
                 <span className="font-medium text-slate-700">Title:</span>{' '}
                 <span className="text-slate-600">{latestArtifact.outputName}</span>
@@ -126,10 +145,36 @@ export default function BuildVerificationDashboard() {
                 <span className="font-medium text-slate-700">Upgrade ID:</span>{' '}
                 <span className="text-slate-600">{latestArtifact.upgrade_id}</span>
               </div>
+              <div>
+                <span className="font-medium text-slate-700">Status:</span>{' '}
+                <span className={`text-xs font-semibold ${
+                  (Date.now() - new Date(latestArtifact.published_at).getTime()) < 24 * 60 * 60 * 1000
+                    ? 'text-green-700'
+                    : 'text-amber-700'
+                }`}>
+                  {(Date.now() - new Date(latestArtifact.published_at).getTime()) < 24 * 60 * 60 * 1000
+                    ? '✓ Latest build verified (within 24h)'
+                    : '⚠ Verification is older than 24h'}
+                </span>
+              </div>
               <p className="text-xs text-slate-500 pt-2">
                 ✓ Visible in ChangeLog → Verification tab
               </p>
             </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* No Artifact + Auto-Run Info */}
+      {!latestArtifact && !result && !running && (
+        <Card className="border-blue-200 bg-blue-50">
+          <CardHeader>
+            <CardTitle className="text-base text-blue-900">First Verification</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-sm text-blue-700">
+              No verification artifacts found. Auto-run will trigger verification on load.
+            </p>
           </CardContent>
         </Card>
       )}
@@ -277,8 +322,11 @@ export default function BuildVerificationDashboard() {
             <p className="text-xs text-slate-600 mb-2">
               <strong>NW-UPGRADE-043:</strong> Created VerificationContractRegistry to centralize contract definitions and improve maintainability
             </p>
-            <p className="text-xs text-slate-600">
+            <p className="text-xs text-slate-600 mb-2">
               <strong>NW-UPGRADE-044:</strong> Added Graph Contracts to verify compliance graph integrity (Risk→Control→Test→Evidence→Observation→Remediation linkages)
+            </p>
+            <p className="text-xs text-slate-600">
+              <strong>NW-UPGRADE-045:</strong> Added admin-only sidebar navigation + auto-run verification on deployment (safe idempotency: only runs if no verification exists within 24h)
             </p>
           </div>
           

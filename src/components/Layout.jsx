@@ -6,7 +6,7 @@ import FeedbackButton from '@/components/feedback/FeedbackButton';
 import GlobalSearch from '@/components/search/GlobalSearch';
 import {
   LayoutDashboard, Building2, FileStack, ListTodo, FileBarChart, Settings,
-  ChevronLeft, ChevronRight, LogOut, Shield, Menu, Bell, HelpCircle, GitBranch
+  ChevronLeft, ChevronRight, LogOut, Shield, Menu, Bell, HelpCircle, GitBranch, ShieldCheck
 } from 'lucide-react';
 
 const NAV_ITEMS = [
@@ -30,6 +30,7 @@ const NAV_ITEMS = [
   { label: 'GOVERNANCE' },
   { name: 'Admin', icon: Settings, page: 'Admin' },
   { name: 'ChangeLog', icon: GitBranch, page: 'ChangeLog', adminOnly: true },
+  { name: 'Build Verification', icon: ShieldCheck, page: 'BuildVerificationDashboard', adminOnly: true },
   { name: 'Feedback', icon: HelpCircle, page: 'Feedback' },
 ];
 
@@ -221,6 +222,7 @@ export default function Layout({ children, currentPageName }) {
                (item.page === 'Engagements' && currentPageName === 'EngagementDetail') ||
                (item.page === 'Feedback' && ['Feedback'].includes(currentPageName)) ||
                (item.page === 'ChangeLog' && ['ChangeLog', 'ArtifactDiagnostics'].includes(currentPageName)) ||
+               (item.page === 'BuildVerificationDashboard' && currentPageName === 'BuildVerificationDashboard') ||
                (item.page === 'Admin' && ['AdminRiskLibrary', 'AdminControlLibrary', 'AdminMethodologies', 'AdminNarratives', 'AdminUsers', 'AdminAuditLog', 'AdminJurisdictions', 'AdminIndustries', 'AdminTestScenarios', 'AdminInvitations', 'AdminRiskProposals', 'LibraryReviewDashboard', 'AdminGovernance'].includes(currentPageName));
              return (
                <Link
