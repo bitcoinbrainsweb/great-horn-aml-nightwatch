@@ -23,6 +23,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ArrowLeft, Save, FileText, CheckSquare, AlertCircle, FileSpreadsheet } from 'lucide-react';
 import { toast } from 'sonner';
 import PageHeader from '@/components/ui/PageHeader';
+import EvidenceManager from '@/components/engagement/EvidenceManager';
+import ObservationManager from '@/components/engagement/ObservationManager';
 
 export default function EngagementDetailV2() {
   const navigate = useNavigate();
@@ -410,22 +412,16 @@ export default function EngagementDetailV2() {
 
         <TabsContent value="observations">
           <Card>
-            <CardHeader>
-              <CardTitle>Observations</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-gray-500">Observations interface will be built in Phase 4</p>
+            <CardContent className="pt-6">
+              <ObservationManager engagementId={engagementId} />
             </CardContent>
           </Card>
         </TabsContent>
 
         <TabsContent value="evidence">
           <Card>
-            <CardHeader>
-              <CardTitle>Evidence</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-gray-500">Evidence management interface will be built in Phase 4</p>
+            <CardContent className="pt-6">
+              <EvidenceManager engagementId={engagementId} />
             </CardContent>
           </Card>
         </TabsContent>
