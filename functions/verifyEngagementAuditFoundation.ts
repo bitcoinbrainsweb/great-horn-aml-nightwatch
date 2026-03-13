@@ -273,6 +273,7 @@ Deno.serve(async (req) => {
 
     // Publish verification artifact
     try {
+      const publishedAt = new Date().toISOString();
       const artifactResult = await base44.asServiceRole.functions.invoke('publishCanonicalArtifact', {
         outputName: `Nightwatch_VerificationRecord_NW-UPGRADE-040_${new Date().toISOString().split('T')[0]}`,
         classification: 'verification_record',
@@ -283,6 +284,7 @@ Deno.serve(async (req) => {
         product_version: 'v0.7.0',
         upgrade_id: 'NW-UPGRADE-040',
         status: 'published',
+        published_at: publishedAt,
         content: JSON.stringify(verificationResults, null, 2),
         summary: `NW-UPGRADE-040 Verification - ${success ? 'PASSED' : 'FAILED'} (${violations.length} violations, ${warnings.length} warnings)`,
         metadata: JSON.stringify({
@@ -294,9 +296,11 @@ Deno.serve(async (req) => {
 
       verificationResults.artifact_published = true;
       verificationResults.artifact_id = artifactResult.data?.id;
+      verificationResults.artifact_published_at = publishedAt;
     } catch (error) {
       verificationResults.artifact_published = false;
       verificationResults.artifact_error = error.message;
+      verificationResults.artifact_error_stack = error.stack;
     }
 
     return Response.json(verificationResults, { status: success ? 200 : 422 });
