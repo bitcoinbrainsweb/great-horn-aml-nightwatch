@@ -42,6 +42,7 @@ import EngagementsV2 from './pages/EngagementsV2';
 import EngagementDetailV2 from './pages/EngagementDetailV2';
 import EngagementControlTesting from './pages/EngagementControlTesting';
 import AdminEngagementSetup from './pages/AdminEngagementSetup';
+import NW040UpgradeSummary from './pages/NW040UpgradeSummary';
 
 const LayoutWrapper = ({ children, currentPageName }) => (
   <Layout currentPageName={currentPageName}>{children}</Layout>
@@ -108,6 +109,7 @@ const AuthenticatedApp = () => {
       <Route path="/EngagementDetailV2" element={<LayoutWrapper currentPageName="EngagementDetailV2"><EngagementDetailV2 /></LayoutWrapper>} />
       <Route path="/EngagementControlTesting" element={<LayoutWrapper currentPageName="EngagementControlTesting"><EngagementControlTesting /></LayoutWrapper>} />
       <Route path="/AdminEngagementSetup" element={<LayoutWrapper currentPageName="AdminEngagementSetup"><AdminEngagementSetup /></LayoutWrapper>} />
+      <Route path="/NW040UpgradeSummary" element={<LayoutWrapper currentPageName="NW040UpgradeSummary"><NW040UpgradeSummary /></LayoutWrapper>} />
       <Route path="*" element={<PageNotFound />} />
     </Routes>
   );
