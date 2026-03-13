@@ -226,14 +226,14 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Forbidden: Admin access required' }, { status: 403 });
     }
 
-    const build_label = 'NW-UPGRADE-044';
+    const build_label = 'NW-UPGRADE-045';
     const checks = [];
     const warnings = [];
     const violations = [];
     const changed_files_summary = [
-      'functions/VerificationContractRegistry.js — Added Graph Contracts',
-      'functions/verifyLatestBuild.js — Added Graph Contract verification',
-      'pages/BuildVerificationDashboard — Added Graph Contracts display'
+      'components/Layout — Added Build Verification sidebar link (admin-only)',
+      'pages/BuildVerificationDashboard — Implemented build-identity-based auto-run logic',
+      'functions/verifyLatestBuild.js — Updated build label to NW-UPGRADE-045'
     ];
 
     // Load contracts from registry
@@ -658,18 +658,20 @@ function generateResultMarkdown(data) {
   md += `- **Permission Contracts:** ${contractSummary.permissionContracts}\n`;
   md += `- **Graph Contracts:** ${contractSummary.graphContracts}\n\n`;
   
-  md += `## Architecture Change (NW-UPGRADE-044)\n\n`;
+  md += `## Architecture Change (NW-UPGRADE-045 / NW-UPGRADE-045A)\n\n`;
   md += `**What Changed:**\n`;
-  md += `- Added Graph Contracts to VerificationContractRegistry\n`;
-  md += `- Extended verifyLatestBuild to verify compliance graph integrity\n`;
-  md += `- Validates 7 core graph linkages: Risk→Control, Control→Test, Test→Evidence, Test→Observation, Observation→Remediation, Snapshot integrity, Shared-object integrity\n`;
-  md += `- All checks are runtime-based, no source file inspection\n\n`;
+  md += `- Added admin-only Build Verification sidebar navigation link\n`;
+  md += `- Implemented build-identity-based auto-run verification on dashboard load\n`;
+  md += `- Fixed auto-run logic to check current build vs. latest verified build (not time-based)\n`;
+  md += `- Auto-run triggers only when latest verified build label does NOT match current build label\n`;
+  md += `- All verification architecture preserved (VerificationContractRegistry, Graph Contracts, canonical publishing)\n\n`;
   
   md += `**Benefits:**\n`;
-  md += `- Compliance graph integrity is now automatically verified on each build\n`;
-  md += `- Detects orphaned risks, broken control references, invalid evidence links, and snapshot corruption\n`;
-  md += `- Confirms the system still uses shared control/evidence/observation/remediation backbone\n`;
-  md += `- Graph warnings surface before they become critical failures\n\n`;
+  md += `- Build verification now accessible from sidebar for admin users\n`;
+  md += `- Each new build/upgrade automatically triggers verification once\n`;
+  md += `- Safe idempotency: no duplicate verification for same build\n`;
+  md += `- Manual "Run Verification" button still available for reruns\n`;
+  md += `- Dashboard clearly displays current build vs. latest verified build\n\n`;
   
   md += `## Summary\n\n`;
   md += `- **Total Checks:** ${checks.length}\n`;

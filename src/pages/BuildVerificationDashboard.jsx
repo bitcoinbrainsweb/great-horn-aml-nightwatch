@@ -13,6 +13,10 @@ export default function BuildVerificationDashboard() {
   const [error, setError] = useState(null);
   const [autoRanOnLoad, setAutoRanOnLoad] = useState(false);
   const [autoRunTriggered, setAutoRunTriggered] = useState(false);
+  const [autoRunReason, setAutoRunReason] = useState('');
+
+  // Current build identity (hardcoded for now, can be enhanced with deployment metadata later)
+  const currentBuildLabel = 'NW-UPGRADE-045';
 
   // Fetch latest verification artifact from canonical store
   const { data: latestArtifact, isLoading: loadingArtifact, refetch: refetchArtifact } = useQuery({
@@ -30,19 +34,26 @@ export default function BuildVerificationDashboard() {
     }
   });
 
-  // Auto-run verification on first load if no recent result exists
-  // Safe idempotency: only runs once per session, checks for recent verification
+  // Auto-run verification on first load if current build hasn't been verified
+  // Safe idempotency: only runs once per session, checks build identity match
   useEffect(() => {
     if (!autoRanOnLoad && !loadingArtifact && !running) {
       setAutoRanOnLoad(true);
       
-      // Check if latest verification is recent (within last 24 hours)
-      const isRecentVerification = latestArtifact && 
-        (Date.now() - new Date(latestArtifact.published_at).getTime()) < 24 * 60 * 60 * 1000;
+      // Determine latest verified build label
+      const latestVerifiedBuild = latestArtifact?.upgrade_id || null;
       
-      if (!isRecentVerification) {
+      // Check if current build matches latest verified build
+      if (!latestVerifiedBuild) {
         setAutoRunTriggered(true);
+        setAutoRunReason('No verification artifacts found');
         runVerification();
+      } else if (latestVerifiedBuild !== currentBuildLabel) {
+        setAutoRunTriggered(true);
+        setAutoRunReason(`Current build (${currentBuildLabel}) ≠ Latest verified (${latestVerifiedBuild})`);
+        runVerification();
+      } else {
+        setAutoRunReason(`Current build (${currentBuildLabel}) already verified`);
       }
     }
   }, [autoRanOnLoad, loadingArtifact, latestArtifact, running]);
@@ -114,6 +125,28 @@ export default function BuildVerificationDashboard() {
         </div>
       </PageHeader>
 
+      {/* Build Identity Status */}
+      <Card className="border-slate-200">
+        <CardContent className="p-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+            <div>
+              <span className="font-medium text-slate-700">Current Build:</span>{' '}
+              <span className="text-slate-900 font-mono">{currentBuildLabel}</span>
+            </div>
+            <div>
+              <span className="font-medium text-slate-700">Latest Verified:</span>{' '}
+              <span className="text-slate-900 font-mono">{latestArtifact?.upgrade_id || 'None'}</span>
+            </div>
+            <div>
+              <span className="font-medium text-slate-700">Auto-Run:</span>{' '}
+              <span className={`text-xs font-semibold ${autoRunTriggered ? 'text-amber-700' : 'text-green-700'}`}>
+                {autoRunTriggered ? '⚡ Triggered' : '✓ Skipped'} — {autoRunReason}
+              </span>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
       {/* Latest Artifact Info */}
       {latestArtifact && !result && (
         <Card className={autoRunTriggered ? 'border-amber-200 bg-amber-50' : ''}>
@@ -127,7 +160,7 @@ export default function BuildVerificationDashboard() {
               {autoRunTriggered && (
                 <div className="mb-3 p-2 bg-amber-100 border border-amber-200 rounded-lg">
                   <p className="text-xs text-amber-900 font-medium">
-                    ⚡ No recent verification found. Auto-running verification now...
+                    ⚡ {autoRunReason}. Auto-running verification now...
                   </p>
                 </div>
               )}
@@ -142,19 +175,19 @@ export default function BuildVerificationDashboard() {
                 </span>
               </div>
               <div>
-                <span className="font-medium text-slate-700">Upgrade ID:</span>{' '}
-                <span className="text-slate-600">{latestArtifact.upgrade_id}</span>
+                <span className="font-medium text-slate-700">Verified Build:</span>{' '}
+                <span className="text-slate-600 font-mono">{latestArtifact.upgrade_id}</span>
               </div>
               <div>
-                <span className="font-medium text-slate-700">Status:</span>{' '}
+                <span className="font-medium text-slate-700">Match Status:</span>{' '}
                 <span className={`text-xs font-semibold ${
-                  (Date.now() - new Date(latestArtifact.published_at).getTime()) < 24 * 60 * 60 * 1000
+                  latestArtifact.upgrade_id === currentBuildLabel
                     ? 'text-green-700'
                     : 'text-amber-700'
                 }`}>
-                  {(Date.now() - new Date(latestArtifact.published_at).getTime()) < 24 * 60 * 60 * 1000
-                    ? '✓ Latest build verified (within 24h)'
-                    : '⚠ Verification is older than 24h'}
+                  {latestArtifact.upgrade_id === currentBuildLabel
+                    ? '✓ Current build verified'
+                    : '⚠ Build mismatch detected'}
                 </span>
               </div>
               <p className="text-xs text-slate-500 pt-2">
@@ -173,7 +206,7 @@ export default function BuildVerificationDashboard() {
           </CardHeader>
           <CardContent>
             <p className="text-sm text-blue-700">
-              No verification artifacts found. Auto-run will trigger verification on load.
+              No verification artifacts found. Auto-run triggered: {autoRunReason}
             </p>
           </CardContent>
         </Card>
@@ -325,8 +358,11 @@ export default function BuildVerificationDashboard() {
             <p className="text-xs text-slate-600 mb-2">
               <strong>NW-UPGRADE-044:</strong> Added Graph Contracts to verify compliance graph integrity (Risk→Control→Test→Evidence→Observation→Remediation linkages)
             </p>
+            <p className="text-xs text-slate-600 mb-2">
+              <strong>NW-UPGRADE-045:</strong> Added admin-only sidebar navigation + auto-run verification on deployment
+            </p>
             <p className="text-xs text-slate-600">
-              <strong>NW-UPGRADE-045:</strong> Added admin-only sidebar navigation + auto-run verification on deployment (safe idempotency: only runs if no verification exists within 24h)
+              <strong>NW-UPGRADE-045A:</strong> Fixed auto-run logic to check build identity instead of time-based recency (current build vs. latest verified build comparison)
             </p>
           </div>
           
