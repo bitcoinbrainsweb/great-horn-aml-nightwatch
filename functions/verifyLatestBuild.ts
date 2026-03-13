@@ -12,7 +12,9 @@ const VerificationContractRegistry = {
     { name: 'SampleSet', requiredFields: ['engagement_id', 'population_description', 'sample_method'], description: 'Statistical sampling definitions' },
     { name: 'SampleItem', requiredFields: ['sample_set_id', 'item_identifier'], description: 'Individual sampled items' },
     { name: 'PublishedOutput', requiredFields: ['outputName', 'classification', 'status'], description: 'Canonical artifact store' },
-    { name: 'UpgradeRegistry', requiredFields: ['upgrade_id', 'product_version', 'title', 'status'], description: 'System upgrade tracking' }
+    { name: 'UpgradeRegistry', requiredFields: ['upgrade_id', 'product_version', 'title', 'status'], description: 'System upgrade tracking' },
+    { name: 'TestType', requiredFields: ['name', 'category', 'status'], description: 'Test type classification system (NW-UPGRADE-046)' },
+    { name: 'TestExecutionModel', requiredFields: ['name', 'status'], description: 'Test execution model system (NW-UPGRADE-046)' }
   ],
   routeContracts: [
     { name: 'Engagements', entityDependency: 'Engagement', description: 'Primary engagement management interface' },
@@ -226,14 +228,16 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Forbidden: Admin access required' }, { status: 403 });
     }
 
-    const build_label = 'NW-UPGRADE-045';
+    const build_label = 'NW-UPGRADE-046';
     const checks = [];
     const warnings = [];
     const violations = [];
     const changed_files_summary = [
-      'components/Layout — Added Build Verification sidebar link (admin-only)',
-      'pages/BuildVerificationDashboard — Implemented build-identity-based auto-run logic',
-      'functions/verifyLatestBuild.js — Updated build label to NW-UPGRADE-045'
+      'entities/TestType.json — Created test type classification system',
+      'entities/TestExecutionModel.json — Created execution model system',
+      'entities/EngagementControlTest.json — Added structured result fields (result_status, records_examined, exceptions_found, exception_rate)',
+      'entities/EvidenceItem.json — Added structured evidence schema fields (data_source, period_start/end, records_examined, exceptions_found, generated_by/timestamp)',
+      'functions/verifyLatestBuild.js — Updated to verify Evidence & Control Testing Framework'
     ];
 
     // Load contracts from registry
@@ -658,20 +662,23 @@ function generateResultMarkdown(data) {
   md += `- **Permission Contracts:** ${contractSummary.permissionContracts}\n`;
   md += `- **Graph Contracts:** ${contractSummary.graphContracts}\n\n`;
   
-  md += `## Architecture Change (NW-UPGRADE-045 / NW-UPGRADE-045A)\n\n`;
+  md += `## Architecture Change (NW-UPGRADE-046)\n\n`;
   md += `**What Changed:**\n`;
-  md += `- Added admin-only Build Verification sidebar navigation link\n`;
-  md += `- Implemented build-identity-based auto-run verification on dashboard load\n`;
-  md += `- Fixed auto-run logic to check current build vs. latest verified build (not time-based)\n`;
-  md += `- Auto-run triggers only when latest verified build label does NOT match current build label\n`;
-  md += `- All verification architecture preserved (VerificationContractRegistry, Graph Contracts, canonical publishing)\n\n`;
+  md += `- Created TestType entity (test classification: sample_review, data_validation, process_walkthrough, document_verification, automated_rule_check)\n`;
+  md += `- Created TestExecutionModel entity (execution modes: manual, scheduled, automated, event_triggered)\n`;
+  md += `- Extended EngagementControlTest with structured result fields: result_status, records_examined, exceptions_found, exception_rate\n`;
+  md += `- Extended EvidenceItem with structured evidence schema: data_source, period_start/end, records_examined, exceptions_found, generated_by, generated_timestamp\n`;
+  md += `- All schema additions are backwards compatible (optional fields)\n`;
+  md += `- Control → Test → Evidence linkage remains intact\n`;
+  md += `- Graph Contracts continue to pass\n\n`;
   
   md += `**Benefits:**\n`;
-  md += `- Build verification now accessible from sidebar for admin users\n`;
-  md += `- Each new build/upgrade automatically triggers verification once\n`;
-  md += `- Safe idempotency: no duplicate verification for same build\n`;
-  md += `- Manual "Run Verification" button still available for reruns\n`;
-  md += `- Dashboard clearly displays current build vs. latest verified build\n\n`;
+  md += `- Standardized control testing methodology across platform\n`;
+  md += `- Structured evidence generation with metadata\n`;
+  md += `- Foundation for automated evidence collection\n`;
+  md += `- Exception rate tracking for test quality metrics\n`;
+  md += `- Supports future test scheduling and monitoring\n`;
+  md += `- Prepares platform for Compliance Operations Dashboard and Audit Module\n\n`;
   
   md += `## Summary\n\n`;
   md += `- **Total Checks:** ${checks.length}\n`;

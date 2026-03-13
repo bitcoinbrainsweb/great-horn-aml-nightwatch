@@ -16,7 +16,7 @@ export default function BuildVerificationDashboard() {
   const [autoRunReason, setAutoRunReason] = useState('');
 
   // Current build identity (hardcoded for now, can be enhanced with deployment metadata later)
-  const currentBuildLabel = 'NW-UPGRADE-045';
+  const currentBuildLabel = 'NW-UPGRADE-046';
 
   // Fetch latest verification artifact from canonical store
   const { data: latestArtifact, isLoading: loadingArtifact, refetch: refetchArtifact } = useQuery({
@@ -361,8 +361,11 @@ export default function BuildVerificationDashboard() {
             <p className="text-xs text-slate-600 mb-2">
               <strong>NW-UPGRADE-045:</strong> Added admin-only sidebar navigation + auto-run verification on deployment
             </p>
-            <p className="text-xs text-slate-600">
+            <p className="text-xs text-slate-600 mb-2">
               <strong>NW-UPGRADE-045A:</strong> Fixed auto-run logic to check build identity instead of time-based recency (current build vs. latest verified build comparison)
+            </p>
+            <p className="text-xs text-slate-600">
+              <strong>NW-UPGRADE-046:</strong> Evidence & Control Testing Framework — Created TestType and TestExecutionModel entities, extended EngagementControlTest and EvidenceItem with structured result and evidence fields
             </p>
           </div>
           
