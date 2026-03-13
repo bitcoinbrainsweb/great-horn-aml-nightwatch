@@ -11,7 +11,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import PageHeader from '../components/ui/PageHeader';
 import { StatusBadge } from '../components/ui/RiskBadge';
-import CoverageBadge from '@/components/coverage/CoverageBadge';
+import CoverageBadge from '@/components/coverage/CoverageBadge.jsx';
 
 const CATEGORIES = ['Products', 'Delivery Channels', 'Clients', 'Geography', 'Technology', 'Sanctions', 'Third Parties', 'Operational'];
 
