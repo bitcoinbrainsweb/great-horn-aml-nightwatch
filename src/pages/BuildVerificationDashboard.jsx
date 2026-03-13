@@ -166,9 +166,10 @@ export default function BuildVerificationDashboard() {
         </CardHeader>
         <CardContent className="text-sm text-slate-600 space-y-2">
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-3">
-            <p className="font-semibold text-blue-900 mb-1">Verification Mode: Runtime Contract Verification</p>
+            <p className="font-semibold text-blue-900 mb-1">Verification Mode: Runtime Contract Verification (Registry-Based)</p>
             <p className="text-xs text-blue-700">
-              This system verifies observable runtime behavior and contracts, not implementation details.
+              This system uses a VerificationContractRegistry to define and execute runtime contract checks.
+              Contracts are loaded from a central registry, making the system more stable and maintainable.
             </p>
           </div>
           
@@ -187,11 +188,12 @@ export default function BuildVerificationDashboard() {
           </ul>
           
           <div className="bg-slate-50 border border-slate-200 rounded-lg p-3 mt-3">
-            <p className="font-medium text-slate-900 mb-1">What Changed (NW-UPGRADE-042):</p>
+            <p className="font-medium text-slate-900 mb-1">What Changed:</p>
+            <p className="text-xs text-slate-600 mb-2">
+              <strong>NW-UPGRADE-042:</strong> Removed file checks, added runtime contract verification
+            </p>
             <p className="text-xs text-slate-600">
-              <strong>Removed:</strong> File existence checks, .schema() inspection, source code scanning
-              <br />
-              <strong>Added:</strong> Runtime entity operations, observable behavior validation, contract-based checks
+              <strong>NW-UPGRADE-043:</strong> Created VerificationContractRegistry to centralize contract definitions and improve maintainability
             </p>
           </div>
           
