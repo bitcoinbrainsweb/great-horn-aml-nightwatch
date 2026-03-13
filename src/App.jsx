@@ -40,6 +40,7 @@ import Feedback from './pages/Feedback';
 import Help from './pages/Help';
 import EngagementsV2 from './pages/EngagementsV2';
 import EngagementDetailV2 from './pages/EngagementDetailV2';
+import EngagementControlTesting from './pages/EngagementControlTesting';
 
 const LayoutWrapper = ({ children, currentPageName }) => (
   <Layout currentPageName={currentPageName}>{children}</Layout>
@@ -104,6 +105,7 @@ const AuthenticatedApp = () => {
       <Route path="/Help" element={<LayoutWrapper currentPageName="Help"><Help /></LayoutWrapper>} />
       <Route path="/EngagementsV2" element={<LayoutWrapper currentPageName="EngagementsV2"><EngagementsV2 /></LayoutWrapper>} />
       <Route path="/EngagementDetailV2" element={<LayoutWrapper currentPageName="EngagementDetailV2"><EngagementDetailV2 /></LayoutWrapper>} />
+      <Route path="/EngagementControlTesting" element={<LayoutWrapper currentPageName="EngagementControlTesting"><EngagementControlTesting /></LayoutWrapper>} />
       <Route path="*" element={<PageNotFound />} />
     </Routes>
   );
