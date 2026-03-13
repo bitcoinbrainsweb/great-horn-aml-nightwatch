@@ -271,36 +271,73 @@ Deno.serve(async (req) => {
       violations
     };
 
-    // Publish verification artifact
+    // Publish verification artifact - write directly to PublishedOutput
     try {
       const publishedAt = new Date().toISOString();
-      const artifactResult = await base44.asServiceRole.functions.invoke('publishCanonicalArtifact', {
-        outputName: `Nightwatch_VerificationRecord_NW-UPGRADE-040_${new Date().toISOString().split('T')[0]}`,
-        classification: 'verification_record',
-        subtype: 'verification',
-        display_zone: 'internal_only',
-        source_module: 'VerificationEngine',
-        source_event_type: 'verification_complete',
-        product_version: 'v0.7.0',
+      const dateSlug = publishedAt.split('T')[0];
+      
+      // Check for existing artifact (deduplication)
+      const existingArtifacts = await base44.asServiceRole.entities.PublishedOutput.filter({
         upgrade_id: 'NW-UPGRADE-040',
-        status: 'published',
-        published_at: publishedAt,
-        content: JSON.stringify(verificationResults, null, 2),
-        summary: `NW-UPGRADE-040 Verification - ${success ? 'PASSED' : 'FAILED'} (${violations.length} violations, ${warnings.length} warnings)`,
-        metadata: JSON.stringify({
-          verified_by: user.email,
-          verification_type: 'automated',
-          framework_version: 'v0.7.0'
-        })
+        classification: 'verification_record'
       });
 
+      let artifact;
+      if (existingArtifacts.length > 0) {
+        console.log('[NW-040 Verification] Updating existing artifact:', existingArtifacts[0].id);
+        artifact = await base44.asServiceRole.entities.PublishedOutput.update(
+          existingArtifacts[0].id,
+          {
+            outputName: `Nightwatch_VerificationRecord_NW-UPGRADE-040_${dateSlug}`,
+            status: 'published',
+            published_at: publishedAt,
+            content: JSON.stringify(verificationResults, null, 2),
+            summary: `NW-UPGRADE-040 Verification - ${success ? 'PASSED' : 'FAILED'} (${violations.length} violations, ${warnings.length} warnings)`,
+            metadata: JSON.stringify({
+              verified_by: user.email,
+              verification_type: 'automated',
+              framework_version: 'v0.7.0',
+              updated: true
+            })
+          }
+        );
+      } else {
+        console.log('[NW-040 Verification] Creating new artifact');
+        artifact = await base44.asServiceRole.entities.PublishedOutput.create({
+          outputName: `Nightwatch_VerificationRecord_NW-UPGRADE-040_${dateSlug}`,
+          classification: 'verification_record',
+          subtype: 'verification',
+          is_runnable: false,
+          is_user_visible: false,
+          display_zone: 'internal_only',
+          source_module: 'VerificationEngine',
+          source_event_type: 'verification_complete',
+          product_version: 'v0.7.0',
+          upgrade_id: 'NW-UPGRADE-040',
+          status: 'published',
+          published_at: publishedAt,
+          content: JSON.stringify(verificationResults, null, 2),
+          summary: `NW-UPGRADE-040 Verification - ${success ? 'PASSED' : 'FAILED'} (${violations.length} violations, ${warnings.length} warnings)`,
+          metadata: JSON.stringify({
+            verified_by: user.email,
+            verification_type: 'automated',
+            framework_version: 'v0.7.0'
+          })
+        });
+      }
+
       verificationResults.artifact_published = true;
-      verificationResults.artifact_id = artifactResult.data?.id;
+      verificationResults.artifact_id = artifact.id;
+      verificationResults.artifact_title = artifact.outputName;
       verificationResults.artifact_published_at = publishedAt;
+      verificationResults.artifact_classification = artifact.classification;
+      
+      console.log('[NW-040 Verification] ✓ Artifact published:', artifact.id);
     } catch (error) {
       verificationResults.artifact_published = false;
       verificationResults.artifact_error = error.message;
       verificationResults.artifact_error_stack = error.stack;
+      console.error('[NW-040 Verification] ✗ Artifact publish failed:', error);
     }
 
     return Response.json(verificationResults, { status: success ? 200 : 422 });
