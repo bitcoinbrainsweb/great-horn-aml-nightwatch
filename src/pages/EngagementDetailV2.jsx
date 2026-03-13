@@ -25,6 +25,7 @@ import { toast } from 'sonner';
 import PageHeader from '@/components/ui/PageHeader';
 import EvidenceManager from '@/components/engagement/EvidenceManager';
 import ObservationManager from '@/components/engagement/ObservationManager';
+import WorkpaperManager from '@/components/engagement/WorkpaperManager';
 
 export default function EngagementDetailV2() {
   const navigate = useNavigate();
@@ -428,11 +429,8 @@ export default function EngagementDetailV2() {
 
         <TabsContent value="workpapers">
           <Card>
-            <CardHeader>
-              <CardTitle>Workpapers</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-gray-500">Workpapers interface will be built in Phase 4</p>
+            <CardContent className="pt-6">
+              <WorkpaperManager engagementId={engagementId} />
             </CardContent>
           </Card>
         </TabsContent>
