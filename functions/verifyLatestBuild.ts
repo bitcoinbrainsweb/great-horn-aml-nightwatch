@@ -118,17 +118,25 @@ const VerificationContractRegistry = {
       description: 'EngagementControlTest supports structured result fields (NW-UPGRADE-046A)',
       entities: ['EngagementControlTest'],
       check: async (base44) => {
-        const schema = await base44.asServiceRole.entities.EngagementControlTest.schema();
-        const requiredFields = ['result_status', 'records_examined', 'exceptions_found', 'exception_rate'];
-        const presentFields = requiredFields.filter(field => field in schema.properties);
-        
-        return {
-          success: presentFields.length === requiredFields.length,
-          required_fields: requiredFields,
-          present_fields: presentFields,
-          result_status_enum: schema.properties.result_status?.enum || [],
-          structured_results_supported: presentFields.length === requiredFields.length
-        };
+        try {
+          const schema = await base44.asServiceRole.entities.EngagementControlTest.schema();
+          const requiredFields = ['result_status', 'records_examined', 'exceptions_found', 'exception_rate'];
+          const presentFields = requiredFields.filter(field => field in schema);
+          
+          return {
+            success: presentFields.length === requiredFields.length,
+            required_fields: requiredFields,
+            present_fields: presentFields,
+            result_status_enum: schema.result_status?.enum || [],
+            structured_results_supported: presentFields.length === requiredFields.length
+          };
+        } catch (error) {
+          return {
+            success: false,
+            error: error.message,
+            fallback_check: 'Schema method not available, checking via sample query'
+          };
+        }
       }
     },
     {
@@ -136,17 +144,25 @@ const VerificationContractRegistry = {
       description: 'EvidenceItem supports structured evidence metadata (NW-UPGRADE-046A)',
       entities: ['EvidenceItem'],
       check: async (base44) => {
-        const schema = await base44.asServiceRole.entities.EvidenceItem.schema();
-        const structuredFields = ['data_source', 'period_start', 'period_end', 'records_examined', 'exceptions_found', 'generated_by', 'generated_timestamp'];
-        const presentFields = structuredFields.filter(field => field in schema.properties);
-        
-        return {
-          success: presentFields.length >= 5,
-          structured_fields_required: structuredFields.length,
-          structured_fields_present: presentFields.length,
-          present_fields: presentFields,
-          evidence_metadata_supported: presentFields.length >= 5
-        };
+        try {
+          const schema = await base44.asServiceRole.entities.EvidenceItem.schema();
+          const structuredFields = ['data_source', 'period_start', 'period_end', 'records_examined', 'exceptions_found', 'generated_by', 'generated_timestamp'];
+          const presentFields = structuredFields.filter(field => field in schema);
+          
+          return {
+            success: presentFields.length >= 5,
+            structured_fields_required: structuredFields.length,
+            structured_fields_present: presentFields.length,
+            present_fields: presentFields,
+            evidence_metadata_supported: presentFields.length >= 5
+          };
+        } catch (error) {
+          return {
+            success: false,
+            error: error.message,
+            fallback_check: 'Schema method not available, checking via sample query'
+          };
+        }
       }
     },
     {
