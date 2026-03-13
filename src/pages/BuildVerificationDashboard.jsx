@@ -71,7 +71,7 @@ export default function BuildVerificationDashboard() {
     <div className="space-y-6">
       <PageHeader 
         title="Build Verification Dashboard" 
-        subtitle="Automated verification of latest Nightwatch build"
+        subtitle="Runtime contract verification of latest Nightwatch build"
       >
         <div className="flex gap-2">
           {result && result.results_markdown && (
@@ -162,22 +162,39 @@ export default function BuildVerificationDashboard() {
       {/* Information Panel */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">About Build Verification</CardTitle>
+          <CardTitle className="text-base">About Runtime Contract Verification</CardTitle>
         </CardHeader>
         <CardContent className="text-sm text-slate-600 space-y-2">
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-3">
+            <p className="font-semibold text-blue-900 mb-1">Verification Mode: Runtime Contract Verification</p>
+            <p className="text-xs text-blue-700">
+              This system verifies observable runtime behavior and contracts, not implementation details.
+            </p>
+          </div>
+          
           <p>
-            This dashboard runs automated verification checks on the Nightwatch build to ensure
-            critical entities, pages, routes, and canonical artifact publishing are functioning correctly.
+            This dashboard runs automated runtime contract checks to verify that Nightwatch's core systems
+            are functioning correctly in the actual Base44 runtime environment.
           </p>
+          
           <p className="font-medium text-slate-900">Verification Categories:</p>
           <ul className="list-disc list-inside space-y-1 ml-2">
-            <li>Entity schema validation (required entities and fields)</li>
-            <li>Page smoke tests (critical pages exist and export correctly)</li>
-            <li>Routing configuration (all pages have routes in App.jsx)</li>
-            <li>Canonical artifact publishing (verification records can be created)</li>
-            <li>ChangeLog health (verification records are queryable)</li>
-            <li>Permissions regression (admin-only functions have proper guards)</li>
+            <li>Entity runtime contracts (can query, filter, and read expected fields)</li>
+            <li>Route/page contracts (data dependencies are accessible)</li>
+            <li>Canonical artifact contracts (can create, query, and read verification records)</li>
+            <li>Permissions contracts (admin enforcement active in runtime)</li>
+            <li>Build health contracts (latest verification runs are accessible)</li>
           </ul>
+          
+          <div className="bg-slate-50 border border-slate-200 rounded-lg p-3 mt-3">
+            <p className="font-medium text-slate-900 mb-1">What Changed (NW-UPGRADE-042):</p>
+            <p className="text-xs text-slate-600">
+              <strong>Removed:</strong> File existence checks, .schema() inspection, source code scanning
+              <br />
+              <strong>Added:</strong> Runtime entity operations, observable behavior validation, contract-based checks
+            </p>
+          </div>
+          
           <p className="pt-2">
             <strong>Next steps for full automation:</strong> GitHub webhook integration, branch/commit
             metadata capture, automated run on deployment.

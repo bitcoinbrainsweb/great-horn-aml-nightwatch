@@ -14,7 +14,7 @@ export default function BuildVerificationSummary({ result }) {
     );
   }
 
-  const { success, build_label, checks, warnings, violations, generated_at, artifact_publish_status } = result;
+  const { success, build_label, checks, warnings, violations, generated_at, artifact_publish_status, verification_mode } = result;
 
   return (
     <div className="space-y-4">
@@ -31,9 +31,14 @@ export default function BuildVerificationSummary({ result }) {
               <h2 className="text-xl font-semibold text-slate-900">
                 {success ? 'Build Verification Passed' : 'Build Verification Failed'}
               </h2>
-              <p className="text-sm text-slate-600 mt-1">
-                {build_label} — Generated {new Date(generated_at).toLocaleString()}
-              </p>
+              <div className="text-sm text-slate-600 mt-1">
+                <p>{build_label} — Generated {new Date(generated_at).toLocaleString()}</p>
+                {verification_mode && (
+                  <p className="text-xs text-blue-700 mt-1">
+                    Mode: {verification_mode.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                  </p>
+                )}
+              </div>
             </div>
           </div>
         </CardContent>
