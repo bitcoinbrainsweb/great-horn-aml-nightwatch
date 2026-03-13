@@ -16,7 +16,7 @@ export default function BuildVerificationDashboard() {
   const [autoRunReason, setAutoRunReason] = useState('');
 
   // Current build identity (hardcoded for now, can be enhanced with deployment metadata later)
-  const currentBuildLabel = 'NW-UPGRADE-046A';
+  const currentBuildLabel = 'NW-UPGRADE-046B';
 
   // Fetch latest verification artifact from canonical store
   const { data: latestArtifact, isLoading: loadingArtifact, refetch: refetchArtifact } = useQuery({
@@ -367,8 +367,11 @@ export default function BuildVerificationDashboard() {
             <p className="text-xs text-slate-600 mb-2">
               <strong>NW-UPGRADE-046:</strong> Evidence & Control Testing Framework — Created TestType and TestExecutionModel entities, extended EngagementControlTest and EvidenceItem with structured result and evidence fields
             </p>
-            <p className="text-xs text-slate-600">
+            <p className="text-xs text-slate-600 mb-2">
               <strong>NW-UPGRADE-046A:</strong> Added 5 verification contracts for Evidence & Control Testing Framework (TestType validation, TestExecutionModel validation, ControlTest result structure, EvidenceItem structured fields, Control→Test→Evidence graph)
+            </p>
+            <p className="text-xs text-slate-600">
+              <strong>NW-UPGRADE-046B:</strong> Added explicit delivery gate metrics tracking (contracts_discovered, contracts_executed, contracts_passed, contracts_failed, execution_rate, pass_rate)
             </p>
           </div>
           
