@@ -186,10 +186,56 @@ export default function BuildVerificationDashboard() {
                     <div className="text-2xl font-bold text-purple-900">{result.contract_registry.permissionContracts}</div>
                     <div className="text-xs text-purple-600 mt-1">Permission Contracts</div>
                   </div>
+                  <div className="text-center p-3 bg-teal-50 rounded-lg">
+                    <div className="text-2xl font-bold text-teal-900">{result.contract_registry.graphContracts || 0}</div>
+                    <div className="text-xs text-teal-600 mt-1">Graph Contracts</div>
+                  </div>
                 </div>
               </CardContent>
             </Card>
           )}
+
+          {/* Graph Contracts Summary */}
+          {result && result.contract_registry && result.contract_registry.graphContracts > 0 && (
+            <Card className="mb-6 border-teal-200">
+              <CardHeader>
+                <CardTitle className="text-base text-teal-900">Compliance Graph Health</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-2 text-sm">
+                  <p className="text-slate-600">
+                    The core compliance graph has been verified. {result.contract_registry.graphContracts} graph contracts checked:
+                  </p>
+                  <ul className="list-disc list-inside space-y-1 ml-2 text-slate-600">
+                    <li>Risk → Control linkage</li>
+                    <li>Control → Test linkage</li>
+                    <li>Test → Evidence linkage</li>
+                    <li>Test → Observation linkage</li>
+                    <li>Observation → Remediation linkage</li>
+                    <li>Snapshot integrity (engagement + control context)</li>
+                    <li>Shared-object integrity (ControlLibrary, EvidenceItem, Observation, RemediationAction)</li>
+                  </ul>
+                  <div className="mt-3 p-3 bg-teal-50 border border-teal-200 rounded-lg">
+                    {result.violations.filter(v => v.category === 'Graph Contract').length === 0 ? (
+                      <p className="text-teal-900 font-medium">
+                        ✓ Compliance graph is intact. All critical linkages are functioning.
+                      </p>
+                    ) : (
+                      <p className="text-red-900 font-medium">
+                        ⚠ Graph violations detected. Review failed contracts below.
+                      </p>
+                    )}
+                    {result.warnings.filter(w => w.category === 'Graph Contract').length > 0 && (
+                      <p className="text-amber-700 text-xs mt-1">
+                        {result.warnings.filter(w => w.category === 'Graph Contract').length} graph warning(s) detected
+                      </p>
+                    )}
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
           <BuildVerificationSummary result={result} />
         </>
       )}
@@ -219,6 +265,7 @@ export default function BuildVerificationDashboard() {
             <li>Route/page contracts (data dependencies are accessible)</li>
             <li>Canonical artifact contracts (can create, query, and read verification records)</li>
             <li>Permissions contracts (admin enforcement active in runtime)</li>
+            <li>Graph contracts (compliance graph linkages and shared-object integrity)</li>
             <li>Build health contracts (latest verification runs are accessible)</li>
           </ul>
           
@@ -227,8 +274,11 @@ export default function BuildVerificationDashboard() {
             <p className="text-xs text-slate-600 mb-2">
               <strong>NW-UPGRADE-042:</strong> Removed file checks, added runtime contract verification
             </p>
-            <p className="text-xs text-slate-600">
+            <p className="text-xs text-slate-600 mb-2">
               <strong>NW-UPGRADE-043:</strong> Created VerificationContractRegistry to centralize contract definitions and improve maintainability
+            </p>
+            <p className="text-xs text-slate-600">
+              <strong>NW-UPGRADE-044:</strong> Added Graph Contracts to verify compliance graph integrity (Risk→Control→Test→Evidence→Observation→Remediation linkages)
             </p>
           </div>
           

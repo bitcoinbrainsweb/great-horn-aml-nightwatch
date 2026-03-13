@@ -51,6 +51,7 @@ import Admin from './pages/Admin';
 import AdminAuditLog from './pages/AdminAuditLog';
 import AdminChangeManagement from './pages/AdminChangeManagement';
 import AdminControlLibrary from './pages/AdminControlLibrary';
+import AdminEngagementSetup from './pages/AdminEngagementSetup';
 import AdminGovernance from './pages/AdminGovernance';
 import AdminGovernanceDocumentation from './pages/AdminGovernanceDocumentation';
 import AdminIndustries from './pages/AdminIndustries';
@@ -64,17 +65,21 @@ import AdminSuggestions from './pages/AdminSuggestions';
 import AdminTestScenarios from './pages/AdminTestScenarios';
 import AdminUsers from './pages/AdminUsers';
 import ArtifactDiagnostics from './pages/ArtifactDiagnostics';
+import BuildVerificationDashboard from './pages/BuildVerificationDashboard';
 import ChangeLog from './pages/ChangeLog';
 import ClientDetail from './pages/ClientDetail';
 import Clients from './pages/Clients';
 import ControlTests from './pages/ControlTests';
-import Controls from './pages/Controls';
 import Dashboard from './pages/Dashboard';
 import DeterministicEngineArchitecture from './pages/DeterministicEngineArchitecture';
 import DeterministicEngineUpgradeSummary from './pages/DeterministicEngineUpgradeSummary';
+import EngagementControlTesting from './pages/EngagementControlTesting';
 import EngagementDetail from './pages/EngagementDetail';
+import EngagementDetailV2 from './pages/EngagementDetailV2';
 import Engagements from './pages/Engagements';
+import EngagementsV2 from './pages/EngagementsV2';
 import Feedback from './pages/Feedback';
+import Findings from './pages/Findings';
 import GovernanceDeliveryGateSummary from './pages/GovernanceDeliveryGateSummary';
 import Help from './pages/Help';
 import HistoricalNormalizationSummary from './pages/HistoricalNormalizationSummary';
@@ -82,18 +87,18 @@ import InfrastructureLayerOverview from './pages/InfrastructureLayerOverview';
 import LibraryReviewDashboard from './pages/LibraryReviewDashboard';
 import NW010DeliveryGateSummary from './pages/NW010DeliveryGateSummary';
 import NW013DeliveryGateFinal from './pages/NW013DeliveryGateFinal';
+import NW040UpgradeSummary from './pages/NW040UpgradeSummary';
 import PageInventoryAudit from './pages/PageInventoryAudit';
 import PromptTemplateSystemSummary from './pages/PromptTemplateSystemSummary';
 import PublishNW013 from './pages/PublishNW013';
 import RegressionTestDashboard from './pages/RegressionTestDashboard';
+import RemediationActions from './pages/RemediationActions';
 import ReportPublicationDebug from './pages/ReportPublicationDebug';
 import Reports from './pages/Reports';
 import ReviewerDashboard from './pages/ReviewerDashboard';
+import RunNW040Verification from './pages/RunNW040Verification';
 import Tasks from './pages/Tasks';
 import TestCycles from './pages/TestCycles';
-import Findings from './pages/Findings';
-import RemediationActions from './pages/RemediationActions';
-import __Layout from './Layout.jsx';
 
 
 export const PAGES = {
@@ -101,6 +106,7 @@ export const PAGES = {
     "AdminAuditLog": AdminAuditLog,
     "AdminChangeManagement": AdminChangeManagement,
     "AdminControlLibrary": AdminControlLibrary,
+    "AdminEngagementSetup": AdminEngagementSetup,
     "AdminGovernance": AdminGovernance,
     "AdminGovernanceDocumentation": AdminGovernanceDocumentation,
     "AdminIndustries": AdminIndustries,
@@ -114,17 +120,21 @@ export const PAGES = {
     "AdminTestScenarios": AdminTestScenarios,
     "AdminUsers": AdminUsers,
     "ArtifactDiagnostics": ArtifactDiagnostics,
+    "BuildVerificationDashboard": BuildVerificationDashboard,
     "ChangeLog": ChangeLog,
     "ClientDetail": ClientDetail,
     "Clients": Clients,
     "ControlTests": ControlTests,
-    "Controls": Controls,
     "Dashboard": Dashboard,
     "DeterministicEngineArchitecture": DeterministicEngineArchitecture,
     "DeterministicEngineUpgradeSummary": DeterministicEngineUpgradeSummary,
+    "EngagementControlTesting": EngagementControlTesting,
     "EngagementDetail": EngagementDetail,
+    "EngagementDetailV2": EngagementDetailV2,
     "Engagements": Engagements,
+    "EngagementsV2": EngagementsV2,
     "Feedback": Feedback,
+    "Findings": Findings,
     "GovernanceDeliveryGateSummary": GovernanceDeliveryGateSummary,
     "Help": Help,
     "HistoricalNormalizationSummary": HistoricalNormalizationSummary,
@@ -132,21 +142,21 @@ export const PAGES = {
     "LibraryReviewDashboard": LibraryReviewDashboard,
     "NW010DeliveryGateSummary": NW010DeliveryGateSummary,
     "NW013DeliveryGateFinal": NW013DeliveryGateFinal,
+    "NW040UpgradeSummary": NW040UpgradeSummary,
     "PageInventoryAudit": PageInventoryAudit,
     "PromptTemplateSystemSummary": PromptTemplateSystemSummary,
     "PublishNW013": PublishNW013,
     "RegressionTestDashboard": RegressionTestDashboard,
+    "RemediationActions": RemediationActions,
     "ReportPublicationDebug": ReportPublicationDebug,
     "Reports": Reports,
     "ReviewerDashboard": ReviewerDashboard,
+    "RunNW040Verification": RunNW040Verification,
     "Tasks": Tasks,
     "TestCycles": TestCycles,
-    "Findings": Findings,
-    "RemediationActions": RemediationActions,
 }
 
 export const pagesConfig = {
     mainPage: "Dashboard",
     Pages: PAGES,
-    Layout: __Layout,
 };
