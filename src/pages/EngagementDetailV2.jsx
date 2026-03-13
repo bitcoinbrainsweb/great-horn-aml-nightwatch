@@ -378,10 +378,32 @@ export default function EngagementDetailV2() {
         <TabsContent value="tests">
           <Card>
             <CardHeader>
-              <CardTitle>Control Tests</CardTitle>
+              <div className="flex items-center justify-between">
+                <CardTitle>Control Tests</CardTitle>
+                <Button onClick={() => navigate(`/EngagementControlTesting?engagement_id=${engagementId}`)}>
+                  <CheckSquare className="h-4 w-4 mr-2" />
+                  Manage Tests
+                </Button>
+              </div>
             </CardHeader>
             <CardContent>
-              <p className="text-gray-500">Control testing interface will be built in Phase 3</p>
+              {controlTests.length === 0 ? (
+                <p className="text-gray-500">No control tests yet. Click "Manage Tests" to add tests.</p>
+              ) : (
+                <div className="space-y-2">
+                  {controlTests.slice(0, 5).map(test => (
+                    <div key={test.id} className="flex items-center justify-between border-b pb-2">
+                      <span className="text-sm">{test.test_objective || 'Unnamed test'}</span>
+                      <span className="text-xs text-gray-500">{test.test_status}</span>
+                    </div>
+                  ))}
+                  {controlTests.length > 5 && (
+                    <p className="text-xs text-gray-500 text-center pt-2">
+                      +{controlTests.length - 5} more tests
+                    </p>
+                  )}
+                </div>
+              )}
             </CardContent>
           </Card>
         </TabsContent>
