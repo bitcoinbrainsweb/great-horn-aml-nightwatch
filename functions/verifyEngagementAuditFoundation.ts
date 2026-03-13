@@ -1,12 +1,22 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.20';
+import { publishCanonicalArtifact } from './publishCanonicalArtifact.ts';
+
+/**
+ * NW-UPGRADE-040 Verification — Engagement & Audit Foundation
+ * Publishes through the canonical gateway (publishCanonicalArtifact).
+ * Admin/super_admin only.
+ */
 
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
     const user = await base44.auth.me();
 
-    if (!user || user.role !== 'admin') {
-      return Response.json({ error: 'Admin access required' }, { status: 403 });
+    if (!user) {
+      return Response.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+    if (!['admin', 'super_admin'].includes(user.role)) {
+      return Response.json({ error: 'Forbidden: Technical Admin access required' }, { status: 403 });
     }
 
     const checks = [];
@@ -271,12 +281,11 @@ Deno.serve(async (req) => {
       violations
     };
 
-    // Publish verification artifact - write directly to PublishedOutput
+    // Publish verification artifact via canonical gateway (NW-UPGRADE-040R fix)
     try {
       const publishedAt = new Date().toISOString();
       const dateSlug = publishedAt.split('T')[0];
-      
-      // Check for existing artifact (deduplication)
+
       const existingArtifacts = await base44.asServiceRole.entities.PublishedOutput.filter({
         upgrade_id: 'NW-UPGRADE-040',
         classification: 'verification_record'
@@ -302,8 +311,8 @@ Deno.serve(async (req) => {
           }
         );
       } else {
-        console.log('[NW-040 Verification] Creating new artifact');
-        artifact = await base44.asServiceRole.entities.PublishedOutput.create({
+        console.log('[NW-040 Verification] Creating new artifact via publishCanonicalArtifact');
+        artifact = await publishCanonicalArtifact(base44, {
           outputName: `Nightwatch_VerificationRecord_NW-UPGRADE-040_${dateSlug}`,
           classification: 'verification_record',
           subtype: 'verification',
@@ -321,7 +330,9 @@ Deno.serve(async (req) => {
           metadata: JSON.stringify({
             verified_by: user.email,
             verification_type: 'automated',
-            framework_version: 'v0.7.0'
+            framework_version: 'v0.7.0',
+            generated_by: 'CanonicalVerificationWriter',
+            engine_version: '1.0.0'
           })
         });
       }

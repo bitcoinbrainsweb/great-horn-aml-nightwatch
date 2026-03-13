@@ -21,5 +21,6 @@ Only that path is the canonical writer for upgrade verification. The functions l
 | `architectureExporter.ts` | Architecture export (legacy path) | Admin-only; system export |
 | `publishCanonicalArtifact.ts` | Canonical gateway used by createVerificationArtifact | N/A (gateway itself) |
 | `createVerificationArtifact.ts` | Canonical verification writer (via gateway for create) | Admin/super_admin; used by Release Controller |
+| `verifyEngagementAuditFoundation.ts` | NW-040 verification; creates via `publishCanonicalArtifact`, updates existing directly | Admin/super_admin; routed through gateway for create (NW-040R) |
 
 **Do not** add new direct `PublishedOutput.create`/`update` callers without documenting them here and ensuring they are admin-only and either repair/migration or a designated canonical path.
