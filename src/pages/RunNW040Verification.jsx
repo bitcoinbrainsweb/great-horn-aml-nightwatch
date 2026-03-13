@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { CheckCircle, XCircle, AlertCircle, Loader2 } from 'lucide-react';
+import { CheckCircle, XCircle, AlertCircle, Loader2, Download } from 'lucide-react';
 import PageHeader from '@/components/ui/PageHeader';
 
 export default function RunNW040Verification() {
@@ -23,6 +23,20 @@ export default function RunNW040Verification() {
     } finally {
       setRunning(false);
     }
+  }
+
+  function downloadMarkdown() {
+    if (!result || !result.results_markdown) return;
+    
+    const blob = new Blob([result.results_markdown], { type: 'text/markdown' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'NW-UPGRADE-040_RESULT.md';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
   }
 
   return (
@@ -100,24 +114,61 @@ export default function RunNW040Verification() {
               <div className="pt-4 border-t">
                 <h3 className="font-semibold mb-2">Artifact Publishing</h3>
                 {result.artifact_published ? (
-                  <div className="flex items-center gap-2 text-green-700">
-                    <CheckCircle className="w-4 h-4" />
-                    <span className="text-sm">Artifact published successfully</span>
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2 text-green-700">
+                      <CheckCircle className="w-4 h-4" />
+                      <span className="text-sm">Artifact published successfully</span>
+                    </div>
+                    {result.artifact_id && (
+                      <p className="text-xs text-gray-600">Artifact ID: {result.artifact_id}</p>
+                    )}
+                    {result.artifact_title && (
+                      <p className="text-xs text-gray-600">Title: {result.artifact_title}</p>
+                    )}
+                    {result.artifact_classification && (
+                      <p className="text-xs text-gray-600">Classification: {result.artifact_classification}</p>
+                    )}
+                    {result.artifact_published_at && (
+                      <p className="text-xs text-gray-600">Published: {result.artifact_published_at}</p>
+                    )}
+                    <p className="text-xs text-green-700 font-medium mt-2">
+                      ✓ Artifact should now be visible in ChangeLog → Verification tab
+                    </p>
                   </div>
                 ) : (
-                  <div className="flex items-center gap-2 text-red-700">
-                    <XCircle className="w-4 h-4" />
-                    <span className="text-sm">Artifact publishing failed: {result.artifact_error}</span>
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2 text-red-700">
+                      <XCircle className="w-4 h-4" />
+                      <span className="text-sm">Artifact publishing failed</span>
+                    </div>
+                    {result.artifact_error && (
+                      <pre className="text-xs text-red-600 bg-red-50 p-2 rounded mt-2 whitespace-pre-wrap">
+                        {result.artifact_error}
+                      </pre>
+                    )}
                   </div>
                 )}
-                
-                {result.artifact_id && (
-                  <p className="text-xs text-gray-600 mt-2">Artifact ID: {result.artifact_id}</p>
-                )}
-                {result.artifact_published_at && (
-                  <p className="text-xs text-gray-600">Published: {result.artifact_published_at}</p>
-                )}
               </div>
+
+              {result.results_markdown && (
+                <div className="pt-4 border-t">
+                  <div className="flex items-center justify-between mb-2">
+                    <h3 className="font-semibold">Results Document</h3>
+                    <Button 
+                      size="sm" 
+                      variant="outline" 
+                      onClick={downloadMarkdown}
+                      className="gap-2"
+                    >
+                      <Download className="w-3 h-3" />
+                      Download NW-UPGRADE-040_RESULT.md
+                    </Button>
+                  </div>
+                  <p className="text-xs text-gray-600">
+                    Results file path: {result.results_file_path}
+                  </p>
+                </div>
+              )}
 
               <div className="pt-4 border-t">
                 <h3 className="font-semibold mb-2">Metadata</h3>
