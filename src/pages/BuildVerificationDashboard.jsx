@@ -157,7 +157,42 @@ export default function BuildVerificationDashboard() {
       )}
 
       {/* Verification Results */}
-      {result && <BuildVerificationSummary result={result} />}
+      {result && (
+        <>
+          {result.contract_registry && (
+            <Card className="mb-6">
+              <CardHeader>
+                <CardTitle className="text-base">Verification Contracts Loaded</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+                  <div className="text-center p-3 bg-slate-50 rounded-lg">
+                    <div className="text-2xl font-bold text-slate-900">{result.contract_registry.total}</div>
+                    <div className="text-xs text-slate-600 mt-1">Total Contracts</div>
+                  </div>
+                  <div className="text-center p-3 bg-blue-50 rounded-lg">
+                    <div className="text-2xl font-bold text-blue-900">{result.contract_registry.entityContracts}</div>
+                    <div className="text-xs text-blue-600 mt-1">Entity Contracts</div>
+                  </div>
+                  <div className="text-center p-3 bg-green-50 rounded-lg">
+                    <div className="text-2xl font-bold text-green-900">{result.contract_registry.routeContracts}</div>
+                    <div className="text-xs text-green-600 mt-1">Route Contracts</div>
+                  </div>
+                  <div className="text-center p-3 bg-amber-50 rounded-lg">
+                    <div className="text-2xl font-bold text-amber-900">{result.contract_registry.artifactContracts}</div>
+                    <div className="text-xs text-amber-600 mt-1">Artifact Contracts</div>
+                  </div>
+                  <div className="text-center p-3 bg-purple-50 rounded-lg">
+                    <div className="text-2xl font-bold text-purple-900">{result.contract_registry.permissionContracts}</div>
+                    <div className="text-xs text-purple-600 mt-1">Permission Contracts</div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+          <BuildVerificationSummary result={result} />
+        </>
+      )}
 
       {/* Information Panel */}
       <Card>
