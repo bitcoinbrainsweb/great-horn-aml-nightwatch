@@ -1,17 +1,17 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.20';
 
 /**
- * Verification function for backend infrastructure upgrade
- * Validates that all core infrastructure is in place and functional
- * Generates a verification record in Nightwatch format
+ * NON-CANONICAL: Infrastructure verification helper; writes a verification-style artifact. Not part of Release Controller path.
+ * Validates that all core infrastructure is in place and functional. Admin/super_admin only.
+ * See docs/NW-UPGRADE-039_NON_CANONICAL_ALLOWLIST.md.
  */
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
     const user = await base44.auth.me();
 
-    if (user?.role !== 'admin') {
-      return Response.json({ error: 'Forbidden: Admin access required' }, { status: 403 });
+    if (!user || !['admin', 'super_admin'].includes(user.role)) {
+      return Response.json({ error: 'Forbidden: Technical Admin access required' }, { status: 403 });
     }
 
     const findings = [];

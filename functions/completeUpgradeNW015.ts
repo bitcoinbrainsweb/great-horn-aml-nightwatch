@@ -1,5 +1,11 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.20';
 
+/**
+ * LEGACY / NON-CANONICAL: One-off completion for NW-UPGRADE-015 only.
+ * Not part of the Release Controller path. Do not use for new upgrades.
+ * Admin-only. See docs/NW-UPGRADE-039_NON_CANONICAL_ALLOWLIST.md.
+ */
+
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);

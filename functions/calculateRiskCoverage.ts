@@ -1,7 +1,9 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.20';
+import { resolveCoverageStatus } from './riskCoverageContract.ts';
 
 /**
  * Deterministic coverage evaluation for a risk.
+ * Uses shared coverage contract (riskCoverageContract) for canonical status.
  * 
  * Returns: { coverage_status, details }
  * coverage_status: COVERED | PARTIALLY_COVERED | INEFFECTIVE | NOT_TESTED | UNCONTROLLED
@@ -10,7 +12,7 @@ async function evaluateCoverage(base44, riskId, linkedControlIds) {
   // No controls linked = UNCONTROLLED
   if (!linkedControlIds || linkedControlIds.length === 0) {
     return {
-      coverage_status: 'UNCONTROLLED',
+      coverage_status: resolveCoverageStatus(0, 0, 0),
       details: {
         total_controls: 0,
         tested_controls: 0,
@@ -53,22 +55,11 @@ async function evaluateCoverage(base44, riskId, linkedControlIds) {
       }
     }
 
-    // Determine coverage state
-    let coverage_status;
-
-    if (testedCount === 0) {
-      // No controls have been tested
-      coverage_status = 'NOT_TESTED';
-    } else if (effectiveCount === 0) {
-      // All tested controls are ineffective
-      coverage_status = 'INEFFECTIVE';
-    } else if (effectiveCount === linkedControlIds.length) {
-      // All controls tested and effective
-      coverage_status = 'COVERED';
-    } else {
-      // Mixed results
-      coverage_status = 'PARTIALLY_COVERED';
-    }
+    const coverage_status = resolveCoverageStatus(
+      linkedControlIds.length,
+      testedCount,
+      effectiveCount
+    );
 
     return {
       coverage_status,

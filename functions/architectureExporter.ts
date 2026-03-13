@@ -1,7 +1,7 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.20';
 import { ArtifactClassification } from './artifactClassifications.ts';
 
-// NW-UPGRADE-031A: Architecture Export for External Code Audit
+// NW-UPGRADE-031A: Legacy architecture export path. Non-canonical writer for system_export; admin/super_admin only. See docs/NW-UPGRADE-039_NON_CANONICAL_ALLOWLIST.md.
 // Provides complete system architecture snapshot including entities, enums, functions, pages, and artifact pipeline
 
 Deno.serve(async (req) => {
@@ -13,8 +13,8 @@ Deno.serve(async (req) => {
     if (!user) {
       return Response.json({ error: 'Authentication required' }, { status: 401 });
     }
-    if (user.role !== 'admin') {
-      return Response.json({ error: 'Admin access required for architecture export' }, { status: 403 });
+    if (!['admin', 'super_admin'].includes(user.role)) {
+      return Response.json({ error: 'Technical Admin access required for architecture export' }, { status: 403 });
     }
 
     const exportFormat = new URL(req.url).searchParams.get('format') || 'full';

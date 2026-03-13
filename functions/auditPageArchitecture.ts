@@ -1,5 +1,10 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.20';
 
+/**
+ * NON-CANONICAL: Page architecture audit; writes PublishedOutput for audit record. Not part of Release Controller path.
+ * Admin-only. See docs/NW-UPGRADE-039_NON_CANONICAL_ALLOWLIST.md.
+ */
+
 // Comprehensive page inventory and architecture audit
 const PAGE_INVENTORY = [
   // Core workflow pages
@@ -44,6 +49,13 @@ const PAGE_INVENTORY = [
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
+    const user = await base44.auth.me();
+    if (!user) {
+      return Response.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+    if (!['admin', 'super_admin'].includes(user.role)) {
+      return Response.json({ error: 'Forbidden: Technical Admin access required' }, { status: 403 });
+    }
 
     const now = new Date().toISOString();
     const today = now.split('T')[0];
