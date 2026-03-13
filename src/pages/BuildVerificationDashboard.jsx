@@ -15,8 +15,19 @@ export default function BuildVerificationDashboard() {
   const [autoRunTriggered, setAutoRunTriggered] = useState(false);
   const [autoRunReason, setAutoRunReason] = useState('');
 
-  // Current build identity (hardcoded for now, can be enhanced with deployment metadata later)
-  const currentBuildLabel = 'NW-UPGRADE-046B';
+  // Resolve current build identity dynamically from UpgradeRegistry (NW-UPGRADE-045A)
+  const { data: currentBuildLabel, isLoading: loadingBuildLabel } = useQuery({
+    queryKey: ['currentBuildIdentity'],
+    queryFn: async () => {
+      try {
+        const entries = await base44.entities.UpgradeRegistry.list('-created_date', 1);
+        if (entries.length > 0 && entries[0].upgrade_id) {
+          return entries[0].upgrade_id;
+        }
+      } catch { /* fall through */ }
+      return 'UNKNOWN';
+    }
+  });
 
   // Fetch latest verification artifact from canonical store
   const { data: latestArtifact, isLoading: loadingArtifact, refetch: refetchArtifact } = useQuery({
@@ -34,29 +45,26 @@ export default function BuildVerificationDashboard() {
     }
   });
 
-  // Auto-run verification on first load if current build hasn't been verified
-  // Safe idempotency: only runs once per session, checks build identity match
+  // Auto-run verification when current build differs from latest verified build (NW-UPGRADE-045A)
+  // Replaces the previous hardcoded label comparison.
   useEffect(() => {
-    if (!autoRanOnLoad && !loadingArtifact && !running) {
-      setAutoRanOnLoad(true);
-      
-      // Determine latest verified build label
-      const latestVerifiedBuild = latestArtifact?.upgrade_id || null;
-      
-      // Check if current build matches latest verified build
-      if (!latestVerifiedBuild) {
-        setAutoRunTriggered(true);
-        setAutoRunReason('No verification artifacts found');
-        runVerification();
-      } else if (latestVerifiedBuild !== currentBuildLabel) {
-        setAutoRunTriggered(true);
-        setAutoRunReason(`Current build (${currentBuildLabel}) ≠ Latest verified (${latestVerifiedBuild})`);
-        runVerification();
-      } else {
-        setAutoRunReason(`Current build (${currentBuildLabel}) already verified`);
-      }
+    if (autoRanOnLoad || loadingArtifact || loadingBuildLabel || running || !currentBuildLabel) return;
+    setAutoRanOnLoad(true);
+
+    const latestVerifiedBuild = latestArtifact?.upgrade_id || null;
+
+    if (!latestVerifiedBuild) {
+      setAutoRunTriggered(true);
+      setAutoRunReason('No verification artifacts found');
+      runVerification();
+    } else if (latestVerifiedBuild !== currentBuildLabel) {
+      setAutoRunTriggered(true);
+      setAutoRunReason(`Current build (${currentBuildLabel}) ≠ Latest verified (${latestVerifiedBuild})`);
+      runVerification();
+    } else {
+      setAutoRunReason(`Current build (${currentBuildLabel}) already verified`);
     }
-  }, [autoRanOnLoad, loadingArtifact, latestArtifact, running]);
+  }, [autoRanOnLoad, loadingArtifact, loadingBuildLabel, currentBuildLabel, latestArtifact, running]);
 
   async function runVerification() {
     setRunning(true);
@@ -131,7 +139,7 @@ export default function BuildVerificationDashboard() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
             <div>
               <span className="font-medium text-slate-700">Current Build:</span>{' '}
-              <span className="text-slate-900 font-mono">{currentBuildLabel}</span>
+              <span className="text-slate-900 font-mono">{loadingBuildLabel ? '...' : currentBuildLabel}</span>
             </div>
             <div>
               <span className="font-medium text-slate-700">Latest Verified:</span>{' '}
@@ -361,17 +369,8 @@ export default function BuildVerificationDashboard() {
             <p className="text-xs text-slate-600 mb-2">
               <strong>NW-UPGRADE-045:</strong> Added admin-only sidebar navigation + auto-run verification on deployment
             </p>
-            <p className="text-xs text-slate-600 mb-2">
-              <strong>NW-UPGRADE-045A:</strong> Fixed auto-run logic to check build identity instead of time-based recency (current build vs. latest verified build comparison)
-            </p>
-            <p className="text-xs text-slate-600 mb-2">
-              <strong>NW-UPGRADE-046:</strong> Evidence & Control Testing Framework — Created TestType and TestExecutionModel entities, extended EngagementControlTest and EvidenceItem with structured result and evidence fields
-            </p>
-            <p className="text-xs text-slate-600 mb-2">
-              <strong>NW-UPGRADE-046A:</strong> Added 5 verification contracts for Evidence & Control Testing Framework (TestType validation, TestExecutionModel validation, ControlTest result structure, EvidenceItem structured fields, Control→Test→Evidence graph)
-            </p>
             <p className="text-xs text-slate-600">
-              <strong>NW-UPGRADE-046B:</strong> Added explicit delivery gate metrics tracking (contracts_discovered, contracts_executed, contracts_passed, contracts_failed, execution_rate, pass_rate)
+              <strong>NW-UPGRADE-045A:</strong> Fixed auto-run logic to check build identity instead of time-based recency (current build vs. latest verified build comparison)
             </p>
           </div>
           
