@@ -27,6 +27,7 @@ export default function ControlTests() {
     control_library_id: '',
     test_cycle_id: '',
     status: 'Planned',
+    lifecycle_status: 'draft',
     effectiveness_rating: '',
     prepared_by: '',
     reviewed_by: '',
@@ -37,7 +38,11 @@ export default function ControlTests() {
     evidence_sufficiency: 'Pending',
     test_frequency: '',
     next_due_date: '',
-    schedule_status: 'not_scheduled'
+    schedule_status: 'not_scheduled',
+    evidence_notes: '',
+    evidence_reference: '',
+    evidence_captured_at: '',
+    evidence_captured_by: ''
   });
   const [evidenceFormData, setEvidenceFormData] = useState({
     evidence_type: 'Text',
@@ -86,7 +91,8 @@ export default function ControlTests() {
       setTestFormData({
         control_library_id: test.control_library_id || test.control_id || '',
         test_cycle_id: test.test_cycle_id || '',
-        status: test.status || 'Draft',
+        status: test.status || 'Planned',
+        lifecycle_status: test.lifecycle_status || 'draft',
         effectiveness_rating: test.effectiveness_rating || '',
         prepared_by: test.prepared_by || '',
         reviewed_by: test.reviewed_by || '',
@@ -97,7 +103,11 @@ export default function ControlTests() {
         evidence_sufficiency: test.evidence_sufficiency || 'Pending',
         test_frequency: test.test_frequency || '',
         next_due_date: test.next_due_date || '',
-        schedule_status: test.schedule_status || 'not_scheduled'
+        schedule_status: test.schedule_status || 'not_scheduled',
+        evidence_notes: test.evidence_notes || '',
+        evidence_reference: test.evidence_reference || '',
+        evidence_captured_at: test.evidence_captured_at || '',
+        evidence_captured_by: test.evidence_captured_by || ''
       });
     } else {
       setEditingTest(null);
@@ -105,6 +115,7 @@ export default function ControlTests() {
         control_library_id: '',
         test_cycle_id: '',
         status: 'Planned',
+        lifecycle_status: 'draft',
         effectiveness_rating: '',
         prepared_by: '',
         reviewed_by: '',
@@ -115,7 +126,11 @@ export default function ControlTests() {
         evidence_sufficiency: 'Pending',
         test_frequency: '',
         next_due_date: '',
-        schedule_status: 'not_scheduled'
+        schedule_status: 'not_scheduled',
+        evidence_notes: '',
+        evidence_reference: '',
+        evidence_captured_at: '',
+        evidence_captured_by: ''
       });
     }
     setShowTestDialog(true);
@@ -233,7 +248,15 @@ export default function ControlTests() {
         file_hash: fileHash,
         hash_algorithm: fileHash ? 'SHA-256' : null
       });
+
+      // Update test with evidence capture metadata (NW-UPGRADE-053)
+      await base44.entities.ControlTest.update(selectedTest.id, {
+        evidence_captured_at: timestamp,
+        evidence_captured_by: user.email
+      });
+
       await loadEvidence(selectedTest.id);
+      await loadData();
       setEvidenceFormData({
         evidence_type: 'Text',
         text_description: '',
@@ -250,6 +273,15 @@ export default function ControlTests() {
     'Planned': 'bg-slate-100 text-slate-600',
     'In Progress': 'bg-blue-100 text-blue-800',
     'Completed': 'bg-green-100 text-green-800'
+  };
+
+  const lifecycleColors = {
+    'draft': 'bg-slate-100 text-slate-600',
+    'scheduled': 'bg-purple-100 text-purple-700',
+    'in_progress': 'bg-blue-100 text-blue-800',
+    'completed': 'bg-green-100 text-green-800',
+    'reviewed': 'bg-indigo-100 text-indigo-800',
+    'closed': 'bg-slate-200 text-slate-700'
   };
 
   const ratingColors = {
@@ -294,6 +326,11 @@ export default function ControlTests() {
                     <div className="flex items-center gap-3 mb-2">
                       <h3 className="text-sm font-semibold text-slate-900">{control?.control_name || control?.name || 'Unknown Control'}</h3>
                       <Badge className={statusColors[t.status]}>{t.status}</Badge>
+                      {t.lifecycle_status && (
+                        <Badge className={lifecycleColors[t.lifecycle_status]} variant="outline">
+                          {t.lifecycle_status.replace('_', ' ')}
+                        </Badge>
+                      )}
                       {t.effectiveness_rating && (
                         <Badge className={ratingColors[t.effectiveness_rating]}>{t.effectiveness_rating}</Badge>
                       )}
@@ -316,6 +353,22 @@ export default function ControlTests() {
                       {t.reviewed_by && <div>Reviewed by: {t.reviewed_by} on {t.review_date}</div>}
                       {result && result.review_status && (
                         <div>Result Review: {result.review_status}</div>
+                      )}
+                      {t.evidence_notes && (
+                        <div className="bg-blue-50 border border-blue-200 rounded p-2 mt-1">
+                          <div className="font-medium text-blue-900 mb-0.5">Evidence Summary:</div>
+                          <div className="text-blue-700">{t.evidence_notes}</div>
+                          {t.evidence_reference && (
+                            <div className="text-blue-600 mt-0.5">
+                              Reference: <a href={t.evidence_reference} target="_blank" rel="noopener noreferrer" className="underline">{t.evidence_reference}</a>
+                            </div>
+                          )}
+                          {t.evidence_captured_by && (
+                            <div className="text-blue-600 mt-0.5">
+                              Captured by: {t.evidence_captured_by} {t.evidence_captured_at && `on ${new Date(t.evidence_captured_at).toLocaleDateString()}`}
+                            </div>
+                          )}
+                        </div>
                       )}
                       {t.test_frequency && (
                         <div className="flex items-center gap-2 mt-1">
@@ -399,6 +452,22 @@ export default function ControlTests() {
                 </Select>
               </div>
               <div>
+                <label className="text-xs font-medium text-slate-700">Lifecycle Status</label>
+                <Select value={testFormData.lifecycle_status} onValueChange={v => setTestFormData({...testFormData, lifecycle_status: v})}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="draft">Draft</SelectItem>
+                    <SelectItem value="scheduled">Scheduled</SelectItem>
+                    <SelectItem value="in_progress">In Progress</SelectItem>
+                    <SelectItem value="completed">Completed</SelectItem>
+                    <SelectItem value="reviewed">Reviewed</SelectItem>
+                    <SelectItem value="closed">Closed</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
                 <label className="text-xs font-medium text-slate-700">Effectiveness Rating</label>
                 <Select value={testFormData.effectiveness_rating} onValueChange={v => setTestFormData({...testFormData, effectiveness_rating: v})}>
                   <SelectTrigger><SelectValue placeholder="Select..." /></SelectTrigger>
@@ -407,6 +476,17 @@ export default function ControlTests() {
                     <SelectItem value="Partially Effective">Partially Effective</SelectItem>
                     <SelectItem value="Ineffective">Ineffective</SelectItem>
                     <SelectItem value="Not Tested">Not Tested</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <label className="text-xs font-medium text-slate-700">Evidence Sufficiency</label>
+                <Select value={testFormData.evidence_sufficiency} onValueChange={v => setTestFormData({...testFormData, evidence_sufficiency: v})}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Pending">Pending</SelectItem>
+                    <SelectItem value="Sufficient">Sufficient</SelectItem>
+                    <SelectItem value="Insufficient">Insufficient</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -439,6 +519,23 @@ export default function ControlTests() {
                 <label className="text-xs font-medium text-slate-700">Next Due Date</label>
                 <Input type="date" value={testFormData.next_due_date} onChange={e => setTestFormData({...testFormData, next_due_date: e.target.value})} />
               </div>
+            </div>
+            <div>
+              <label className="text-xs font-medium text-slate-700">Evidence Notes</label>
+              <Textarea 
+                value={testFormData.evidence_notes} 
+                onChange={e => setTestFormData({...testFormData, evidence_notes: e.target.value})} 
+                placeholder="Summary of evidence captured for this test"
+                rows={2}
+              />
+            </div>
+            <div>
+              <label className="text-xs font-medium text-slate-700">Evidence Reference</label>
+              <Input 
+                value={testFormData.evidence_reference} 
+                onChange={e => setTestFormData({...testFormData, evidence_reference: e.target.value})} 
+                placeholder="External link or reference to evidence documentation"
+              />
             </div>
             <div className="flex items-center gap-2">
               <Checkbox checked={testFormData.remediation_required} onCheckedChange={v => setTestFormData({...testFormData, remediation_required: v})} />
