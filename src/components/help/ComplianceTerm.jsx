@@ -7,7 +7,7 @@ import {
 } from '@/components/ui/tooltip';
 import { Badge } from '@/components/ui/badge';
 import { HelpCircle } from 'lucide-react';
-import { getTermDefinition } from '@/lib/helpDefinitions';
+import { getTermDefinition } from './helpDefinitions';
 
 /**
  * NW-UPGRADE-069A: Compliance Term Component
