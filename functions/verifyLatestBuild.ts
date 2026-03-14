@@ -1,5 +1,22 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.20';
-import { resolveBuildIdentity } from './resolveBuildIdentity.ts';
+
+// Build Identity Resolver (NW-UPGRADE-045A / NW-UPGRADE-047)
+async function resolveBuildIdentity(base44) {
+  try {
+    const entries = await base44.asServiceRole.entities.UpgradeRegistry.list('-created_date', 1);
+    if (entries.length === 0) {
+      return { build_label: 'UNKNOWN', product_version: 'UNKNOWN', source: 'fallback' };
+    }
+    const latest = entries[0];
+    return {
+      build_label: latest.upgrade_id || 'UNKNOWN',
+      product_version: latest.product_version || 'UNKNOWN',
+      source: 'UpgradeRegistry'
+    };
+  } catch {
+    return { build_label: 'UNKNOWN', product_version: 'UNKNOWN', source: 'fallback' };
+  }
+}
 
 // VerificationContractRegistry - inline for deployment compatibility
 const VerificationContractRegistry = {
