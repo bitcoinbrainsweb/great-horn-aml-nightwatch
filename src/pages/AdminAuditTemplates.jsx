@@ -165,49 +165,6 @@ export default function AdminAuditTemplates() {
           </form>
         </DialogContent>
       </Dialog>
-
-      {/* Schedule Dialog */}
-      <Dialog open={showScheduleDialog} onOpenChange={setShowScheduleDialog}>
-        <DialogContent className="max-w-2xl">
-          <DialogHeader>
-            <DialogTitle>Schedule Audit for {selectedProgram?.name}</DialogTitle>
-          </DialogHeader>
-          <form onSubmit={handleScheduleSubmit} className="space-y-4">
-            <div>
-              <label className="text-xs font-medium text-slate-700">Engagement *</label>
-              <Select
-                value={scheduleFormData.engagement_id}
-                onValueChange={v => setScheduleFormData({...scheduleFormData, engagement_id: v})}
-                required
-              >
-                <SelectTrigger><SelectValue placeholder="Select engagement..." /></SelectTrigger>
-                <SelectContent>
-                  {engagements.map(e => (
-                    <SelectItem key={e.id} value={e.id}>{e.engagement_name}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            
-            <div>
-              <label className="text-xs font-medium text-slate-700">Scheduled Date *</label>
-              <Input
-                type="date"
-                value={scheduleFormData.scheduled_date}
-                onChange={e => setScheduleFormData({...scheduleFormData, scheduled_date: e.target.value})}
-                required
-              />
-            </div>
-            
-            <DialogFooter>
-              <Button type="button" variant="outline" onClick={() => setShowScheduleDialog(false)}>
-                Cancel
-              </Button>
-              <Button type="submit">Schedule Audit</Button>
-            </DialogFooter>
-          </form>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }
