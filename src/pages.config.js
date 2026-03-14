@@ -109,6 +109,7 @@ import AuditReview from './pages/AuditReview';
 import AuditReport from './pages/AuditReport';
 import AdminAuditPrograms from './pages/AdminAuditPrograms';
 import AdminAuditTemplates from './pages/AdminAuditTemplates';
+import AuditFindings from './pages/AuditFindings';
 
 
 export const PAGES = {
@@ -174,6 +175,7 @@ export const PAGES = {
     "AuditReport": AuditReport,
     "AdminAuditPrograms": AdminAuditPrograms,
     "AdminAuditTemplates": AdminAuditTemplates,
+    "AuditFindings": AuditFindings,
 }
 
 export const pagesConfig = {

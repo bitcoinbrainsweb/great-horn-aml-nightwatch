@@ -41,7 +41,8 @@ const VerificationContractRegistry = {
     { name: 'AuditPhase', requiredFields: ['audit_id', 'name'], description: 'Audit phase structure (NW-UPGRADE-059)' },
     { name: 'AuditProcedure', requiredFields: ['audit_phase_id', 'name', 'execution_status', 'evidence_sufficiency', 'completion_rule'], description: 'Audit procedure execution (NW-UPGRADE-059/060/064)' },
     { name: 'AuditWorkpaper', requiredFields: ['audit_procedure_id', 'prepared_by', 'review_status'], description: 'Audit working documentation (NW-UPGRADE-059/060/064)' },
-    { name: 'AuditFinding', requiredFields: ['audit_id', 'title', 'severity', 'included_in_report'], description: 'Audit findings and issues (NW-UPGRADE-059/060/062)' }
+    { name: 'AuditFinding', requiredFields: ['audit_id', 'title', 'severity', 'included_in_report', 'lifecycle_status', 'repeat_finding'], description: 'Audit findings and issues (NW-UPGRADE-059/060/062/065)' },
+    { name: 'RemediationAction', requiredFields: ['observation_id', 'action_title', 'status', 'verification_status'], description: 'Remediation actions (NW-UPGRADE-065)' }
   ],
   routeContracts: [
     { name: 'Engagements', entityDependency: 'Engagement', description: 'Primary engagement management interface' },
@@ -921,18 +922,19 @@ function generateResultMarkdown(data) {
   
   md += `## Architecture Change (NW-UPGRADE-047)\n\n`;
   md += `**What Changed (Latest):**\n`;
-  md += `- **NW-UPGRADE-064:** Extended EvidenceItem, AuditProcedure, AuditWorkpaper with review controls\n`;
-  md += `- Added evidence review workflow (pending→reviewed/rejected) and locking on audit review phase\n`;
-  md += `- Added procedure completion rules (none/minimum_evidence_required/reviewed_evidence_required)\n`;
-  md += `- Enhanced AuditProcedureExecution and AuditReview pages with evidence controls\n`;
-  md += `- Updated verification contracts to check evidence control fields\n\n`;
+  md += `- **NW-UPGRADE-065:** Extended AuditFinding/RemediationAction with lifecycle and verification controls\n`;
+  md += `- Added finding lifecycle (draft→confirmed→reported→remediated→closed) with transition validation\n`;
+  md += `- Added root cause tracking (policy_gap/control_failure/human_error/system_design/unknown)\n`;
+  md += `- Added repeat finding detection (previous_finding_id linkage)\n`;
+  md += `- Added remediation verification workflow (verification_status, verified_by/at, verification_notes)\n`;
+  md += `- Created AuditFindings page with lifecycle management and verification controls\n\n`;
   
   md += `**Benefits:**\n`;
-  md += `- Evidence review workflow with pending→reviewed/rejected states\n`;
-  md += `- Evidence locking when audit enters review phase (tamper protection)\n`;
-  md += `- Procedure completion rules enforce minimum/reviewed evidence requirements\n`;
-  md += `- Hash tracking for evidence integrity (hash_value + hash_algorithm)\n`;
-  md += `- Full evidence control integration with existing audit graph\n\n`;
+  md += `- Finding lifecycle management (draft→confirmed→reported→remediated→closed)\n`;
+  md += `- Root cause categorization for trend analysis\n`;
+  md += `- Repeat finding detection with previous finding linkage\n`;
+  md += `- Remediation verification required before closing findings\n`;
+  md += `- Full integration with existing Observation→RemediationAction chain\n\n`;
   
   md += `## Summary\n\n`;
   md += `- **Total Checks:** ${checks.length}\n`;
