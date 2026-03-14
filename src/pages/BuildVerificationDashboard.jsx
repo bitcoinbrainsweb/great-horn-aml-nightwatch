@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Loader2, Download, PlayCircle, RefreshCw } from 'lucide-react';
+import { Loader2, Download, PlayCircle, RefreshCw, AlertTriangle } from 'lucide-react';
 import PageHeader from '@/components/ui/PageHeader';
 import BuildVerificationSummary from '@/components/verification/BuildVerificationSummary';
 import { useQuery } from '@tanstack/react-query';
@@ -96,6 +96,20 @@ export default function BuildVerificationDashboard() {
     URL.revokeObjectURL(url);
   }
 
+  // NW-UPGRADE-052: Check if verification is incomplete/invalid
+  const hasIncompleteVerification = latestArtifact && (() => {
+    try {
+      const content = JSON.parse(latestArtifact.content || '{}');
+      const contractTotal = content.contract_registry?.total || 0;
+      const checksTotal = content.summary?.total_checks || 0;
+      return contractTotal === 0 || checksTotal === 0;
+    } catch {
+      return false;
+    }
+  })();
+
+  const hasNoVerification = !latestArtifact && !running && !loadingArtifact && currentBuildLabel !== 'UNKNOWN';
+
   return (
     <div className="space-y-6">
       <PageHeader 
@@ -132,6 +146,39 @@ export default function BuildVerificationDashboard() {
           </Button>
         </div>
       </PageHeader>
+
+      {/* NW-UPGRADE-052: Verification Health Banner */}
+      {(hasIncompleteVerification || hasNoVerification) && !running && !result && (
+        <Card className="border-red-300 bg-red-50">
+          <CardContent className="p-4">
+            <div className="flex items-start gap-3">
+              <AlertTriangle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
+              <div className="flex-1">
+                <p className="font-semibold text-red-900 mb-1">Verification Incomplete</p>
+                {hasIncompleteVerification && (
+                  <p className="text-sm text-red-700">
+                    Latest verification artifact has 0 delivery gates recorded. Re-run verification to generate valid results.
+                  </p>
+                )}
+                {hasNoVerification && (
+                  <p className="text-sm text-red-700">
+                    No verification artifacts found for current build ({currentBuildLabel}). Run verification to establish baseline.
+                  </p>
+                )}
+              </div>
+              <Button 
+                onClick={runVerification}
+                disabled={running}
+                variant="outline"
+                className="border-red-300 text-red-700 hover:bg-red-100"
+                size="sm"
+              >
+                Re-run Verification
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Build Identity Status */}
       <Card className="border-slate-200">
