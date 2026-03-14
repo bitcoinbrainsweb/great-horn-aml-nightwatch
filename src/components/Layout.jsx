@@ -5,8 +5,9 @@ import { base44 } from '@/api/base44Client';
 import FeedbackButton from '@/components/feedback/FeedbackButton';
 import GlobalSearch from '@/components/search/GlobalSearch';
 import {
-  LayoutDashboard, Building2, FileStack, ListTodo, FileBarChart, Settings,
-  ChevronLeft, ChevronRight, LogOut, Shield, Menu, Bell, HelpCircle, GitBranch, ShieldCheck
+  LayoutDashboard, Building2, Briefcase, CheckSquare, FileText, Settings,
+  ChevronLeft, ChevronRight, LogOut, Repeat, ClipboardCheck, UserCheck, 
+  AlertTriangle, Wrench, Menu, Bell, HelpCircle, GitBranch, ShieldCheck
 } from 'lucide-react';
 
 const NAV_ITEMS = [
@@ -14,18 +15,18 @@ const NAV_ITEMS = [
   // WORK section
   { label: 'WORK' },
   { name: 'Clients', icon: Building2, page: 'Clients' },
-  { name: 'Engagements', icon: FileStack, page: 'Engagements' },
-  { name: 'Tasks', icon: ListTodo, page: 'Tasks' },
-  { name: 'Reports', icon: FileBarChart, page: 'Reports' },
+  { name: 'Engagements', icon: Briefcase, page: 'Engagements' },
+  { name: 'Tasks', icon: CheckSquare, page: 'Tasks' },
+  { name: 'Reports', icon: FileText, page: 'Reports' },
   // TESTING section
   { label: 'TESTING' },
-  { name: 'Test Cycles', icon: Shield, page: 'TestCycles' },
-  { name: 'Control Tests', icon: Shield, page: 'ControlTests' },
-  { name: 'Reviewer', icon: Shield, page: 'ReviewerDashboard' },
+  { name: 'Test Cycles', icon: Repeat, page: 'TestCycles' },
+  { name: 'Control Tests', icon: ClipboardCheck, page: 'ControlTests' },
+  { name: 'Reviewer', icon: UserCheck, page: 'ReviewerDashboard' },
   // ISSUES section
   { label: 'ISSUES' },
-  { name: 'Findings', icon: Shield, page: 'Findings' },
-  { name: 'Remediation Actions', icon: Shield, page: 'RemediationActions' },
+  { name: 'Findings', icon: AlertTriangle, page: 'Findings' },
+  { name: 'Remediation Actions', icon: Wrench, page: 'RemediationActions' },
   // GOVERNANCE section
   { label: 'GOVERNANCE' },
   { name: 'Admin', icon: Settings, page: 'Admin' },
