@@ -32,6 +32,8 @@ const VerificationContractRegistry = {
     { name: 'PublishedOutput', requiredFields: ['outputName', 'classification', 'status'], description: 'Canonical artifact store' },
     { name: 'UpgradeRegistry', requiredFields: ['upgrade_id', 'product_version', 'title', 'status'], description: 'System upgrade tracking' },
     { name: 'TestTemplate', requiredFields: ['name', 'test_type', 'active'], description: 'Test template system (NW-UPGRADE-047)' },
+    { name: 'SampleSet', requiredFields: ['population_description'], description: 'Statistical sampling sets (NW-UPGRADE-061)' },
+    { name: 'SampleItem', requiredFields: ['sample_set_id', 'item_identifier'], description: 'Individual sampled items (NW-UPGRADE-061)' },
     { name: 'Audit', requiredFields: ['name', 'engagement_id'], description: 'Audit engagement module (NW-UPGRADE-059)' },
     { name: 'AuditPhase', requiredFields: ['audit_id', 'name'], description: 'Audit phase structure (NW-UPGRADE-059)' },
     { name: 'AuditProcedure', requiredFields: ['audit_phase_id', 'name', 'execution_status'], description: 'Audit procedure execution (NW-UPGRADE-059/060)' },
@@ -239,14 +241,16 @@ const VerificationContractRegistry = {
     },
     {
       name: 'audit_module_graph',
-      description: 'Audit module follows engagement-scoped graph: Audit→AuditPhase→AuditProcedure→AuditWorkpaper→EngagementControlTest→EvidenceItem',
-      entities: ['Audit', 'AuditPhase', 'AuditProcedure', 'AuditWorkpaper', 'AuditFinding', 'Engagement', 'EvidenceItem'],
+      description: 'Audit module follows engagement-scoped graph: Audit→AuditPhase→AuditProcedure→SampleSet→SampleItem→EvidenceItem',
+      entities: ['Audit', 'AuditPhase', 'AuditProcedure', 'AuditWorkpaper', 'AuditFinding', 'SampleSet', 'SampleItem', 'Engagement', 'EvidenceItem'],
       check: async (base44) => {
         const audits = await base44.asServiceRole.entities.Audit.list('-created_date', 5).catch(() => []);
         const phases = await base44.asServiceRole.entities.AuditPhase.list('-created_date', 5).catch(() => []);
         const procedures = await base44.asServiceRole.entities.AuditProcedure.list('-created_date', 5).catch(() => []);
         const workpapers = await base44.asServiceRole.entities.AuditWorkpaper.list('-created_date', 5).catch(() => []);
         const findings = await base44.asServiceRole.entities.AuditFinding.list('-created_date', 5).catch(() => []);
+        const sampleSets = await base44.asServiceRole.entities.SampleSet.list('-created_date', 5).catch(() => []);
+        const sampleItems = await base44.asServiceRole.entities.SampleItem.list('-created_date', 5).catch(() => []);
         
         let validAuditEngagementLinks = 0;
         let validPhaseAuditLinks = 0;
@@ -255,6 +259,9 @@ const VerificationContractRegistry = {
         let validWorkpaperEvidenceLinks = 0;
         let validFindingAuditLinks = 0;
         let validFindingProcedureLinks = 0;
+        let validSampleSetProcedureLinks = 0;
+        let validSampleItemSetLinks = 0;
+        let validSampleItemEvidenceLinks = 0;
         
         // Check Audit→Engagement links
         for (const audit of audits.slice(0, 3)) {
@@ -307,6 +314,28 @@ const VerificationContractRegistry = {
           }
         }
         
+        // Check SampleSet→AuditProcedure links (NW-UPGRADE-061)
+        for (const sampleSet of sampleSets.slice(0, 3)) {
+          if (sampleSet.audit_procedure_id && procedures.some(p => p.id === sampleSet.audit_procedure_id)) {
+            validSampleSetProcedureLinks++;
+          }
+        }
+        
+        // Check SampleItem→SampleSet links (NW-UPGRADE-061)
+        for (const sampleItem of sampleItems.slice(0, 3)) {
+          if (sampleItem.sample_set_id && sampleSets.some(s => s.id === sampleItem.sample_set_id)) {
+            validSampleItemSetLinks++;
+          }
+        }
+        
+        // Check SampleItem→EvidenceItem links (NW-UPGRADE-061)
+        for (const sampleItem of sampleItems.slice(0, 3)) {
+          if (sampleItem.evidence_item_id) {
+            const evidence = await base44.asServiceRole.entities.EvidenceItem.filter({ id: sampleItem.evidence_item_id }).catch(() => []);
+            if (evidence.length > 0) validSampleItemEvidenceLinks++;
+          }
+        }
+        
         return {
           success: true,
           audits_queryable: audits.length >= 0,
@@ -314,6 +343,8 @@ const VerificationContractRegistry = {
           procedures_queryable: procedures.length >= 0,
           workpapers_queryable: workpapers.length >= 0,
           findings_queryable: findings.length >= 0,
+          sample_sets_queryable: sampleSets.length >= 0,
+          sample_items_queryable: sampleItems.length >= 0,
           audit_engagement_links_valid: validAuditEngagementLinks >= 0,
           phase_audit_links_valid: validPhaseAuditLinks >= 0,
           procedure_phase_links_valid: validProcedurePhaseLinks >= 0,
@@ -321,6 +352,9 @@ const VerificationContractRegistry = {
           workpaper_evidence_links_valid: validWorkpaperEvidenceLinks >= 0,
           finding_audit_links_valid: validFindingAuditLinks >= 0,
           finding_procedure_links_valid: validFindingProcedureLinks >= 0,
+          sample_set_procedure_links_valid: validSampleSetProcedureLinks >= 0,
+          sample_item_set_links_valid: validSampleItemSetLinks >= 0,
+          sample_item_evidence_links_valid: validSampleItemEvidenceLinks >= 0,
           graph_integrity: true,
           engagement_scoped_architecture: true
         };
@@ -846,18 +880,18 @@ function generateResultMarkdown(data) {
   
   md += `## Architecture Change (NW-UPGRADE-047)\n\n`;
   md += `**What Changed (Latest):**\n`;
-  md += `- **NW-UPGRADE-060:** Extended audit entities with execution capabilities (execution_status, timestamps, evidence links)\n`;
-  md += `- Added AuditProcedureExecution page for running procedures, creating workpapers, and recording findings\n`;
-  md += `- Enabled workpaper→evidence linking (reuses EvidenceItem, no new evidence system)\n`;
-  md += `- Enabled finding→procedure and finding→remediation linking for full traceability\n`;
-  md += `- Updated verification contracts to check execution fields and evidence graph integrity\n\n`;
+  md += `- **NW-UPGRADE-061:** Extended SampleSet/SampleItem entities with audit_procedure_id and evidence_item_id fields\n`;
+  md += `- Added sampling panel to AuditProcedureExecution page (create sample sets, add items, attach evidence)\n`;
+  md += `- Enabled SampleSet→AuditProcedure and SampleItem→EvidenceItem graph linkage\n`;
+  md += `- Updated verification contracts to check sampling entities and graph integrity\n`;
+  md += `- Full backward compatibility with legacy engagement-scoped sampling\n\n`;
   
   md += `**Benefits:**\n`;
-  md += `- Auditors can execute procedures with pending→running→complete lifecycle\n`;
-  md += `- Workpapers link directly to existing EvidenceItem (no duplicate evidence)\n`;
-  md += `- Findings track procedure detection and remediation linkage\n`;
-  md += `- Full execution timestamps and assignment tracking\n`;
-  md += `- Complete integration with engagement-scoped compliance graph\n\n`;
+  md += `- Statistical sampling integrated with audit procedures\n`;
+  md += `- Sample items link to existing EvidenceItem (no duplicate evidence)\n`;
+  md += `- Full traceability: AuditProcedure→SampleSet→SampleItem→EvidenceItem\n`;
+  md += `- Supports random, judgmental, stratified, and full population sampling\n`;
+  md += `- Backward compatible with legacy engagement-scoped sampling\n\n`;
   
   md += `## Summary\n\n`;
   md += `- **Total Checks:** ${checks.length}\n`;

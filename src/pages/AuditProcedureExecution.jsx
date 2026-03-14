@@ -29,6 +29,22 @@ export default function AuditProcedureExecution() {
     recommendation: '',
     root_cause: ''
   });
+  const [showSampleSetDialog, setShowSampleSetDialog] = useState(false);
+  const [showSampleItemDialog, setShowSampleItemDialog] = useState(false);
+  const [selectedSampleSet, setSelectedSampleSet] = useState(null);
+  const [sampleSetFormData, setSampleSetFormData] = useState({
+    population_description: '',
+    sampling_method: 'random',
+    population_size: '',
+    sample_size: '',
+    sampling_rationale: ''
+  });
+  const [sampleItemFormData, setSampleItemFormData] = useState({
+    item_identifier: '',
+    item_description: '',
+    test_result: 'not_tested',
+    notes: ''
+  });
 
   const queryClient = useQueryClient();
 
@@ -68,6 +84,18 @@ export default function AuditProcedureExecution() {
   const { data: evidenceItems = [] } = useQuery({
     queryKey: ['evidenceItems'],
     queryFn: () => base44.entities.EvidenceItem.list('-created_date', 50)
+  });
+
+  const { data: sampleSets = [] } = useQuery({
+    queryKey: ['sampleSets', procedureId],
+    queryFn: () => base44.entities.SampleSet.filter({ audit_procedure_id: procedureId }),
+    enabled: !!procedureId
+  });
+
+  const { data: sampleItems = [] } = useQuery({
+    queryKey: ['sampleItems', selectedSampleSet?.id],
+    queryFn: () => base44.entities.SampleItem.filter({ sample_set_id: selectedSampleSet.id }),
+    enabled: !!selectedSampleSet?.id
   });
 
   const startProcedureMutation = useMutation({
@@ -141,6 +169,55 @@ export default function AuditProcedureExecution() {
   async function handleFindingSubmit(e) {
     e.preventDefault();
     createFindingMutation.mutate(findingFormData);
+  }
+
+  const createSampleSetMutation = useMutation({
+    mutationFn: async (data) => {
+      const user = await base44.auth.me();
+      return base44.entities.SampleSet.create({
+        ...data,
+        audit_procedure_id: procedureId,
+        preparer: user.email
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['sampleSets', procedureId] });
+      setShowSampleSetDialog(false);
+      setSampleSetFormData({
+        population_description: '',
+        sampling_method: 'random',
+        population_size: '',
+        sample_size: '',
+        sampling_rationale: ''
+      });
+    }
+  });
+
+  const createSampleItemMutation = useMutation({
+    mutationFn: (data) => base44.entities.SampleItem.create({
+      ...data,
+      sample_set_id: selectedSampleSet.id
+    }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['sampleItems', selectedSampleSet?.id] });
+      setShowSampleItemDialog(false);
+      setSampleItemFormData({
+        item_identifier: '',
+        item_description: '',
+        test_result: 'not_tested',
+        notes: ''
+      });
+    }
+  });
+
+  async function handleSampleSetSubmit(e) {
+    e.preventDefault();
+    createSampleSetMutation.mutate(sampleSetFormData);
+  }
+
+  async function handleSampleItemSubmit(e) {
+    e.preventDefault();
+    createSampleItemMutation.mutate(sampleItemFormData);
   }
 
   if (isLoading || !procedure) {
@@ -229,6 +306,103 @@ export default function AuditProcedureExecution() {
               </div>
             )}
           </div>
+        </CardContent>
+      </Card>
+
+      {/* Sampling */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base flex items-center justify-between">
+            <span>Sampling ({sampleSets.length})</span>
+            {procedure.execution_status === 'running' && (
+              <Button onClick={() => setShowSampleSetDialog(true)} size="sm" variant="outline">
+                <Plus className="w-4 h-4 mr-2" />
+                Create Sample Set
+              </Button>
+            )}
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {sampleSets.length === 0 ? (
+            <p className="text-sm text-slate-500 text-center py-4">No sample sets created</p>
+          ) : (
+            <div className="space-y-3">
+              {sampleSets.map(ss => (
+                <div key={ss.id} className="bg-slate-50 border border-slate-200 rounded-lg p-3">
+                  <div className="flex items-start justify-between mb-2">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-2 flex-wrap">
+                        <h4 className="text-sm font-semibold text-slate-900">{ss.population_description}</h4>
+                        <Badge variant="outline" className="text-xs capitalize">
+                          {ss.sampling_method || ss.sample_method}
+                        </Badge>
+                      </div>
+                      <div className="flex items-center gap-4 text-xs text-slate-600">
+                        <span>Population: {ss.population_size || 'N/A'}</span>
+                        <span>Sample: {ss.sample_size || 'N/A'}</span>
+                      </div>
+                      {(ss.sampling_rationale || ss.rationale) && (
+                        <p className="text-xs text-slate-500 mt-1">{ss.sampling_rationale || ss.rationale}</p>
+                      )}
+                    </div>
+                    <Button 
+                      size="sm" 
+                      variant="ghost"
+                      onClick={() => {
+                        setSelectedSampleSet(ss);
+                        setShowSampleItemDialog(true);
+                      }}
+                    >
+                      <Plus className="w-3 h-3 mr-1" />
+                      Add Item
+                    </Button>
+                  </div>
+                  
+                  {/* Sample Items for this set */}
+                  {selectedSampleSet?.id === ss.id && sampleItems.length > 0 && (
+                    <div className="mt-3 pt-3 border-t border-slate-200 space-y-2">
+                      {sampleItems.map(item => {
+                        const linkedEvidence = evidenceItems.find(e => e.id === item.evidence_item_id);
+                        const resultColors = {
+                          'pass': 'bg-green-100 text-green-700',
+                          'Pass': 'bg-green-100 text-green-700',
+                          'fail': 'bg-red-100 text-red-700',
+                          'Fail': 'bg-red-100 text-red-700',
+                          'exception': 'bg-amber-100 text-amber-700',
+                          'Exception': 'bg-amber-100 text-amber-700',
+                          'not_tested': 'bg-slate-100 text-slate-600',
+                          'Not Tested': 'bg-slate-100 text-slate-600'
+                        };
+                        
+                        return (
+                          <div key={item.id} className="bg-white border border-slate-200 rounded p-2 text-xs">
+                            <div className="flex items-center justify-between mb-1">
+                              <span className="font-medium text-slate-900">{item.item_identifier}</span>
+                              <Badge className={resultColors[item.test_result]}>
+                                {item.test_result}
+                              </Badge>
+                            </div>
+                            {item.item_description && (
+                              <p className="text-slate-600 mb-1">{item.item_description}</p>
+                            )}
+                            {linkedEvidence && (
+                              <div className="flex items-center gap-1 text-blue-600 bg-blue-50 rounded px-2 py-1">
+                                <Paperclip className="w-3 h-3" />
+                                <span>{linkedEvidence.title}</span>
+                              </div>
+                            )}
+                            {item.notes && (
+                              <p className="text-slate-500 mt-1">{item.notes}</p>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
         </CardContent>
       </Card>
 
@@ -388,6 +562,145 @@ export default function AuditProcedureExecution() {
                 Cancel
               </Button>
               <Button type="submit">Add Workpaper</Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Sample Set Dialog */}
+      <Dialog open={showSampleSetDialog} onOpenChange={setShowSampleSetDialog}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Create Sample Set</DialogTitle>
+          </DialogHeader>
+          <form onSubmit={handleSampleSetSubmit} className="space-y-4">
+            <div>
+              <label className="text-xs font-medium text-slate-700">Population Description *</label>
+              <Textarea
+                value={sampleSetFormData.population_description}
+                onChange={e => setSampleSetFormData({...sampleSetFormData, population_description: e.target.value})}
+                rows={2}
+                required
+                placeholder="Describe the population being sampled"
+              />
+            </div>
+            
+            <div>
+              <label className="text-xs font-medium text-slate-700">Sampling Method</label>
+              <Select
+                value={sampleSetFormData.sampling_method}
+                onValueChange={v => setSampleSetFormData({...sampleSetFormData, sampling_method: v})}
+              >
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="random">Random</SelectItem>
+                  <SelectItem value="judgmental">Judgmental</SelectItem>
+                  <SelectItem value="stratified">Stratified</SelectItem>
+                  <SelectItem value="full_population">Full Population</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="text-xs font-medium text-slate-700">Population Size</label>
+                <Input
+                  type="number"
+                  value={sampleSetFormData.population_size}
+                  onChange={e => setSampleSetFormData({...sampleSetFormData, population_size: e.target.value})}
+                  placeholder="Total population size"
+                />
+              </div>
+              
+              <div>
+                <label className="text-xs font-medium text-slate-700">Sample Size</label>
+                <Input
+                  type="number"
+                  value={sampleSetFormData.sample_size}
+                  onChange={e => setSampleSetFormData({...sampleSetFormData, sample_size: e.target.value})}
+                  placeholder="Number of items to sample"
+                />
+              </div>
+            </div>
+            
+            <div>
+              <label className="text-xs font-medium text-slate-700">Sampling Rationale</label>
+              <Textarea
+                value={sampleSetFormData.sampling_rationale}
+                onChange={e => setSampleSetFormData({...sampleSetFormData, sampling_rationale: e.target.value})}
+                rows={2}
+                placeholder="Why this sampling approach?"
+              />
+            </div>
+            
+            <DialogFooter>
+              <Button type="button" variant="outline" onClick={() => setShowSampleSetDialog(false)}>
+                Cancel
+              </Button>
+              <Button type="submit">Create Sample Set</Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Sample Item Dialog */}
+      <Dialog open={showSampleItemDialog} onOpenChange={setShowSampleItemDialog}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Add Sample Item</DialogTitle>
+          </DialogHeader>
+          <form onSubmit={handleSampleItemSubmit} className="space-y-4">
+            <div>
+              <label className="text-xs font-medium text-slate-700">Item Identifier *</label>
+              <Input
+                value={sampleItemFormData.item_identifier}
+                onChange={e => setSampleItemFormData({...sampleItemFormData, item_identifier: e.target.value})}
+                required
+                placeholder="Unique identifier (e.g., transaction ID, case number)"
+              />
+            </div>
+            
+            <div>
+              <label className="text-xs font-medium text-slate-700">Description</label>
+              <Textarea
+                value={sampleItemFormData.item_description}
+                onChange={e => setSampleItemFormData({...sampleItemFormData, item_description: e.target.value})}
+                rows={2}
+                placeholder="Description of this sample item"
+              />
+            </div>
+            
+            <div>
+              <label className="text-xs font-medium text-slate-700">Test Result</label>
+              <Select
+                value={sampleItemFormData.test_result}
+                onValueChange={v => setSampleItemFormData({...sampleItemFormData, test_result: v})}
+              >
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="pass">Pass</SelectItem>
+                  <SelectItem value="fail">Fail</SelectItem>
+                  <SelectItem value="exception">Exception</SelectItem>
+                  <SelectItem value="not_tested">Not Tested</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            
+            <div>
+              <label className="text-xs font-medium text-slate-700">Notes</label>
+              <Textarea
+                value={sampleItemFormData.notes}
+                onChange={e => setSampleItemFormData({...sampleItemFormData, notes: e.target.value})}
+                rows={2}
+                placeholder="Additional notes"
+              />
+            </div>
+            
+            <DialogFooter>
+              <Button type="button" variant="outline" onClick={() => setShowSampleItemDialog(false)}>
+                Cancel
+              </Button>
+              <Button type="submit">Add Sample Item</Button>
             </DialogFooter>
           </form>
         </DialogContent>
