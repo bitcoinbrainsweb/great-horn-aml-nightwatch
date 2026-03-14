@@ -1,0 +1,22 @@
+NW-UPGRADE-045A dynamic build identity verification fix
+
+# Conflicts:
+#	functions/verifyLatestBuild.ts
+#	src/pages/BuildVerificationDashboard.jsx
+
+# Please enter the commit message for your changes. Lines starting
+# with '#' will be ignored, and an empty message aborts the commit.
+#
+# interactive rebase in progress; onto 236f6d4
+# Last commands done (5 commands done):
+#    pick 24c0529 # add missing 040R sanitycheck file
+#    pick 3cfd44d # NW-UPGRADE-045A dynamic build identity verification fix
+# No commands remaining.
+# You are currently rebasing branch 'upgrade-045A' on '236f6d4'.
+#
+# Changes to be committed:
+#	new file:   docs/NW-UPGRADE-045A_RESULT.md
+#	new file:   docs/NW-UPGRADE-045A_SANITYCHECK.md
+#	new file:   functions/resolveBuildIdentity.ts
+#	modified:   functions/verifyLatestBuild.ts
+#	modified:   src/pages/BuildVerificationDashboard.jsx 
