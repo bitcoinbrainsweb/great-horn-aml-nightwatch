@@ -9,6 +9,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import PageHeader from '../components/ui/PageHeader';
 import EmptyState from '../components/ui/EmptyState';
 import { Badge } from '@/components/ui/badge';
+import NextStepGuidance from '../components/help/NextStepGuidance';
+import { useQuery } from '@tanstack/react-query';
 
 export default function TestCycles() {
   const [cycles, setCycles] = useState([]);
@@ -21,6 +23,11 @@ export default function TestCycles() {
     start_date: '',
     end_date: '',
     status: 'Planned'
+  });
+
+  const { data: controlTests = [] } = useQuery({
+    queryKey: ['controlTests'],
+    queryFn: () => base44.entities.ControlTest.list()
   });
 
   useEffect(() => {
@@ -101,6 +108,17 @@ export default function TestCycles() {
     'Archived': 'bg-slate-400 text-slate-50'
   };
 
+  // Next step logic
+  const activeCycles = cycles.filter(c => c.status === 'Active' || c.status === 'Draft');
+  const cyclesWithNoTests = activeCycles.filter(cycle => {
+    const hasTests = controlTests.some(t => t.test_cycle_id === cycle.id);
+    return !hasTests;
+  });
+  
+  const showNextStepNoControls = controlTests.length === 0 && cycles.length > 0;
+  const showNextStepNoCycles = cycles.length === 0;
+  const showNextStepUnassigned = !showNextStepNoCycles && !showNextStepNoControls && cyclesWithNoTests.length > 0;
+
   if (loading) {
     return <div className="flex items-center justify-center h-64"><div className="w-8 h-8 border-2 border-slate-300 border-t-slate-800 rounded-full animate-spin" /></div>;
   }
@@ -113,6 +131,37 @@ export default function TestCycles() {
           New Test Cycle
         </Button>
       </PageHeader>
+
+      {showNextStepNoCycles && (
+        <NextStepGuidance
+          currentState="No test cycles exist yet."
+          recommendedAction="Create a test cycle to organize control testing work."
+          explanation="Test cycles group testing work by time period (like monthly or quarterly). Once created, you can assign controls to be tested."
+          ctaText="Create Test Cycle"
+          onCtaClick={() => openDialog()}
+        />
+      )}
+
+      {showNextStepNoControls && (
+        <NextStepGuidance
+          currentState="Test cycles exist, but no controls are assigned yet."
+          recommendedAction="Go to Control Tests and assign controls to a cycle."
+          explanation="Without assigned controls, there's no testing work to perform. Link controls to your active cycle to begin."
+          ctaText="View Control Tests"
+          onCtaClick={() => window.location.href = createPageUrl('ControlTests')}
+        />
+      )}
+
+      {showNextStepUnassigned && (
+        <NextStepGuidance
+          currentState={`${cyclesWithNoTests.length} active cycle${cyclesWithNoTests.length > 1 ? 's have' : ' has'} no assigned controls yet.`}
+          recommendedAction="Assign controls to these cycles to begin testing."
+          explanation="Empty cycles don't generate work. Add controls so your team knows what to test."
+          ctaText="View Control Tests"
+          onCtaClick={() => window.location.href = createPageUrl('ControlTests')}
+          variant="warning"
+        />
+      )}
 
       {cycles.length === 0 ? (
         <EmptyState icon={Calendar} title="No test cycles" description="Create a test cycle to begin control testing." />

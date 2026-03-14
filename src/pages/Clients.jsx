@@ -13,6 +13,8 @@ import PageHeader from '../components/ui/PageHeader';
 import { StatusBadge } from '../components/ui/RiskBadge';
 import EmptyState from '../components/ui/EmptyState';
 import { logAudit } from '../components/util/auditLog';
+import NextStepGuidance from '../components/help/NextStepGuidance';
+import { useQuery } from '@tanstack/react-query';
 
 export default function Clients() {
   const [clients, setClients] = useState([]);
@@ -27,6 +29,11 @@ export default function Clients() {
   const [confirmDelete, setConfirmDelete] = useState(null);
   const [confirmArchive, setConfirmArchive] = useState(null);
   const [deleteError, setDeleteError] = useState('');
+
+  const { data: engagements = [] } = useQuery({
+    queryKey: ['engagements'],
+    queryFn: () => base44.entities.Engagement.list()
+  });
 
   useEffect(() => { loadData(); }, []);
 
@@ -43,6 +50,14 @@ export default function Clients() {
   }
 
   const isAdmin = ['admin', 'super_admin', 'compliance_admin'].includes(user?.role);
+
+  // Next step logic
+  const clientsWithNoEngagements = clients.filter(c => {
+    const hasEngagement = engagements.some(e => e.client_id === c.id);
+    return !hasEngagement && c.status === 'Active';
+  });
+  
+  const showNextStep = clients.length > 0 && clientsWithNoEngagements.length > 0;
 
   async function handleArchive(client) {
     await base44.entities.Client.update(client.id, { status: 'Inactive' });
@@ -96,6 +111,20 @@ export default function Clients() {
           <Plus className="w-4 h-4" /> New Client
         </Button>
       </PageHeader>
+
+      {showNextStep && (
+        <NextStepGuidance
+          currentState={`You have ${clientsWithNoEngagements.length} client${clientsWithNoEngagements.length > 1 ? 's' : ''} with no engagements yet.`}
+          recommendedAction="Create an engagement to start compliance work."
+          explanation="Engagements organize all review work, testing, and findings for a specific client and time period."
+          ctaText="Create Engagement"
+          onCtaClick={() => {
+            const firstClient = clientsWithNoEngagements[0];
+            setForm({ client_id: firstClient.id });
+            setShowCreate(true);
+          }}
+        />
+      )}
 
       {/* Filters */}
       <div className="flex flex-col sm:flex-row gap-3 mb-6">

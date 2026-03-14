@@ -13,6 +13,8 @@ import { Badge } from '@/components/ui/badge';
 import { createPageUrl } from '@/utils';
 import { useNavigate } from 'react-router-dom';
 import BulkActionBar from '@/components/bulk/BulkActionBar';
+import NextStepGuidance from '../components/help/NextStepGuidance';
+import { useQuery as useReactQuery } from '@tanstack/react-query';
 
 export default function Findings() {
   const [findings, setFindings] = useState([]);
@@ -31,6 +33,11 @@ export default function Findings() {
     due_date: ''
   });
   const navigate = useNavigate();
+
+  const { data: remediations = [] } = useReactQuery({
+    queryKey: ['remediations'],
+    queryFn: () => base44.entities.RemediationAction.list()
+  });
 
   useEffect(() => {
     loadFindings();
@@ -184,6 +191,15 @@ export default function Findings() {
     'Closed': 'bg-slate-100 text-slate-600'
   };
 
+  // Next step logic
+  const openFindings = findings.filter(f => f.status === 'Open');
+  const findingsWithoutRemediation = openFindings.filter(f => {
+    const hasRemediation = remediations.some(r => r.finding_id === f.id);
+    return !hasRemediation;
+  });
+  
+  const showNextStep = openFindings.length > 0 && findingsWithoutRemediation.length > 0;
+
   if (loading) {
     return <div className="flex items-center justify-center h-64"><div className="w-8 h-8 border-2 border-slate-300 border-t-slate-800 rounded-full animate-spin" /></div>;
   }
@@ -196,6 +212,17 @@ export default function Findings() {
           New Finding
         </Button>
       </PageHeader>
+
+      {showNextStep && (
+        <NextStepGuidance
+          currentState={`${findingsWithoutRemediation.length} open finding${findingsWithoutRemediation.length > 1 ? 's have' : ' has'} no remediation plan yet.`}
+          recommendedAction="Create remediation actions to fix these issues."
+          explanation="Findings without remediation stay open indefinitely. Assign owners and deadlines to track resolution."
+          ctaText="View Remediation Actions"
+          onCtaClick={() => navigate(createPageUrl('RemediationActions'))}
+          variant="warning"
+        />
+      )}
 
       {findings.length === 0 ? (
          <EmptyState icon={AlertCircle} title="No findings" description="Create findings from control tests or manually." />

@@ -9,6 +9,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import PageHeader from '../components/ui/PageHeader';
 import EmptyState from '../components/ui/EmptyState';
 import { Badge } from '@/components/ui/badge';
+import NextStepGuidance from '../components/help/NextStepGuidance';
+import { useQuery } from '@tanstack/react-query';
 
 export default function RemediationActions() {
   const [actions, setActions] = useState([]);
@@ -17,6 +19,12 @@ export default function RemediationActions() {
   const [showDialog, setShowDialog] = useState(false);
   const [editing, setEditing] = useState(null);
   const [filterFindingId, setFilterFindingId] = useState(null);
+
+  const { data: findingsQuery = [] } = useQuery({
+    queryKey: ['findingsQuery'],
+    queryFn: () => base44.entities.Finding.list()
+  });
+
   const [formData, setFormData] = useState({
     finding_id: '',
     title: '',
@@ -130,6 +138,13 @@ export default function RemediationActions() {
     ? actions.filter(a => a.finding_id === filterFindingId)
     : actions;
 
+  // Next step logic
+  const openFindingsFromQuery = findingsQuery.filter(f => f.status === 'Open');
+  const completedActions = actions.filter(a => a.status === 'Completed' && !['Verified'].includes(a.status));
+  
+  const showNextStepNoActions = openFindingsFromQuery.length > 0 && actions.length === 0;
+  const showNextStepUnverified = completedActions.length > 0;
+
   if (loading) {
     return <div className="flex items-center justify-center h-64"><div className="w-8 h-8 border-2 border-slate-300 border-t-slate-800 rounded-full animate-spin" /></div>;
   }
@@ -151,6 +166,25 @@ export default function RemediationActions() {
           New Action
         </Button>
       </PageHeader>
+
+      {showNextStepNoActions && (
+        <NextStepGuidance
+          currentState={`${openFindingsFromQuery.length} open finding${openFindingsFromQuery.length > 1 ? 's exist' : ' exists'} with no remediation plans.`}
+          recommendedAction="Create remediation actions to address these findings."
+          explanation="Findings won't close themselves. Assign remediation work with clear owners and deadlines."
+          ctaText="Create Remediation Action"
+          onCtaClick={() => openDialog()}
+          variant="warning"
+        />
+      )}
+
+      {showNextStepUnverified && (
+        <NextStepGuidance
+          currentState={`${completedActions.length} remediation${completedActions.length > 1 ? 's are' : ' is'} marked complete but not verified.`}
+          recommendedAction="Verify completed remediation actions before closing findings."
+          explanation="Verification confirms the fix actually works. Review evidence and update status to Verified."
+        />
+      )}
 
       {filteredActions.length === 0 ? (
         <EmptyState icon={CheckCircle2} title="No remediation actions" description="Create actions to track finding remediation." />

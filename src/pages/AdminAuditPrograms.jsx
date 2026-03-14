@@ -10,6 +10,7 @@ import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import PageHeader from '@/components/ui/PageHeader';
 import EmptyState from '@/components/ui/EmptyState';
+import NextStepGuidance from '@/components/help/NextStepGuidance';
 import { Plus, Calendar, CheckCircle } from 'lucide-react';
 
 export default function AdminAuditPrograms() {

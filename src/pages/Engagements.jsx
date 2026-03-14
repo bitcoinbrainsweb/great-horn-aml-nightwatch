@@ -15,6 +15,8 @@ import EmptyState from '../components/ui/EmptyState';
 import { DEFAULT_TASKS } from '../components/scoring/riskScoringEngine';
 import { format } from 'date-fns';
 import { logAudit } from '../components/util/auditLog';
+import NextStepGuidance from '../components/help/NextStepGuidance';
+import { useQuery } from '@tanstack/react-query';
 
 export default function Engagements() {
   const [engagements, setEngagements] = useState([]);
@@ -31,6 +33,11 @@ export default function Engagements() {
   const [user, setUser] = useState(null);
   const [confirmDelete, setConfirmDelete] = useState(null);
   const [confirmArchive, setConfirmArchive] = useState(null);
+
+  const { data: controlTests = [] } = useQuery({
+    queryKey: ['controlTests'],
+    queryFn: () => base44.entities.EngagementControlTest.list()
+  });
 
   useEffect(() => { loadData(); }, []);
 
@@ -51,6 +58,17 @@ export default function Engagements() {
   }
 
   const isAdmin = ['admin', 'super_admin', 'compliance_admin'].includes(user?.role);
+
+  // Next step logic
+  const activeEngagements = engagements.filter(e => 
+    e.status !== 'Archived' && e.status !== 'Completed'
+  );
+  const engagementsWithNoTests = activeEngagements.filter(eng => {
+    const hasTests = controlTests.some(t => t.engagement_id === eng.id);
+    return !hasTests;
+  });
+  
+  const showNextStep = activeEngagements.length > 0 && engagementsWithNoTests.length > 0;
 
   async function handleArchive(engagement) {
     await base44.entities.Engagement.update(engagement.id, { status: 'Archived' });
@@ -141,6 +159,16 @@ export default function Engagements() {
           <Plus className="w-4 h-4" /> New Engagement
         </Button>
       </PageHeader>
+
+      {showNextStep && (
+        <NextStepGuidance
+          currentState={`${engagementsWithNoTests.length} active engagement${engagementsWithNoTests.length > 1 ? 's have' : ' has'} no control tests yet.`}
+          recommendedAction="Set up controls and create a test cycle to begin testing."
+          explanation="Without testing, you can't verify controls are working. Start by defining which controls apply, then schedule testing work."
+          ctaText="View Control Tests"
+          onCtaClick={() => window.location.href = createPageUrl('ControlTests')}
+        />
+      )}
 
       <div className="flex flex-col sm:flex-row gap-3 mb-6">
         <div className="relative flex-1 max-w-sm">

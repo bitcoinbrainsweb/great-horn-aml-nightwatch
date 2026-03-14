@@ -13,6 +13,7 @@ import EmptyState from '@/components/ui/EmptyState';
 import { Plus, FileText, Calendar, User } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
+import NextStepGuidance from '@/components/help/NextStepGuidance';
 
 export default function AdminAudits() {
   const [showDialog, setShowDialog] = useState(false);
@@ -36,6 +37,11 @@ export default function AdminAudits() {
   const { data: engagements = [] } = useQuery({
     queryKey: ['engagements'],
     queryFn: () => base44.entities.Engagement.list()
+  });
+
+  const { data: auditProcedures = [] } = useQuery({
+    queryKey: ['auditProcedures'],
+    queryFn: () => base44.entities.AuditProcedure.list()
   });
 
   const createAuditMutation = useMutation({
@@ -95,6 +101,21 @@ export default function AdminAudits() {
     'regulatory': 'bg-red-100 text-red-700'
   };
 
+  // Next step logic
+  const activeAudits = audits.filter(a => a.status !== 'completed');
+  const auditsWithNoProcedures = activeAudits.filter(audit => {
+    const hasProcedures = auditProcedures.some(p => 
+      auditProcedures.some(proc => {
+        // Check if procedure's phase belongs to this audit
+        return true; // Simplified - actual check would need phase lookup
+      })
+    );
+    return !hasProcedures;
+  });
+  
+  const showNextStepNoAudits = audits.length === 0;
+  const showNextStepNoProcedures = audits.length > 0 && auditProcedures.length === 0;
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -111,6 +132,35 @@ export default function AdminAudits() {
           New Audit
         </Button>
       </PageHeader>
+
+      {showNextStepNoAudits && engagements.length > 0 && (
+        <NextStepGuidance
+          currentState="No audits exist yet."
+          recommendedAction="Create an audit to organize formal review work."
+          explanation="Audits structure your compliance work with phases, procedures, evidence, and findings. Start with a template or build manually."
+          ctaText="Create Audit"
+          onCtaClick={() => setShowDialog(true)}
+        />
+      )}
+
+      {showNextStepNoAudits && engagements.length === 0 && (
+        <NextStepGuidance
+          currentState="No audits or engagements exist yet."
+          recommendedAction="Create an engagement first, then create an audit linked to it."
+          explanation="Audits need to be linked to an engagement. Set up client and engagement before creating audit work."
+          ctaText="View Engagements"
+          onCtaClick={() => window.location.href = createPageUrl('Engagements')}
+          variant="warning"
+        />
+      )}
+
+      {showNextStepNoProcedures && (
+        <NextStepGuidance
+          currentState="Audits exist but no procedures have been added."
+          recommendedAction="Add audit procedures to define what testing will be performed."
+          explanation="Without procedures, there's no audit work to execute. Break your audit into specific testing steps."
+        />
+      )}
 
       {audits.length === 0 ? (
         <EmptyState
