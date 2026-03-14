@@ -197,7 +197,8 @@ export default function Layout({ children, currentPageName }) {
     analyst: 'Analyst',
     reviewer: 'Reviewer',
     admin: 'Technical Admin',
-    user: 'Analyst'
+    user: 'Analyst',
+    test_automation: 'Test Automation'
   }[user.role] || 'Analyst';
 
   return (
@@ -238,7 +239,7 @@ export default function Layout({ children, currentPageName }) {
 
         {/* Nav */}
          <nav className="flex-1 py-4 px-2 overflow-y-auto">
-           {NAV_ITEMS.filter(item => !item.adminOnly || ['admin', 'super_admin'].includes(user?.role)).map((item, idx) => {
+           {NAV_ITEMS.filter(item => !item.adminOnly || ['admin', 'super_admin', 'test_automation'].includes(user?.role)).map((item, idx) => {
              // Section label
              if (item.label) {
                return (
