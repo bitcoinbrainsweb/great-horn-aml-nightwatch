@@ -7,11 +7,12 @@ import GlobalSearch from '@/components/search/GlobalSearch';
 import {
   LayoutDashboard, Building2, Briefcase, CheckSquare, FileText, Settings,
   ChevronLeft, ChevronRight, LogOut, Repeat, ClipboardCheck, UserCheck, 
-  AlertTriangle, Wrench, Menu, Bell, HelpCircle, GitBranch, ShieldCheck
+  AlertTriangle, Wrench, Menu, Bell, HelpCircle, GitBranch, ShieldCheck, TrendingUp
 } from 'lucide-react';
 
 const NAV_ITEMS = [
   { name: 'Dashboard', icon: LayoutDashboard, page: 'Dashboard' },
+  { name: 'Compliance Ops', icon: TrendingUp, page: 'ComplianceOperations' },
   // WORK section
   { label: 'WORK' },
   { name: 'Clients', icon: Building2, page: 'Clients' },
@@ -224,6 +225,7 @@ export default function Layout({ children, currentPageName }) {
                (item.page === 'Feedback' && ['Feedback'].includes(currentPageName)) ||
                (item.page === 'ChangeLog' && ['ChangeLog', 'ArtifactDiagnostics'].includes(currentPageName)) ||
                (item.page === 'BuildVerificationDashboard' && currentPageName === 'BuildVerificationDashboard') ||
+               (item.page === 'ComplianceOperations' && currentPageName === 'ComplianceOperations') ||
                (item.page === 'Admin' && ['AdminRiskLibrary', 'AdminControlLibrary', 'AdminMethodologies', 'AdminNarratives', 'AdminUsers', 'AdminAuditLog', 'AdminJurisdictions', 'AdminIndustries', 'AdminTestScenarios', 'AdminInvitations', 'AdminRiskProposals', 'LibraryReviewDashboard', 'AdminGovernance'].includes(currentPageName));
              return (
                <Link
