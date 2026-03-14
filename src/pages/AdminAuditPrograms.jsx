@@ -119,6 +119,16 @@ export default function AdminAuditPrograms() {
     'completed': 'bg-green-100 text-green-700'
   };
 
+  // Next step logic
+  const activePrograms = programs.filter(p => p.active);
+  const programsWithNoSchedules = activePrograms.filter(prog => {
+    const hasSchedules = schedules.some(s => s.audit_program_id === prog.id);
+    return !hasSchedules;
+  });
+  
+  const showNextStepNoPrograms = programs.length === 0;
+  const showNextStepNoSchedules = activePrograms.length > 0 && programsWithNoSchedules.length > 0;
+
   return (
     <div className="space-y-6">
       <PageHeader title="Audit Programs" subtitle="Manage recurring audit programs and schedules">
@@ -127,6 +137,25 @@ export default function AdminAuditPrograms() {
           New Program
         </Button>
       </PageHeader>
+
+      {showNextStepNoPrograms && (
+        <NextStepGuidance
+          currentState="No audit programs exist yet."
+          recommendedAction="Create an audit program for recurring audits like annual AML reviews."
+          explanation="Programs let you schedule the same audit repeatedly. Set frequency and the system helps you stay on schedule."
+          ctaText="Create Program"
+          onCtaClick={() => setShowProgramDialog(true)}
+        />
+      )}
+
+      {showNextStepNoSchedules && (
+        <NextStepGuidance
+          currentState={`${programsWithNoSchedules.length} active program${programsWithNoSchedules.length > 1 ? 's have' : ' has'} no scheduled audits yet.`}
+          recommendedAction="Schedule audits from these programs."
+          explanation="Programs are templates - you still need to schedule actual audit instances based on your calendar."
+          variant="warning"
+        />
+      )}
 
       {programs.length === 0 ? (
         <EmptyState

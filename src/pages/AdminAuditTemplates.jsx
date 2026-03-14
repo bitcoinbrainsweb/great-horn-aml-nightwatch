@@ -57,6 +57,9 @@ export default function AdminAuditTemplates() {
     );
   }
 
+  // Next step logic
+  const showNextStepNoTemplates = templates.length === 0;
+
   return (
     <div className="space-y-6">
       <PageHeader title="Audit Templates" subtitle="Manage reusable audit templates">
@@ -65,6 +68,16 @@ export default function AdminAuditTemplates() {
           New Template
         </Button>
       </PageHeader>
+
+      {showNextStepNoTemplates && (
+        <NextStepGuidance
+          currentState="No audit templates exist yet."
+          recommendedAction="Create a template for audits you'll perform repeatedly."
+          explanation="Templates save time by predefining audit phases and procedures. Build once, reuse many times."
+          ctaText="Create Template"
+          onCtaClick={() => setShowTemplateDialog(true)}
+        />
+      )}
 
       {templates.length === 0 ? (
         <EmptyState
