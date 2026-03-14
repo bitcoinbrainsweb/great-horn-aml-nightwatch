@@ -2,7 +2,7 @@ import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Inbox, ArrowRight } from 'lucide-react';
-import { getEmptyState } from '../../src/help/emptyStates';
+import { getEmptyState } from '@/lib/emptyStates';
 
 /**
  * NW-UPGRADE-069A: Smart Empty State Component

@@ -3,7 +3,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/co
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { HelpCircle, BookOpen, AlertCircle, ExternalLink } from 'lucide-react';
-import { getPageHelp } from '../../src/help/pageHelpRegistry';
+import { getPageHelp } from '@/lib/pageHelpRegistry';
 
 /**
  * NW-UPGRADE-069A: Context Help Panel
