@@ -23,6 +23,7 @@ export default function ChangeLog() {
   const [repairError, setRepairError] = useState('');
   const [repairResultText, setRepairResultText] = useState('');
   const [nw034Triggered, setNw034Triggered] = useState(false);
+  const [nw040rTriggered, setNw040rTriggered] = useState(false);
 
   useEffect(() => {
     checkAccess();
@@ -59,6 +60,25 @@ export default function ChangeLog() {
       }
     })();
   }, [activeTab, user, nw034Triggered]);
+
+  // NW-UPGRADE-040R: Temporary one-time trigger for verification artifact publish repair.
+  // Runs verifyEngagementAuditFoundation once on Diagnostics tab load for admin. Remove after confirmed.
+  useEffect(() => {
+    if (nw040rTriggered) return;
+    if (activeTab !== 'diagnostics') return;
+    if (!user || !['admin', 'super_admin'].includes(user.role)) return;
+
+    (async () => {
+      try {
+        const result = await base44.functions.invoke('verifyEngagementAuditFoundation', {});
+        console.log('NW-040R verification artifact publish result:', result);
+      } catch (error) {
+        console.error('NW-040R verification invocation failed:', error);
+      } finally {
+        setNw040rTriggered(true);
+      }
+    })();
+  }, [activeTab, user, nw040rTriggered]);
 
   async function checkAccess() {
     try {

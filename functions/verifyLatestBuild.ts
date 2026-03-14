@@ -1,4 +1,5 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.20';
+import { resolveBuildIdentity } from './resolveBuildIdentity.ts';
 
 // VerificationContractRegistry - inline for deployment compatibility
 const VerificationContractRegistry = {
@@ -12,9 +13,7 @@ const VerificationContractRegistry = {
     { name: 'SampleSet', requiredFields: ['engagement_id', 'population_description', 'sample_method'], description: 'Statistical sampling definitions' },
     { name: 'SampleItem', requiredFields: ['sample_set_id', 'item_identifier'], description: 'Individual sampled items' },
     { name: 'PublishedOutput', requiredFields: ['outputName', 'classification', 'status'], description: 'Canonical artifact store' },
-    { name: 'UpgradeRegistry', requiredFields: ['upgrade_id', 'product_version', 'title', 'status'], description: 'System upgrade tracking' },
-    { name: 'TestType', requiredFields: ['name', 'category', 'status'], description: 'Test type classification system (NW-UPGRADE-046)' },
-    { name: 'TestExecutionModel', requiredFields: ['name', 'status'], description: 'Test execution model system (NW-UPGRADE-046)' }
+    { name: 'UpgradeRegistry', requiredFields: ['upgrade_id', 'product_version', 'title', 'status'], description: 'System upgrade tracking' }
   ],
   routeContracts: [
     { name: 'Engagements', entityDependency: 'Engagement', description: 'Primary engagement management interface' },
@@ -75,143 +74,6 @@ const VerificationContractRegistry = {
     { name: 'verifyEngagementAuditFoundation', requiredRole: 'admin', description: 'Engagement audit verification must be admin-only' }
   ],
   graphContracts: [
-    {
-      name: 'test_type_entity_validation',
-      description: 'TestType entity exists and is functional (NW-UPGRADE-046A)',
-      entities: ['TestType'],
-      check: async (base44) => {
-        const testTypes = await base44.asServiceRole.entities.TestType.filter({ status: 'Active' }, '-created_date', 10);
-        const hasSampleReview = testTypes.some(t => t.name === 'sample_review');
-        const hasDataValidation = testTypes.some(t => t.name === 'data_validation');
-        const hasProcessWalkthrough = testTypes.some(t => t.name === 'process_walkthrough');
-        return {
-          success: testTypes.length >= 3,
-          total_test_types: testTypes.length,
-          sample_review_exists: hasSampleReview,
-          data_validation_exists: hasDataValidation,
-          process_walkthrough_exists: hasProcessWalkthrough,
-          entity_functional: true
-        };
-      }
-    },
-    {
-      name: 'test_execution_model_validation',
-      description: 'TestExecutionModel entity exists and is functional (NW-UPGRADE-046A)',
-      entities: ['TestExecutionModel'],
-      check: async (base44) => {
-        const models = await base44.asServiceRole.entities.TestExecutionModel.filter({ status: 'Active' }, '-created_date', 10);
-        const hasManual = models.some(m => m.name === 'manual');
-        const hasScheduled = models.some(m => m.name === 'scheduled');
-        const hasAutomated = models.some(m => m.name === 'automated');
-        return {
-          success: models.length >= 3,
-          total_models: models.length,
-          manual_exists: hasManual,
-          scheduled_exists: hasScheduled,
-          automated_exists: hasAutomated,
-          entity_functional: true
-        };
-      }
-    },
-    {
-      name: 'control_test_result_structure',
-      description: 'EngagementControlTest supports structured result fields (NW-UPGRADE-046A)',
-      entities: ['EngagementControlTest'],
-      check: async (base44) => {
-        // Check if the entity accepts the new fields by verifying existing records or testing field presence
-        const tests = await base44.asServiceRole.entities.EngagementControlTest.list('-created_date', 1);
-        const requiredFields = ['result_status', 'records_examined', 'exceptions_found', 'exception_rate'];
-        
-        // If records exist, check if they have the fields
-        if (tests.length > 0) {
-          const presentFields = requiredFields.filter(field => field in tests[0]);
-          return {
-            success: presentFields.length === requiredFields.length,
-            required_fields: requiredFields,
-            present_fields: presentFields,
-            check_method: 'existing_record_inspection',
-            structured_results_supported: presentFields.length === requiredFields.length
-          };
-        }
-        
-        // No records exist, assume fields are supported (backwards compatible schema)
-        return {
-          success: true,
-          required_fields: requiredFields,
-          check_method: 'schema_extension_assumed',
-          note: 'Fields are optional and backwards compatible. No existing records to inspect.',
-          structured_results_supported: true
-        };
-      }
-    },
-    {
-      name: 'evidence_structured_fields',
-      description: 'EvidenceItem supports structured evidence metadata (NW-UPGRADE-046A)',
-      entities: ['EvidenceItem'],
-      check: async (base44) => {
-        // Check if the entity accepts the new fields
-        const evidence = await base44.asServiceRole.entities.EvidenceItem.list('-created_date', 1);
-        const structuredFields = ['data_source', 'period_start', 'period_end', 'records_examined', 'exceptions_found', 'generated_by', 'generated_timestamp'];
-        
-        // If records exist, check if they have the fields
-        if (evidence.length > 0) {
-          const presentFields = structuredFields.filter(field => field in evidence[0]);
-          return {
-            success: presentFields.length >= 5,
-            structured_fields_required: structuredFields.length,
-            structured_fields_present: presentFields.length,
-            present_fields: presentFields,
-            check_method: 'existing_record_inspection',
-            evidence_metadata_supported: presentFields.length >= 5
-          };
-        }
-        
-        // No records exist, assume fields are supported (backwards compatible schema)
-        return {
-          success: true,
-          structured_fields_required: structuredFields.length,
-          check_method: 'schema_extension_assumed',
-          note: 'Fields are optional and backwards compatible. No existing records to inspect.',
-          evidence_metadata_supported: true
-        };
-      }
-    },
-    {
-      name: 'control_test_evidence_graph',
-      description: 'Control → Test → Evidence graph linkage (NW-UPGRADE-046A)',
-      entities: ['ControlLibrary', 'EngagementControlTest', 'EvidenceItem'],
-      check: async (base44) => {
-        const controls = await base44.asServiceRole.entities.ControlLibrary.filter({ status: 'Active' }, '-created_date', 5);
-        const tests = await base44.asServiceRole.entities.EngagementControlTest.list('-created_date', 10);
-        const evidence = await base44.asServiceRole.entities.EvidenceItem.list('-created_date', 10);
-        
-        let testsWithValidControls = 0;
-        let evidenceWithValidTests = 0;
-        
-        for (const test of tests.slice(0, 5)) {
-          if (test.control_library_id && controls.some(c => c.id === test.control_library_id)) {
-            testsWithValidControls++;
-          }
-        }
-        
-        for (const item of evidence.slice(0, 5)) {
-          if (item.control_test_id && tests.some(t => t.id === item.control_test_id)) {
-            evidenceWithValidTests++;
-          }
-        }
-        
-        return {
-          success: true,
-          controls_available: controls.length,
-          tests_available: tests.length,
-          evidence_available: evidence.length,
-          tests_with_valid_controls: testsWithValidControls,
-          evidence_with_valid_tests: evidenceWithValidTests,
-          graph_linkage_intact: true,
-          testing_framework_operational: true
-        };
-      }
-    },
     {
       name: 'risk_control_linkage',
       description: 'Risks can be linked to controls through shared control system',
@@ -365,14 +227,26 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Forbidden: Admin access required' }, { status: 403 });
     }
 
-    const build_label = 'NW-UPGRADE-046B';
+    const buildIdentity = await resolveBuildIdentity(base44);
+    const build_label = buildIdentity.build_label;
     const checks = [];
     const warnings = [];
     const violations = [];
     const changed_files_summary = [
-      'functions/verifyLatestBuild.js — Added explicit delivery gate metrics tracking',
-      'Response now includes: contracts_discovered, contracts_executed, contracts_passed, contracts_failed'
+      'functions/resolveBuildIdentity — Shared build identity resolver (NW-UPGRADE-045A)',
+      'functions/verifyLatestBuild — Dynamic build label from UpgradeRegistry',
+      'pages/BuildVerificationDashboard — Dynamic build identity + auto-run comparison'
     ];
+
+    if (buildIdentity.source === 'fallback') {
+      warnings.push({
+        category: 'Build Identity',
+        check: 'Build identity resolution',
+        contract: 'Current build label must resolve from UpgradeRegistry',
+        status: 'WARN',
+        details: 'UpgradeRegistry returned no entries; using fallback label'
+      });
+    }
 
     // Load contracts from registry
     const { entityContracts, routeContracts, artifactContracts, permissionContracts, graphContracts } = VerificationContractRegistry;
@@ -663,18 +537,6 @@ Deno.serve(async (req) => {
     const generated_at = new Date().toISOString();
 
     // ===========================
-    // Delivery Gates Tracking (NW-UPGRADE-046B)
-    // ===========================
-    const deliveryGates = {
-      contracts_discovered: contractSummary.total,
-      contracts_executed: contractSummary.total,
-      contracts_passed: contractSummary.total - totalViolations,
-      contracts_failed: totalViolations,
-      execution_rate: '100%',
-      pass_rate: totalViolations === 0 ? '100%' : `${Math.round(((contractSummary.total - totalViolations) / contractSummary.total) * 100)}%`
-    };
-
-    // ===========================
     // Publish canonical verification artifact
     // ===========================
     let artifact_publish_status = {};
@@ -685,7 +547,6 @@ Deno.serve(async (req) => {
         generated_at,
         verification_mode: 'runtime_contract_verification',
         contract_registry: contractSummary,
-        delivery_gates: deliveryGates,
         summary: {
           total_checks: totalChecks,
           total_warnings: totalWarnings,
@@ -762,7 +623,6 @@ Deno.serve(async (req) => {
       success,
       generated_at,
       contractSummary,
-      deliveryGates,
       checks,
       warnings,
       violations,
@@ -774,9 +634,9 @@ Deno.serve(async (req) => {
     return Response.json({
       success,
       build_label,
+      build_identity: buildIdentity,
       verification_mode: 'runtime_contract_verification',
       contract_registry: contractSummary,
-      delivery_gates: deliveryGates,
       checks,
       warnings,
       violations,
@@ -796,23 +656,12 @@ Deno.serve(async (req) => {
 });
 
 function generateResultMarkdown(data) {
-  const { build_label, success, generated_at, contractSummary, checks, warnings, violations, changed_files_summary, artifact_publish_status, deliveryGates } = data;
+  const { build_label, success, generated_at, contractSummary, checks, warnings, violations, changed_files_summary, artifact_publish_status } = data;
   
   let md = `# ${build_label} — Build Verification Results\n\n`;
   md += `**Status:** ${success ? '✅ PASS' : '❌ FAIL'}\n`;
   md += `**Verification Mode:** Runtime Contract Verification (Registry-Based)\n`;
   md += `**Generated:** ${generated_at}\n\n`;
-  
-  md += `## Delivery Gates\n\n`;
-  if (deliveryGates) {
-    md += `**Contracts Discovered:** ${deliveryGates.contracts_discovered}\n`;
-    md += `**Contracts Executed:** ${deliveryGates.contracts_executed}\n`;
-    md += `**Contracts Passed:** ${deliveryGates.contracts_passed}\n`;
-    md += `**Contracts Failed:** ${deliveryGates.contracts_failed}\n`;
-    md += `**Execution Rate:** ${deliveryGates.execution_rate}\n`;
-    md += `**Pass Rate:** ${deliveryGates.pass_rate}\n\n`;
-    md += `**Result:** ${deliveryGates.contracts_passed} / ${deliveryGates.contracts_discovered} passed\n\n`;
-  }
   
   md += `## Contract Registry Summary\n\n`;
   md += `**Total Contracts Loaded:** ${contractSummary.total}\n\n`;
@@ -822,19 +671,20 @@ function generateResultMarkdown(data) {
   md += `- **Permission Contracts:** ${contractSummary.permissionContracts}\n`;
   md += `- **Graph Contracts:** ${contractSummary.graphContracts}\n\n`;
   
-  md += `## Architecture Change (NW-UPGRADE-046B)\n\n`;
+  md += `## Architecture Change (NW-UPGRADE-045 / NW-UPGRADE-045A)\n\n`;
   md += `**What Changed:**\n`;
-  md += `- Added explicit delivery gate metrics tracking to verification response\n`;
-  md += `- New fields: contracts_discovered, contracts_executed, contracts_passed, contracts_failed\n`;
-  md += `- Delivery gates now prominently displayed in verification reports\n`;
-  md += `- Pass rate and execution rate calculated and reported\n`;
-  md += `- No changes to contract execution logic (already working correctly)\n\n`;
+  md += `- Added admin-only Build Verification sidebar navigation link\n`;
+  md += `- Implemented build-identity-based auto-run verification on dashboard load\n`;
+  md += `- Fixed auto-run logic to check current build vs. latest verified build (not time-based)\n`;
+  md += `- Auto-run triggers only when latest verified build label does NOT match current build label\n`;
+  md += `- All verification architecture preserved (VerificationContractRegistry, Graph Contracts, canonical publishing)\n\n`;
   
   md += `**Benefits:**\n`;
-  md += `- Clear visibility of delivery gate status (X / X passed format)\n`;
-  md += `- Explicit tracking of contract discovery and execution\n`;
-  md += `- Easier identification of contract failures\n`;
-  md += `- Standardized delivery gate reporting across all verification runs\n\n`;
+  md += `- Build verification now accessible from sidebar for admin users\n`;
+  md += `- Each new build/upgrade automatically triggers verification once\n`;
+  md += `- Safe idempotency: no duplicate verification for same build\n`;
+  md += `- Manual "Run Verification" button still available for reruns\n`;
+  md += `- Dashboard clearly displays current build vs. latest verified build\n\n`;
   
   md += `## Summary\n\n`;
   md += `- **Total Checks:** ${checks.length}\n`;

@@ -1,7 +1,7 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.20';
 import { ArtifactClassification } from './artifactClassifications.ts';
 
-// NW-UPGRADE-031: Canonical System Export Publisher
+// NW-UPGRADE-031: Canonical system_export path for architecture exports. Allowed non-canonical writer per NW-UPGRADE-039 allowlist.
 // Single approved path for system_export classification (architecture exports)
 // Generates complete system architecture snapshot with all files embedded in metadata.file_manifest
 // Guaranteed persistence: Files embedded FIRST, then artifact created with file_manifest reference
@@ -14,8 +14,8 @@ Deno.serve(async (req) => {
     if (!user) {
       return Response.json({ error: 'Authentication required' }, { status: 401 });
     }
-    if (user.role !== 'admin') {
-      return Response.json({ error: 'Admin access required' }, { status: 403 });
+    if (!['admin', 'super_admin'].includes(user.role)) {
+      return Response.json({ error: 'Technical Admin access required' }, { status: 403 });
     }
 
     // STEP 1: Generate all export data in memory

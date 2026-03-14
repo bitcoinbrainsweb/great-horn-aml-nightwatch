@@ -1,5 +1,11 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.20';
 
+/**
+ * LEGACY / NON-CANONICAL: One-off completion for NW-UPGRADE-016A only.
+ * Not part of the Release Controller path. Do not use for new upgrades.
+ * Admin/super_admin only. See docs/NW-UPGRADE-039_NON_CANONICAL_ALLOWLIST.md.
+ */
+
 const STRAY_PAGES_AUDIT = [
   { name: 'NightwatchV09DeliveryGateSummary', type: 'artifact_page', action: 'delete' },
   { name: 'NightwatchV09InternalAudit', type: 'artifact_page', action: 'delete' },
@@ -30,8 +36,8 @@ Deno.serve(async (req) => {
     const base44 = createClientFromRequest(req);
     const user = await base44.auth.me();
 
-    if (user?.role !== 'admin') {
-      return Response.json({ error: 'Forbidden: Admin access required' }, { status: 403 });
+    if (!user || !['admin', 'super_admin'].includes(user.role)) {
+      return Response.json({ error: 'Forbidden: Technical Admin access required' }, { status: 403 });
     }
 
     const now = new Date().toISOString();

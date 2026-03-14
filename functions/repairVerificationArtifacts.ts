@@ -1,8 +1,8 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.20';
 
 /**
+ * REPAIR-ONLY / NON-CANONICAL: Backfills verification artifacts (e.g. NW-025). Not part of Release Controller path.
  * NW-UPGRADE-025A: Verification Artifact Repair
- * 
  * STATUS: ✅ COMPLETE (2026-03-12)
  * 
  * PROBLEM FIXED:

@@ -8,6 +8,9 @@ Deno.serve(async (req) => {
     if (!user) {
       return Response.json({ error: 'Unauthorized' }, { status: 401 });
     }
+    if (!['admin', 'super_admin'].includes(user.role)) {
+      return Response.json({ error: 'Forbidden: Technical Admin access required' }, { status: 403 });
+    }
 
     const checks = [];
 
