@@ -556,8 +556,9 @@ Deno.serve(async (req) => {
     const generated_at = new Date().toISOString();
 
     // ===========================
-    // NW-UPGRADE-050: Publish Guard - Do not publish 0/0 artifacts
+    // NW-UPGRADE-050/052: Publish Guard - Do not publish 0/0 artifacts
     // ===========================
+    // Guard 1: Block if no contracts loaded
     if (contractSummary.total === 0) {
       return Response.json({
         success: false,
@@ -567,7 +568,30 @@ Deno.serve(async (req) => {
         error: 'PUBLISH_GUARD_TRIGGERED',
         message: 'Verification cannot proceed: 0 contracts loaded. No artifact published.',
         contract_registry: contractSummary,
-        generated_at
+        generated_at,
+        guard_reason: 'zero_contracts_loaded'
+      }, { status: 500 });
+    }
+
+    // Guard 2: Block if total checks is 0 (NW-UPGRADE-052)
+    if (checks.length === 0) {
+      return Response.json({
+        success: false,
+        build_label,
+        build_identity: buildIdentity,
+        verification_mode: 'runtime_contract_verification',
+        error: 'PUBLISH_GUARD_TRIGGERED',
+        message: 'Verification cannot proceed: 0 delivery gate checks passed. No artifact published.',
+        contract_registry: contractSummary,
+        summary: {
+          total_checks: 0,
+          total_warnings: warnings.length,
+          total_violations: violations.length
+        },
+        warnings,
+        violations,
+        generated_at,
+        guard_reason: 'zero_gates_passed'
       }, { status: 500 });
     }
 
