@@ -9,12 +9,14 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Label } from '@/components/ui/label';
 import PageHeader from '../components/ui/PageHeader';
 import { StatusBadge } from '../components/ui/RiskBadge';
+import { Badge } from '@/components/ui/badge';
 
 const ROLES = [
   { value: 'super_admin', label: 'Technical Admin' },
   { value: 'compliance_admin', label: 'Compliance Admin' },
   { value: 'analyst', label: 'Analyst' },
   { value: 'reviewer', label: 'Reviewer' },
+  { value: 'test_automation', label: 'Test Automation (Read-Only)' },
 ];
 
 export default function AdminUsers() {
@@ -54,9 +56,25 @@ export default function AdminUsers() {
           <tbody className="divide-y divide-slate-100">
             {users.map(u => (
               <tr key={u.id} className="hover:bg-slate-50/50">
-                <td className="px-5 py-3 font-medium text-slate-900">{u.full_name || '—'}</td>
+                <td className="px-5 py-3">
+                  <div className="flex items-center gap-2">
+                    <span className="font-medium text-slate-900">{u.full_name || '—'}</span>
+                    {u.account_label && (
+                      <Badge variant="outline" className="bg-slate-100 text-slate-600">
+                        {u.account_label}
+                      </Badge>
+                    )}
+                  </div>
+                </td>
                 <td className="px-5 py-3 text-slate-600">{u.email}</td>
-                <td className="px-5 py-3 hidden md:table-cell"><StatusBadge status={roleLabel(u.role)} /></td>
+                <td className="px-5 py-3 hidden md:table-cell">
+                  <div className="flex items-center gap-2">
+                    <StatusBadge status={roleLabel(u.role)} />
+                    {u.role === 'test_automation' && (
+                      <Badge className="bg-amber-100 text-amber-700 border-amber-300">READ-ONLY</Badge>
+                    )}
+                  </div>
+                </td>
                 <td className="px-5 py-3"><Button variant="ghost" size="icon" onClick={() => { setEditUser(u); setEditRole(u.role || 'analyst'); }} className="h-7 w-7"><Edit2 className="w-3.5 h-3.5" /></Button></td>
               </tr>
             ))}
