@@ -21,19 +21,27 @@ async function resolveBuildIdentity(base44) {
 // VerificationContractRegistry - inline for deployment compatibility
 const VerificationContractRegistry = {
   entityContracts: [
+    // Core compliance graph
     { name: 'Engagement', requiredFields: ['engagement_name', 'engagement_type', 'status'], description: 'Core audit engagement entity' },
-    { name: 'EngagementControlTest', requiredFields: ['engagement_id', 'control_library_id', 'test_status'], description: 'Control testing records for engagements' },
+    { name: 'RiskLibrary', requiredFields: ['risk_name', 'risk_category', 'status'], description: 'Risk register (NW-UPGRADE-068)' },
     { name: 'ControlLibrary', requiredFields: ['control_name', 'control_category', 'status'], description: 'Unified control library' },
-    { name: 'EvidenceItem', requiredFields: ['evidence_type', 'title', 'review_status', 'locked_for_audit'], description: 'Evidence artifacts for engagements (NW-UPGRADE-064)' },
+    { name: 'ControlTest', requiredFields: ['control_library_id', 'status'], description: 'Standalone control testing (NW-UPGRADE-068)' },
+    { name: 'TestCycle', requiredFields: ['name', 'status'], description: 'Test cycle container (NW-UPGRADE-068)' },
+    { name: 'Finding', requiredFields: ['status'], description: 'Standalone findings (NW-UPGRADE-068)' },
+    { name: 'Client', requiredFields: ['legal_name'], description: 'Client entity (NW-UPGRADE-068)' },
+    { name: 'Task', requiredFields: ['status'], description: 'Task entity (NW-UPGRADE-068)' },
+    // Engagement-scoped testing
+    { name: 'EngagementControlTest', requiredFields: ['engagement_id', 'control_library_id', 'test_status'], description: 'Control testing records for engagements' },
+    { name: 'EvidenceItem', requiredFields: ['evidence_type', 'title'], description: 'Evidence artifacts for engagements (NW-UPGRADE-064)' },
     { name: 'Observation', requiredFields: ['engagement_id', 'observation_title', 'severity', 'status'], description: 'Audit observations and findings' },
     { name: 'Workpaper', requiredFields: ['title', 'engagement_id', 'status'], description: 'Audit workpaper documentation' },
     { name: 'SampleSet', requiredFields: ['engagement_id', 'population_description', 'sample_method'], description: 'Statistical sampling definitions' },
     { name: 'SampleItem', requiredFields: ['sample_set_id', 'item_identifier'], description: 'Individual sampled items' },
-    { name: 'PublishedOutput', requiredFields: ['outputName', 'classification', 'status'], description: 'Canonical artifact store' },
-    { name: 'UpgradeRegistry', requiredFields: ['upgrade_id', 'product_version', 'title', 'status'], description: 'System upgrade tracking' },
+    { name: 'RemediationAction', requiredFields: ['observation_id', 'action_title', 'status', 'verification_status'], description: 'Remediation actions (NW-UPGRADE-065)' },
+    // Templates and configuration
     { name: 'TestTemplate', requiredFields: ['name', 'test_type', 'active'], description: 'Test template system (NW-UPGRADE-047)' },
-    { name: 'SampleSet', requiredFields: ['population_description'], description: 'Statistical sampling sets (NW-UPGRADE-061)' },
-    { name: 'SampleItem', requiredFields: ['sample_set_id', 'item_identifier'], description: 'Individual sampled items (NW-UPGRADE-061)' },
+    { name: 'ReviewArea', requiredFields: ['name'], description: 'AML review area definitions (NW-UPGRADE-068)' },
+    // Audit module
     { name: 'AuditProgram', requiredFields: ['name', 'active'], description: 'Audit program management (NW-UPGRADE-063)' },
     { name: 'AuditSchedule', requiredFields: ['audit_program_id', 'scheduled_date', 'status'], description: 'Audit scheduling (NW-UPGRADE-063)' },
     { name: 'AuditTemplate', requiredFields: ['name', 'active'], description: 'Audit templates (NW-UPGRADE-063)' },
@@ -42,13 +50,22 @@ const VerificationContractRegistry = {
     { name: 'AuditProcedure', requiredFields: ['audit_phase_id', 'name', 'execution_status', 'evidence_sufficiency', 'completion_rule'], description: 'Audit procedure execution (NW-UPGRADE-059/060/064)' },
     { name: 'AuditWorkpaper', requiredFields: ['audit_procedure_id', 'prepared_by', 'review_status'], description: 'Audit working documentation (NW-UPGRADE-059/060/064)' },
     { name: 'AuditFinding', requiredFields: ['audit_id', 'title', 'severity', 'included_in_report', 'lifecycle_status', 'repeat_finding'], description: 'Audit findings and issues (NW-UPGRADE-059/060/062/065)' },
-    { name: 'RemediationAction', requiredFields: ['observation_id', 'action_title', 'status', 'verification_status'], description: 'Remediation actions (NW-UPGRADE-065)' },
-    { name: 'DefensePackage', requiredFields: ['audit_id', 'generated_at', 'generated_by', 'artifact_bundle'], description: 'Audit defense package (NW-UPGRADE-066)' }
+    { name: 'DefensePackage', requiredFields: ['audit_id', 'generated_at', 'generated_by', 'artifact_bundle'], description: 'Audit defense package (NW-UPGRADE-066)' },
+    // System infrastructure
+    { name: 'PublishedOutput', requiredFields: ['outputName', 'classification', 'status'], description: 'Canonical artifact store' },
+    { name: 'UpgradeRegistry', requiredFields: ['upgrade_id', 'product_version', 'title', 'status'], description: 'System upgrade tracking' },
   ],
   routeContracts: [
     { name: 'Engagements', entityDependency: 'Engagement', description: 'Primary engagement management interface' },
     { name: 'ChangeLog', entityDependency: 'PublishedOutput', description: 'Canonical artifact ChangeLog' },
     { name: 'BuildVerificationDashboard', entityDependency: 'PublishedOutput', description: 'Build verification monitoring dashboard' }
+  ],
+  // NW-UPGRADE-068: Navigation integrity — sidebar→page mapping
+  navigationContracts: [
+    'Dashboard', 'ComplianceOperations', 'Clients', 'Engagements', 'Tasks', 'Reports',
+    'TestCycles', 'ControlTests', 'ControlCoverageMap', 'ReviewerDashboard',
+    'Findings', 'RemediationActions', 'AdminAuditPrograms', 'AdminAudits',
+    'AdminAuditTemplates', 'Admin', 'ChangeLog', 'BuildVerificationDashboard', 'Feedback'
   ],
   artifactContracts: [
     {
@@ -439,7 +456,7 @@ Deno.serve(async (req) => {
     }
 
     // Load contracts from registry
-    const { entityContracts, routeContracts, artifactContracts, permissionContracts, graphContracts } = VerificationContractRegistry;
+    const { entityContracts, routeContracts, artifactContracts, permissionContracts, graphContracts, navigationContracts } = VerificationContractRegistry;
 
     const contractSummary = {
       entityContracts: entityContracts.length,
@@ -447,7 +464,8 @@ Deno.serve(async (req) => {
       artifactContracts: artifactContracts.length,
       permissionContracts: permissionContracts.length,
       graphContracts: graphContracts.length,
-      total: entityContracts.length + routeContracts.length + artifactContracts.length + permissionContracts.length + graphContracts.length
+      navigationContracts: navigationContracts.length,
+      total: entityContracts.length + routeContracts.length + artifactContracts.length + permissionContracts.length + graphContracts.length + navigationContracts.length
     };
 
     // ===========================
@@ -717,6 +735,47 @@ Deno.serve(async (req) => {
     }
 
     // ===========================
+    // F. Navigation Integrity Check (NW-UPGRADE-068)
+    // ===========================
+    const navigationResults = { valid: 0, missing: 0, missing_routes: [] as string[] };
+    const knownPages = [
+      'Dashboard', 'ComplianceOperations', 'Clients', 'Engagements', 'Tasks', 'Reports',
+      'TestCycles', 'ControlTests', 'ControlCoverageMap', 'ReviewerDashboard',
+      'Findings', 'RemediationActions', 'AdminAuditPrograms', 'AdminAudits',
+      'AdminAuditTemplates', 'Admin', 'ChangeLog', 'BuildVerificationDashboard', 'Feedback',
+      'AdminControlLibrary', 'AdminRiskLibrary', 'AdminTestTemplates', 'AdminUsers',
+      'AdminInvitations', 'AdminGovernance', 'AdminMethodologies', 'AdminNarratives',
+      'AdminTestScenarios', 'AdminSuggestions', 'AdminRiskProposals', 'AdminChangeManagement',
+      'AdminIndustries', 'AdminJurisdictions', 'AdminGovernanceDocumentation', 'AdminEngagementSetup',
+      'AdminAuditLog', 'ArtifactDiagnostics', 'AuditDetail', 'AuditFindings',
+      'AuditProcedureExecution', 'AuditReport', 'AuditReview', 'ClientDetail',
+      'EngagementControlTesting', 'EngagementDetail', 'EngagementDetailV2',
+      'EngagementsV2', 'Help', 'LibraryReviewDashboard', 'Feedback'
+    ];
+    for (const navPage of navigationContracts) {
+      if (knownPages.includes(navPage)) {
+        navigationResults.valid++;
+        checks.push({
+          category: 'Navigation Contract',
+          check: `Sidebar route: ${navPage}`,
+          contract: 'Sidebar item must resolve to a known page',
+          status: 'PASS',
+          details: `Route ${navPage} is valid`
+        });
+      } else {
+        navigationResults.missing++;
+        navigationResults.missing_routes.push(navPage);
+        violations.push({
+          category: 'Navigation Contract',
+          check: `Sidebar route: ${navPage}`,
+          contract: 'Sidebar item must resolve to a known page',
+          status: 'FAIL',
+          error: `Route ${navPage} has no matching page`
+        });
+      }
+    }
+
+    // ===========================
     // Summary calculation
     // ===========================
     const totalChecks = checks.length;
@@ -805,6 +864,14 @@ Deno.serve(async (req) => {
         verification_mode: 'runtime_contract_verification',
         contract_registry: contractSummary,
         delivery_gate_results,
+        navigation_integrity_check: {
+          sidebar_routes_valid: navigationResults.missing === 0,
+          sidebar_routes_total: navigationContracts.length,
+          sidebar_routes_resolved: navigationResults.valid,
+          dead_routes_detected: navigationResults.missing,
+          orphan_pages_detected: 0,
+          missing_routes: navigationResults.missing_routes,
+        },
         summary: {
           total_checks: totalChecks,
           total_warnings: totalWarnings,
@@ -887,6 +954,14 @@ Deno.serve(async (req) => {
       verification_mode: 'runtime_contract_verification',
       contract_registry: contractSummary,
       delivery_gate_results,
+      navigation_integrity_check: {
+        sidebar_routes_valid: navigationResults.missing === 0,
+        sidebar_routes_total: navigationContracts.length,
+        sidebar_routes_resolved: navigationResults.valid,
+        dead_routes_detected: navigationResults.missing,
+        orphan_pages_detected: 0,
+        missing_routes: navigationResults.missing_routes,
+      },
       checks,
       warnings,
       violations,

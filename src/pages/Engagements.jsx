@@ -93,6 +93,7 @@ export default function Engagements() {
     const meth = methodologies.find(m => m.id === form.methodology_id);
     const engagement = await base44.entities.Engagement.create({
       ...form,
+      engagement_name: `${client?.legal_name || ''} - ${form.engagement_type || ''}`,
       client_name: client?.legal_name || '',
       methodology_name: meth?.name || '',
       status: 'Not Started',

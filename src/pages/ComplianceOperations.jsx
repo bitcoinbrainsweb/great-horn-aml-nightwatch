@@ -1,54 +1,47 @@
 import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
-import { useQuery } from '@tanstack/react-query';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import PageHeader from '@/components/ui/PageHeader';
-import { 
-  Calendar, 
-  AlertTriangle, 
-  CheckCircle, 
-  Clock, 
-  TrendingUp,
-  AlertCircle,
-  Wrench
+import { Link } from 'react-router-dom';
+import { createPageUrl } from '@/utils';
+import {
+  FileStack, ClipboardCheck, TestTube, ShieldCheck,
+  AlertTriangle, CheckCircle2, Clock, ArrowRight
 } from 'lucide-react';
+import PageHeader from '../components/ui/PageHeader';
 
 export default function ComplianceOperations() {
-  const { data: controlTests = [], isLoading: loadingTests } = useQuery({
-    queryKey: ['controlTests'],
-    queryFn: () => base44.entities.ControlTest.list('-created_date')
-  });
+  const [stats, setStats] = useState(null);
+  const [loading, setLoading] = useState(true);
 
-  const { data: testResults = [], isLoading: loadingResults } = useQuery({
-    queryKey: ['testResults'],
-    queryFn: () => base44.entities.TestResult.list('-created_date', 10)
-  });
+  useEffect(() => { loadStats(); }, []);
 
-  const { data: findings = [], isLoading: loadingFindings } = useQuery({
-    queryKey: ['findings'],
-    queryFn: () => base44.entities.Finding.filter({ status: 'Open' })
-  });
+  async function loadStats() {
+    try {
+      const [engagements, controlTests, testCycles, findings, remediations] = await Promise.all([
+        base44.entities.Engagement.list('-created_date', 100),
+        base44.entities.ControlTest.list('-created_date', 200),
+        base44.entities.TestCycle.list('-created_date', 50),
+        base44.entities.Finding.list('-created_date', 100),
+        base44.entities.RemediationAction.list('-created_date', 100)
+      ]);
 
-  const { data: remediations = [], isLoading: loadingRemediations } = useQuery({
-    queryKey: ['remediations'],
-    queryFn: () => base44.entities.RemediationAction.filter({ 
-      status: { $in: ['Not Started', 'In Progress'] }
-    })
-  });
-
-  // Calculate schedule status
-  const scheduledTests = controlTests.filter(t => t.test_frequency && t.test_frequency !== 'ad_hoc');
-  const overdueTests = scheduledTests.filter(t => t.schedule_status === 'overdue');
-  const dueSoonTests = scheduledTests.filter(t => t.schedule_status === 'due_soon');
-  const onTrackTests = scheduledTests.filter(t => t.schedule_status === 'on_track');
-
-  // Recent test results summary
-  const recentPassed = testResults.filter(r => r.result_status === 'pass').length;
-  const recentFailed = testResults.filter(r => r.result_status === 'fail').length;
-  const recentPartial = testResults.filter(r => r.result_status === 'partial').length;
-
-  const loading = loadingTests || loadingResults || loadingFindings || loadingRemediations;
+      setStats({
+        engagements_active: engagements.filter(e => !['Completed', 'Archived'].includes(e.status)).length,
+        engagements_total: engagements.length,
+        tests_completed: controlTests.filter(t => t.status === 'Completed').length,
+        tests_total: controlTests.length,
+        cycles_active: testCycles.filter(c => c.status === 'Active').length,
+        cycles_total: testCycles.length,
+        findings_open: findings.filter(f => f.status === 'Open').length,
+        findings_total: findings.length,
+        remediations_pending: remediations.filter(r => !['Completed', 'Verified'].includes(r.status)).length,
+        remediations_total: remediations.length,
+      });
+    } catch (err) {
+      console.error('Failed to load compliance ops stats:', err);
+      setStats({});
+    }
+    setLoading(false);
+  }
 
   if (loading) {
     return (
@@ -58,235 +51,74 @@ export default function ComplianceOperations() {
     );
   }
 
+  const sections = [
+    {
+      title: 'Engagement Management',
+      icon: FileStack,
+      page: 'Engagements',
+      metric: `${stats?.engagements_active || 0} active`,
+      detail: `${stats?.engagements_total || 0} total engagements`,
+      color: 'bg-blue-50 text-blue-600'
+    },
+    {
+      title: 'Control Testing',
+      icon: TestTube,
+      page: 'ControlTests',
+      metric: `${stats?.tests_completed || 0} completed`,
+      detail: `${stats?.tests_total || 0} total tests`,
+      color: 'bg-emerald-50 text-emerald-600'
+    },
+    {
+      title: 'Test Cycles',
+      icon: ClipboardCheck,
+      page: 'TestCycles',
+      metric: `${stats?.cycles_active || 0} active`,
+      detail: `${stats?.cycles_total || 0} total cycles`,
+      color: 'bg-amber-50 text-amber-600'
+    },
+    {
+      title: 'Findings',
+      icon: AlertTriangle,
+      page: 'Findings',
+      metric: `${stats?.findings_open || 0} open`,
+      detail: `${stats?.findings_total || 0} total findings`,
+      color: 'bg-red-50 text-red-600'
+    },
+    {
+      title: 'Remediation Actions',
+      icon: ShieldCheck,
+      page: 'RemediationActions',
+      metric: `${stats?.remediations_pending || 0} pending`,
+      detail: `${stats?.remediations_total || 0} total actions`,
+      color: 'bg-purple-50 text-purple-600'
+    }
+  ];
+
   return (
-    <div className="space-y-6">
-      <PageHeader 
-        title="Compliance Operations" 
-        subtitle="Command center for day-to-day compliance work"
+    <div>
+      <PageHeader
+        title="Compliance Operations"
+        subtitle="Operational overview of compliance testing and remediation"
       />
 
-      {/* Program Snapshot */}
-      <div>
-        <h2 className="text-sm font-semibold text-slate-700 mb-3">Program Snapshot</h2>
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-xs text-slate-500 mb-1">Total Tests</p>
-                  <p className="text-2xl font-bold text-slate-900">{controlTests.length}</p>
-                </div>
-                <CheckCircle className="w-8 h-8 text-slate-300" />
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-6">
+        {sections.map(section => (
+          <Link
+            key={section.page}
+            to={createPageUrl(section.page)}
+            className="bg-white rounded-xl border border-slate-200/60 p-5 hover:shadow-md transition-shadow group"
+          >
+            <div className="flex items-start justify-between mb-3">
+              <div className={`p-2 rounded-lg ${section.color}`}>
+                <section.icon className="w-5 h-5" />
               </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-xs text-slate-500 mb-1">Scheduled Tests</p>
-                  <p className="text-2xl font-bold text-slate-900">{scheduledTests.length}</p>
-                </div>
-                <Calendar className="w-8 h-8 text-blue-300" />
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-xs text-slate-500 mb-1">Open Findings</p>
-                  <p className="text-2xl font-bold text-slate-900">{findings.length}</p>
-                </div>
-                <AlertCircle className="w-8 h-8 text-amber-300" />
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-xs text-slate-500 mb-1">Active Remediations</p>
-                  <p className="text-2xl font-bold text-slate-900">{remediations.length}</p>
-                </div>
-                <Wrench className="w-8 h-8 text-purple-300" />
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      </div>
-
-      {/* Testing Status */}
-      <div>
-        <h2 className="text-sm font-semibold text-slate-700 mb-3">Testing Status</h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <Card className="border-red-200">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium flex items-center gap-2">
-                <AlertTriangle className="w-4 h-4 text-red-600" />
-                Overdue Tests
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <span className="text-2xl font-bold text-red-700">{overdueTests.length}</span>
-                  <Badge className="bg-red-100 text-red-700 border-red-200">Needs Action</Badge>
-                </div>
-                {overdueTests.length > 0 && (
-                  <div className="pt-2 border-t border-slate-100">
-                    <p className="text-xs text-slate-600">Next: {overdueTests[0].next_due_date || 'N/A'}</p>
-                  </div>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="border-amber-200">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium flex items-center gap-2">
-                <Clock className="w-4 h-4 text-amber-600" />
-                Due Soon
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <span className="text-2xl font-bold text-amber-700">{dueSoonTests.length}</span>
-                  <Badge className="bg-amber-100 text-amber-700 border-amber-200">Plan Now</Badge>
-                </div>
-                {dueSoonTests.length > 0 && (
-                  <div className="pt-2 border-t border-slate-100">
-                    <p className="text-xs text-slate-600">Next: {dueSoonTests[0].next_due_date || 'N/A'}</p>
-                  </div>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="border-green-200">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium flex items-center gap-2">
-                <CheckCircle className="w-4 h-4 text-green-600" />
-                On Track
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <span className="text-2xl font-bold text-green-700">{onTrackTests.length}</span>
-                  <Badge className="bg-green-100 text-green-700 border-green-200">Good</Badge>
-                </div>
-                {onTrackTests.length > 0 && (
-                  <div className="pt-2 border-t border-slate-100">
-                    <p className="text-xs text-slate-600">Next: {onTrackTests[0].next_due_date || 'N/A'}</p>
-                  </div>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      </div>
-
-      {/* Recent Test Results */}
-      <div>
-        <h2 className="text-sm font-semibold text-slate-700 mb-3">Recent Test Results (Last 10)</h2>
-        <Card>
-          <CardContent className="p-4">
-            <div className="grid grid-cols-3 gap-6">
-              <div className="text-center">
-                <div className="flex items-center justify-center gap-2 mb-2">
-                  <CheckCircle className="w-5 h-5 text-green-600" />
-                  <span className="text-xs text-slate-600">Passed</span>
-                </div>
-                <p className="text-3xl font-bold text-green-700">{recentPassed}</p>
-              </div>
-              <div className="text-center">
-                <div className="flex items-center justify-center gap-2 mb-2">
-                  <AlertCircle className="w-5 h-5 text-amber-600" />
-                  <span className="text-xs text-slate-600">Partial</span>
-                </div>
-                <p className="text-3xl font-bold text-amber-700">{recentPartial}</p>
-              </div>
-              <div className="text-center">
-                <div className="flex items-center justify-center gap-2 mb-2">
-                  <AlertTriangle className="w-5 h-5 text-red-600" />
-                  <span className="text-xs text-slate-600">Failed</span>
-                </div>
-                <p className="text-3xl font-bold text-red-700">{recentFailed}</p>
-              </div>
+              <ArrowRight className="w-4 h-4 text-slate-300 group-hover:text-slate-500 transition-colors" />
             </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Issues Snapshot */}
-      <div>
-        <h2 className="text-sm font-semibold text-slate-700 mb-3">Issues Snapshot</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <Card className="border-amber-200">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium flex items-center gap-2">
-                <AlertCircle className="w-4 h-4 text-amber-600" />
-                Open Findings
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <span className="text-3xl font-bold text-amber-700">{findings.length}</span>
-                  {findings.length > 0 ? (
-                    <Badge className="bg-amber-100 text-amber-700 border-amber-200">Requires Review</Badge>
-                  ) : (
-                    <Badge className="bg-green-100 text-green-700 border-green-200">All Clear</Badge>
-                  )}
-                </div>
-                {findings.length > 0 && (
-                  <div className="pt-2 border-t border-slate-100 space-y-1">
-                    {findings.slice(0, 3).map(f => (
-                      <div key={f.id} className="text-xs text-slate-600 truncate">
-                        • {f.title || f.finding_title || 'Untitled'}
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="border-purple-200">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium flex items-center gap-2">
-                <Wrench className="w-4 h-4 text-purple-600" />
-                Active Remediations
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <span className="text-3xl font-bold text-purple-700">{remediations.length}</span>
-                  {remediations.length > 0 ? (
-                    <Badge className="bg-purple-100 text-purple-700 border-purple-200">In Progress</Badge>
-                  ) : (
-                    <Badge className="bg-green-100 text-green-700 border-green-200">Complete</Badge>
-                  )}
-                </div>
-                {remediations.length > 0 && (
-                  <div className="pt-2 border-t border-slate-100 space-y-1">
-                    {remediations.slice(0, 3).map(r => (
-                      <div key={r.id} className="text-xs text-slate-600 truncate">
-                        • {r.action_title || 'Untitled'}
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+            <h3 className="font-semibold text-slate-900 mb-1">{section.title}</h3>
+            <p className="text-lg font-bold text-slate-900">{section.metric}</p>
+            <p className="text-xs text-slate-500 mt-1">{section.detail}</p>
+          </Link>
+        ))}
       </div>
     </div>
   );
