@@ -226,6 +226,7 @@ export default function Layout({ children, currentPageName }) {
                (item.page === 'ChangeLog' && ['ChangeLog', 'ArtifactDiagnostics'].includes(currentPageName)) ||
                (item.page === 'BuildVerificationDashboard' && currentPageName === 'BuildVerificationDashboard') ||
                (item.page === 'ComplianceOperations' && currentPageName === 'ComplianceOperations') ||
+               (item.page === 'ControlCoverageMap' && currentPageName === 'ControlCoverageMap') ||
                (item.page === 'Admin' && ['AdminRiskLibrary', 'AdminControlLibrary', 'AdminMethodologies', 'AdminNarratives', 'AdminUsers', 'AdminAuditLog', 'AdminJurisdictions', 'AdminIndustries', 'AdminTestScenarios', 'AdminInvitations', 'AdminRiskProposals', 'LibraryReviewDashboard', 'AdminGovernance'].includes(currentPageName));
              return (
                <Link
