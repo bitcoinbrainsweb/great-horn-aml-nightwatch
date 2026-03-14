@@ -55,7 +55,18 @@ export default function AuditReview() {
   });
 
   const updateAuditMutation = useMutation({
-    mutationFn: (data) => base44.entities.Audit.update(auditId, data),
+    mutationFn: async (data) => {
+      // Lock evidence when entering review phase (NW-UPGRADE-064)
+      if (data.status === 'review' && audit.status !== 'review') {
+        const allEvidence = await base44.entities.EvidenceItem.filter({ engagement_id: engagement?.id });
+        await Promise.all(
+          allEvidence.map(ev => 
+            base44.entities.EvidenceItem.update(ev.id, { locked_for_audit: true })
+          )
+        );
+      }
+      return base44.entities.Audit.update(auditId, data);
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['audit', auditId] });
     }

@@ -24,7 +24,7 @@ const VerificationContractRegistry = {
     { name: 'Engagement', requiredFields: ['engagement_name', 'engagement_type', 'status'], description: 'Core audit engagement entity' },
     { name: 'EngagementControlTest', requiredFields: ['engagement_id', 'control_library_id', 'test_status'], description: 'Control testing records for engagements' },
     { name: 'ControlLibrary', requiredFields: ['control_name', 'control_category', 'status'], description: 'Unified control library' },
-    { name: 'EvidenceItem', requiredFields: ['evidence_type', 'title'], description: 'Evidence artifacts for engagements' },
+    { name: 'EvidenceItem', requiredFields: ['evidence_type', 'title', 'review_status', 'locked_for_audit'], description: 'Evidence artifacts for engagements (NW-UPGRADE-064)' },
     { name: 'Observation', requiredFields: ['engagement_id', 'observation_title', 'severity', 'status'], description: 'Audit observations and findings' },
     { name: 'Workpaper', requiredFields: ['title', 'engagement_id', 'status'], description: 'Audit workpaper documentation' },
     { name: 'SampleSet', requiredFields: ['engagement_id', 'population_description', 'sample_method'], description: 'Statistical sampling definitions' },
@@ -39,8 +39,8 @@ const VerificationContractRegistry = {
     { name: 'AuditTemplate', requiredFields: ['name', 'active'], description: 'Audit templates (NW-UPGRADE-063)' },
     { name: 'Audit', requiredFields: ['name', 'engagement_id', 'report_status'], description: 'Audit engagement module (NW-UPGRADE-059/062)' },
     { name: 'AuditPhase', requiredFields: ['audit_id', 'name'], description: 'Audit phase structure (NW-UPGRADE-059)' },
-    { name: 'AuditProcedure', requiredFields: ['audit_phase_id', 'name', 'execution_status'], description: 'Audit procedure execution (NW-UPGRADE-059/060)' },
-    { name: 'AuditWorkpaper', requiredFields: ['audit_procedure_id', 'prepared_by'], description: 'Audit working documentation (NW-UPGRADE-059/060)' },
+    { name: 'AuditProcedure', requiredFields: ['audit_phase_id', 'name', 'execution_status', 'evidence_sufficiency', 'completion_rule'], description: 'Audit procedure execution (NW-UPGRADE-059/060/064)' },
+    { name: 'AuditWorkpaper', requiredFields: ['audit_procedure_id', 'prepared_by', 'review_status'], description: 'Audit working documentation (NW-UPGRADE-059/060/064)' },
     { name: 'AuditFinding', requiredFields: ['audit_id', 'title', 'severity', 'included_in_report'], description: 'Audit findings and issues (NW-UPGRADE-059/060/062)' }
   ],
   routeContracts: [
@@ -921,18 +921,18 @@ function generateResultMarkdown(data) {
   
   md += `## Architecture Change (NW-UPGRADE-047)\n\n`;
   md += `**What Changed (Latest):**\n`;
-  md += `- **NW-UPGRADE-063:** Added AuditProgram, AuditSchedule, AuditTemplate entities for recurring audit management\n`;
-  md += `- Created AdminAuditPrograms and AdminAuditTemplates pages\n`;
-  md += `- Enabled audit program layer: AuditProgram→AuditSchedule→Audit\n`;
-  md += `- Added audit_program_management_graph verification contract\n`;
-  md += `- Full backward compatibility with existing audit execution layer\n\n`;
+  md += `- **NW-UPGRADE-064:** Extended EvidenceItem, AuditProcedure, AuditWorkpaper with review controls\n`;
+  md += `- Added evidence review workflow (pending→reviewed/rejected) and locking on audit review phase\n`;
+  md += `- Added procedure completion rules (none/minimum_evidence_required/reviewed_evidence_required)\n`;
+  md += `- Enhanced AuditProcedureExecution and AuditReview pages with evidence controls\n`;
+  md += `- Updated verification contracts to check evidence control fields\n\n`;
   
   md += `**Benefits:**\n`;
-  md += `- Manage recurring audit programs (annual, semi-annual, quarterly, ad-hoc)\n`;
-  md += `- Schedule audits for specific engagements via AuditSchedule\n`;
-  md += `- Reusable audit templates with default phases and procedures\n`;
-  md += `- Full program→schedule→audit graph traceability\n`;
-  md += `- Backward compatible with standalone audits\n\n`;
+  md += `- Evidence review workflow with pending→reviewed/rejected states\n`;
+  md += `- Evidence locking when audit enters review phase (tamper protection)\n`;
+  md += `- Procedure completion rules enforce minimum/reviewed evidence requirements\n`;
+  md += `- Hash tracking for evidence integrity (hash_value + hash_algorithm)\n`;
+  md += `- Full evidence control integration with existing audit graph\n\n`;
   
   md += `## Summary\n\n`;
   md += `- **Total Checks:** ${checks.length}\n`;

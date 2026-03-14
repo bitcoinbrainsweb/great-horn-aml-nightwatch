@@ -114,13 +114,42 @@ export default function AuditProcedureExecution() {
   });
 
   const completeProcedureMutation = useMutation({
-    mutationFn: () => base44.entities.AuditProcedure.update(procedureId, {
-      execution_status: 'complete',
-      status: 'completed',
-      completed_time: new Date().toISOString()
-    }),
+    mutationFn: async () => {
+      // Enforce completion rules (NW-UPGRADE-064)
+      if (procedure.completion_rule === 'minimum_evidence_required') {
+        const linkedEvidence = workpapers.filter(wp => wp.evidence_item_id).length;
+        if (linkedEvidence < (procedure.required_evidence_count || 1)) {
+          throw new Error(`Cannot complete: requires ${procedure.required_evidence_count} evidence item(s), found ${linkedEvidence}`);
+        }
+      }
+      
+      if (procedure.completion_rule === 'reviewed_evidence_required') {
+        const linkedEvidence = workpapers.filter(wp => wp.evidence_item_id);
+        if (linkedEvidence.length === 0) {
+          throw new Error('Cannot complete: requires reviewed evidence');
+        }
+        const allReviewed = await Promise.all(
+          linkedEvidence.map(async wp => {
+            const ev = await base44.entities.EvidenceItem.filter({ id: wp.evidence_item_id });
+            return ev[0]?.review_status === 'reviewed';
+          })
+        );
+        if (!allReviewed.every(r => r)) {
+          throw new Error('Cannot complete: all linked evidence must be reviewed');
+        }
+      }
+      
+      return base44.entities.AuditProcedure.update(procedureId, {
+        execution_status: 'complete',
+        status: 'completed',
+        completed_time: new Date().toISOString()
+      });
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['procedure', procedureId] });
+    },
+    onError: (error) => {
+      alert(error.message);
     }
   });
 
@@ -306,6 +335,35 @@ export default function AuditProcedureExecution() {
               </div>
             )}
           </div>
+          
+          {/* Evidence Controls (NW-UPGRADE-064) */}
+          {procedure.completion_rule && procedure.completion_rule !== 'none' && (
+            <div className="pt-3 border-t">
+              <div className="flex items-center gap-3 flex-wrap">
+                <div>
+                  <span className="text-slate-500">Completion Rule:</span>{' '}
+                  <span className="font-medium text-slate-900 capitalize">
+                    {procedure.completion_rule.replace(/_/g, ' ')}
+                  </span>
+                </div>
+                {procedure.required_evidence_count && (
+                  <div>
+                    <span className="text-slate-500">Required Evidence:</span>{' '}
+                    <span className="font-medium text-slate-900">{procedure.required_evidence_count}</span>
+                  </div>
+                )}
+                {procedure.evidence_sufficiency && (
+                  <Badge className={
+                    procedure.evidence_sufficiency === 'sufficient' ? 'bg-green-100 text-green-700' :
+                    procedure.evidence_sufficiency === 'insufficient' ? 'bg-red-100 text-red-700' :
+                    'bg-slate-100 text-slate-700'
+                  }>
+                    {procedure.evidence_sufficiency}
+                  </Badge>
+                )}
+              </div>
+            </div>
+          )}
         </CardContent>
       </Card>
 
@@ -426,13 +484,25 @@ export default function AuditProcedureExecution() {
             <div className="space-y-3">
               {workpapers.map(wp => {
                 const linkedEvidence = evidenceItems.find(e => e.id === wp.evidence_item_id);
+                const reviewStatusColors = {
+                  'pending': 'bg-slate-100 text-slate-700',
+                  'reviewed': 'bg-green-100 text-green-700',
+                  'rejected': 'bg-red-100 text-red-700'
+                };
                 
                 return (
                   <div key={wp.id} className="bg-slate-50 border border-slate-200 rounded-lg p-3">
                     <div className="flex items-start justify-between mb-2">
-                      <Badge className={conclusionColors[wp.conclusion]}>
-                        {wp.conclusion?.replace('_', ' ')}
-                      </Badge>
+                      <div className="flex items-center gap-2">
+                        <Badge className={conclusionColors[wp.conclusion]}>
+                          {wp.conclusion?.replace('_', ' ')}
+                        </Badge>
+                        {wp.review_status && (
+                          <Badge className={reviewStatusColors[wp.review_status]}>
+                            {wp.review_status}
+                          </Badge>
+                        )}
+                      </div>
                       {wp.prepared_by && (
                         <span className="text-xs text-slate-500">
                           {wp.prepared_by} • {new Date(wp.prepared_at).toLocaleDateString()}
@@ -443,9 +513,30 @@ export default function AuditProcedureExecution() {
                       <p className="text-sm text-slate-700 mb-2">{wp.notes}</p>
                     )}
                     {linkedEvidence && (
-                      <div className="flex items-center gap-2 text-xs text-blue-600 bg-blue-50 border border-blue-200 rounded p-2">
-                        <Paperclip className="w-3 h-3" />
-                        <span>Linked Evidence: {linkedEvidence.title}</span>
+                      <div className="space-y-2">
+                        <div className="flex items-center gap-2 text-xs text-blue-600 bg-blue-50 border border-blue-200 rounded p-2">
+                          <Paperclip className="w-3 h-3" />
+                          <div className="flex-1">
+                            <div className="font-medium">{linkedEvidence.title}</div>
+                            <div className="flex items-center gap-2 mt-1">
+                              {linkedEvidence.review_status && (
+                                <Badge className={reviewStatusColors[linkedEvidence.review_status]} variant="outline">
+                                  {linkedEvidence.review_status}
+                                </Badge>
+                              )}
+                              {linkedEvidence.locked_for_audit && (
+                                <Badge variant="outline" className="text-xs bg-amber-100 text-amber-700">
+                                  Locked
+                                </Badge>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                        {linkedEvidence.reviewed_by && (
+                          <div className="text-xs text-slate-500">
+                            Reviewed by {linkedEvidence.reviewed_by} on {new Date(linkedEvidence.reviewed_at).toLocaleDateString()}
+                          </div>
+                        )}
                       </div>
                     )}
                     {wp.attachment_url && (
@@ -454,6 +545,11 @@ export default function AuditProcedureExecution() {
                         <a href={wp.attachment_url} target="_blank" rel="noopener noreferrer" className="underline">
                           View Attachment
                         </a>
+                      </div>
+                    )}
+                    {wp.reviewed_by && (
+                      <div className="text-xs text-slate-500 mt-2 pt-2 border-t">
+                        Workpaper reviewed by {wp.reviewed_by} on {new Date(wp.reviewed_at).toLocaleDateString()}
                       </div>
                     )}
                   </div>
