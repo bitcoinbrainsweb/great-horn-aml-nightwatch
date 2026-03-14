@@ -34,11 +34,11 @@ const VerificationContractRegistry = {
     { name: 'TestTemplate', requiredFields: ['name', 'test_type', 'active'], description: 'Test template system (NW-UPGRADE-047)' },
     { name: 'SampleSet', requiredFields: ['population_description'], description: 'Statistical sampling sets (NW-UPGRADE-061)' },
     { name: 'SampleItem', requiredFields: ['sample_set_id', 'item_identifier'], description: 'Individual sampled items (NW-UPGRADE-061)' },
-    { name: 'Audit', requiredFields: ['name', 'engagement_id'], description: 'Audit engagement module (NW-UPGRADE-059)' },
+    { name: 'Audit', requiredFields: ['name', 'engagement_id', 'report_status'], description: 'Audit engagement module (NW-UPGRADE-059/062)' },
     { name: 'AuditPhase', requiredFields: ['audit_id', 'name'], description: 'Audit phase structure (NW-UPGRADE-059)' },
     { name: 'AuditProcedure', requiredFields: ['audit_phase_id', 'name', 'execution_status'], description: 'Audit procedure execution (NW-UPGRADE-059/060)' },
     { name: 'AuditWorkpaper', requiredFields: ['audit_procedure_id', 'prepared_by'], description: 'Audit working documentation (NW-UPGRADE-059/060)' },
-    { name: 'AuditFinding', requiredFields: ['audit_id', 'title', 'severity'], description: 'Audit findings and issues (NW-UPGRADE-059/060)' }
+    { name: 'AuditFinding', requiredFields: ['audit_id', 'title', 'severity', 'included_in_report'], description: 'Audit findings and issues (NW-UPGRADE-059/060/062)' }
   ],
   routeContracts: [
     { name: 'Engagements', entityDependency: 'Engagement', description: 'Primary engagement management interface' },
@@ -880,18 +880,18 @@ function generateResultMarkdown(data) {
   
   md += `## Architecture Change (NW-UPGRADE-047)\n\n`;
   md += `**What Changed (Latest):**\n`;
-  md += `- **NW-UPGRADE-061:** Extended SampleSet/SampleItem entities with audit_procedure_id and evidence_item_id fields\n`;
-  md += `- Added sampling panel to AuditProcedureExecution page (create sample sets, add items, attach evidence)\n`;
-  md += `- Enabled SampleSet→AuditProcedure and SampleItem→EvidenceItem graph linkage\n`;
-  md += `- Updated verification contracts to check sampling entities and graph integrity\n`;
-  md += `- Full backward compatibility with legacy engagement-scoped sampling\n\n`;
+  md += `- **NW-UPGRADE-062:** Extended Audit/AuditFinding entities with reporting fields (report_status, management_response, target_remediation_date)\n`;
+  md += `- Added AuditReview page for findings management and report generation\n`;
+  md += `- Added AuditReport page for structured audit report display\n`;
+  md += `- Enabled audit finalization workflow: review → finalized → completed\n`;
+  md += `- Updated verification contracts to check reporting fields\n\n`;
   
   md += `**Benefits:**\n`;
-  md += `- Statistical sampling integrated with audit procedures\n`;
-  md += `- Sample items link to existing EvidenceItem (no duplicate evidence)\n`;
-  md += `- Full traceability: AuditProcedure→SampleSet→SampleItem→EvidenceItem\n`;
-  md += `- Supports random, judgmental, stratified, and full population sampling\n`;
-  md += `- Backward compatible with legacy engagement-scoped sampling\n\n`;
+  md += `- Auditors can finalize audits with structured report generation\n`;
+  md += `- Findings can be marked reportable/excluded for report control\n`;
+  md += `- Management responses captured and displayed in report\n`;
+  md += `- Remediation tracking via target dates (integrates with RemediationAction)\n`;
+  md += `- Complete audit lifecycle: planned → active → fieldwork → review → completed\n\n`;
   
   md += `## Summary\n\n`;
   md += `- **Total Checks:** ${checks.length}\n`;

@@ -105,6 +105,8 @@ import TestCycles from './pages/TestCycles';
 import AdminAudits from './pages/AdminAudits';
 import AuditDetail from './pages/AuditDetail';
 import AuditProcedureExecution from './pages/AuditProcedureExecution';
+import AuditReview from './pages/AuditReview';
+import AuditReport from './pages/AuditReport';
 
 
 export const PAGES = {
@@ -166,6 +168,8 @@ export const PAGES = {
     "AdminAudits": AdminAudits,
     "AuditDetail": AuditDetail,
     "AuditProcedureExecution": AuditProcedureExecution,
+    "AuditReview": AuditReview,
+    "AuditReport": AuditReport,
 }
 
 export const pagesConfig = {
