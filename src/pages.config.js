@@ -100,6 +100,7 @@ import ReviewerDashboard from './pages/ReviewerDashboard';
 import RunNW040Verification from './pages/RunNW040Verification';
 import Tasks from './pages/Tasks';
 import TestCycles from './pages/TestCycles';
+import ComplianceOperations from './pages/ComplianceOperations';
 
 
 export const PAGES = {
@@ -156,6 +157,7 @@ export const PAGES = {
     "RunNW040Verification": RunNW040Verification,
     "Tasks": Tasks,
     "TestCycles": TestCycles,
+    "ComplianceOperations": ComplianceOperations,
 }
 
 export const pagesConfig = {
