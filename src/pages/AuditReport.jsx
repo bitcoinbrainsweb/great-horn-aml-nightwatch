@@ -1,17 +1,20 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import PageHeader from '@/components/ui/PageHeader';
-import { FileText, Download, CheckCircle } from 'lucide-react';
+import { FileText, Download, CheckCircle, Package } from 'lucide-react';
 
 export default function AuditReport() {
   const urlParams = new URLSearchParams(window.location.search);
   const auditId = urlParams.get('id');
 
   const queryClient = useQueryClient();
+  const [showDefensePackageDialog, setShowDefensePackageDialog] = useState(false);
+  const [defensePackageData, setDefensePackageData] = useState(null);
 
   const { data: audit, isLoading } = useQuery({
     queryKey: ['audit', auditId],
@@ -65,6 +68,17 @@ export default function AuditReport() {
     }
   });
 
+  const generateDefensePackageMutation = useMutation({
+    mutationFn: async () => {
+      return base44.functions.invoke('generateDefensePackage', { audit_id: auditId });
+    },
+    onSuccess: (response) => {
+      queryClient.invalidateQueries({ queryKey: ['defensePackages', auditId] });
+      setDefensePackageData(response.data);
+      setShowDefensePackageDialog(true);
+    }
+  });
+
   if (isLoading || !audit) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -101,6 +115,14 @@ export default function AuditReport() {
     <div className="space-y-6">
       <PageHeader title="Audit Report" subtitle={audit.name}>
         <div className="flex gap-2">
+          <Button 
+            variant="outline" 
+            onClick={() => generateDefensePackageMutation.mutate()}
+            disabled={generateDefensePackageMutation.isPending}
+          >
+            <Package className="w-4 h-4 mr-2" />
+            {generateDefensePackageMutation.isPending ? 'Generating...' : 'Generate Defense Package'}
+          </Button>
           <Badge className={reportStatusColors[audit.report_status]}>{audit.report_status}</Badge>
           {audit.report_status === 'review' && (
             <Button onClick={() => finalizeReportMutation.mutate()} size="sm">
@@ -168,6 +190,28 @@ export default function AuditReport() {
             <div className="pt-3 border-t">
               <p className="text-sm font-medium text-slate-900 mb-2">Executive Summary:</p>
               <p className="text-sm text-slate-700 whitespace-pre-wrap">{audit.final_summary}</p>
+            </div>
+          )}
+
+          {defensePackages.length > 0 && (
+            <div className="pt-4 border-t">
+              <p className="text-xs font-medium text-slate-700 mb-2">Defense Packages:</p>
+              <div className="space-y-2">
+                {defensePackages.map(pkg => (
+                  <div key={pkg.id} className="bg-slate-50 border border-slate-200 rounded-lg p-3 text-xs">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <Package className="w-3 h-3" />
+                          <span className="font-medium">Generated {new Date(pkg.generated_at).toLocaleString()}</span>
+                        </div>
+                        <p className="text-slate-500 mt-1">By: {pkg.generated_by}</p>
+                      </div>
+                      <Badge variant="outline">{pkg.package_status}</Badge>
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
           )}
         </CardContent>
@@ -290,6 +334,103 @@ export default function AuditReport() {
           )}
         </CardContent>
       </Card>
+
+      {/* Defense Package Dialog */}
+      <Dialog open={showDefensePackageDialog} onOpenChange={setShowDefensePackageDialog}>
+        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Defense Package Generated</DialogTitle>
+          </DialogHeader>
+          {defensePackageData && (
+            <div className="space-y-4">
+              <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                <p className="text-sm font-medium text-green-900 mb-1">Package Successfully Generated</p>
+                <p className="text-xs text-green-700">
+                  Defense package ID: {defensePackageData.defense_package_id}
+                </p>
+                <p className="text-xs text-green-700">
+                  Generated at: {new Date(defensePackageData.artifact_bundle.generated_at).toLocaleString()}
+                </p>
+              </div>
+
+              <div className="grid grid-cols-3 gap-3">
+                <div className="bg-slate-50 border border-slate-200 rounded-lg p-3">
+                  <p className="text-xs text-slate-500">Procedures</p>
+                  <p className="text-2xl font-bold text-slate-900">
+                    {defensePackageData.artifact_bundle.audit_procedures.length}
+                  </p>
+                </div>
+                <div className="bg-slate-50 border border-slate-200 rounded-lg p-3">
+                  <p className="text-xs text-slate-500">Evidence Items</p>
+                  <p className="text-2xl font-bold text-slate-900">
+                    {defensePackageData.artifact_bundle.evidence_references.length}
+                  </p>
+                </div>
+                <div className="bg-slate-50 border border-slate-200 rounded-lg p-3">
+                  <p className="text-xs text-slate-500">Findings</p>
+                  <p className="text-2xl font-bold text-slate-900">
+                    {defensePackageData.artifact_bundle.findings.length}
+                  </p>
+                </div>
+              </div>
+
+              <div>
+                <p className="text-sm font-medium text-slate-900 mb-2">Bundle Contents:</p>
+                <div className="space-y-2 text-xs">
+                  <div className="flex items-center gap-2">
+                    <span className="text-slate-600">✓ Audit Metadata</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-slate-600">✓ Audit Scope ({defensePackageData.artifact_bundle.audit_phases.length} phases)</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-slate-600">✓ Audit Procedures ({defensePackageData.artifact_bundle.audit_procedures.length})</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-slate-600">✓ Sampling Sets ({defensePackageData.artifact_bundle.sampling_sets.length})</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-slate-600">✓ Sample Items ({defensePackageData.artifact_bundle.sample_items.length})</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-slate-600">✓ Evidence References ({defensePackageData.artifact_bundle.evidence_references.length})</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-slate-600">✓ Findings ({defensePackageData.artifact_bundle.findings.length})</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-slate-600">✓ Remediation Actions ({defensePackageData.artifact_bundle.remediation_actions.length})</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-slate-600">✓ Remediation Verification Status</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    const blob = new Blob([JSON.stringify(defensePackageData.artifact_bundle, null, 2)], 
+                      { type: 'application/json' });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `defense-package-${auditId}-${Date.now()}.json`;
+                    a.click();
+                  }}
+                >
+                  <Download className="w-4 h-4 mr-2" />
+                  Download JSON
+                </Button>
+                <Button onClick={() => setShowDefensePackageDialog(false)}>
+                  Close
+                </Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
