@@ -8,7 +8,10 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import PageHeader from '@/components/ui/PageHeader';
 import EmptyState from '@/components/ui/EmptyState';
-import { FileText, Calendar, User, CheckCircle, Clock, AlertTriangle, Package, ArrowLeft, List } from 'lucide-react';
+import { FileText, Calendar, User, CheckCircle, Clock, AlertTriangle, Package, ArrowLeft, List, Plus } from 'lucide-react';
+import AuditJumpLinks from '@/components/audit/AuditJumpLinks';
+import WorkflowProgress from '@/components/audit/WorkflowProgress';
+import DefenseReadiness from '@/components/audit/DefenseReadiness';
 
 export default function AuditDetail() {
   const urlParams = new URLSearchParams(window.location.search);
@@ -51,6 +54,31 @@ export default function AuditDetail() {
     enabled: !!auditId
   });
 
+  const { data: sampleSets = [] } = useQuery({
+    queryKey: ['sampleSets', auditId],
+    queryFn: async () => {
+      const allSets = [];
+      for (const proc of procedures) {
+        const sets = await base44.entities.SampleSet.filter({ audit_procedure_id: proc.id });
+        allSets.push(...sets);
+      }
+      return allSets;
+    },
+    enabled: procedures.length > 0
+  });
+
+  const { data: evidenceItems = [] } = useQuery({
+    queryKey: ['evidenceItems', audit?.engagement_id],
+    queryFn: () => base44.entities.EvidenceItem.filter({ engagement_id: audit.engagement_id }),
+    enabled: !!audit?.engagement_id
+  });
+
+  const { data: defensePackages = [] } = useQuery({
+    queryKey: ['defensePackages', auditId],
+    queryFn: () => base44.entities.DefensePackage.filter({ audit_id: auditId }),
+    enabled: !!auditId
+  });
+
   if (isLoading || !audit) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -78,6 +106,35 @@ export default function AuditDetail() {
   const criticalFindings = findings.filter(f => f.severity === 'critical').length;
   const highFindings = findings.filter(f => f.severity === 'high').length;
 
+  const reviewedEvidence = evidenceItems.filter(e => e.review_status === 'reviewed').length;
+  const verifiedRemediations = findings.filter(f => f.remediation_action_id).length;
+  const defensePackageGenerated = defensePackages.length > 0;
+
+  const workflowStages = [
+    { id: 'planning', label: 'Planning', completed: audit.status !== 'planned' },
+    { id: 'procedures', label: 'Procedures', completed: completedProcedures > 0 },
+    { id: 'sampling', label: 'Sampling', completed: sampleSets.length > 0 },
+    { id: 'evidence', label: 'Evidence', completed: reviewedEvidence > 0 },
+    { id: 'findings', label: 'Findings', completed: findings.length > 0 },
+    { id: 'report', label: 'Report', completed: audit.report_status === 'finalized' }
+  ];
+
+  const defenseReadinessChecks = [
+    { label: 'Evidence Reviewed', completed: reviewedEvidence > 0, count: `${reviewedEvidence}/${evidenceItems.length}` },
+    { label: 'Findings Documented', completed: findings.length > 0, count: findings.length },
+    { label: 'Remediation Planned', completed: verifiedRemediations > 0, count: verifiedRemediations },
+    { label: 'Defense Package Generated', completed: defensePackageGenerated, count: defensePackages.length }
+  ];
+
+  const jumpLinks = [
+    { id: 'phases', label: 'Phases', count: phases.length },
+    { id: 'procedures', label: 'Procedures', count: totalProcedures },
+    { id: 'samples', label: 'Samples', count: sampleSets.length },
+    { id: 'evidence', label: 'Evidence', count: evidenceItems.length },
+    { id: 'findings', label: 'Findings', count: findings.length },
+    { id: 'defense', label: 'Defense Package', count: defensePackages.length }
+  ];
+
   return (
     <div className="space-y-6">
       <PageHeader title={audit.name} subtitle="Audit Dashboard">
@@ -91,6 +148,12 @@ export default function AuditDetail() {
           <Badge className={statusColors[audit.status]}>{audit.status}</Badge>
         </div>
       </PageHeader>
+
+      {/* Jump Links */}
+      <AuditJumpLinks links={jumpLinks} />
+
+      {/* Workflow Progress */}
+      <WorkflowProgress currentStage={audit.status} stages={workflowStages} />
 
       {/* Quick Actions */}
       <div className="grid grid-cols-4 gap-3">
@@ -121,39 +184,43 @@ export default function AuditDetail() {
       </div>
 
       {/* Summary Stats */}
-      <div className="grid grid-cols-4 gap-4">
-        <Card>
-          <CardContent className="pt-6">
-            <div className="text-center">
-              <p className="text-3xl font-bold text-slate-900">{phases.length}</p>
-              <p className="text-xs text-slate-500 mt-1">Phases</p>
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="pt-6">
-            <div className="text-center">
-              <p className="text-3xl font-bold text-blue-600">{completedProcedures}/{totalProcedures}</p>
-              <p className="text-xs text-slate-500 mt-1">Procedures</p>
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="pt-6">
-            <div className="text-center">
-              <p className="text-3xl font-bold text-amber-600">{findings.length}</p>
-              <p className="text-xs text-slate-500 mt-1">Findings</p>
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="pt-6">
-            <div className="text-center">
-              <p className="text-3xl font-bold text-red-600">{criticalFindings + highFindings}</p>
-              <p className="text-xs text-slate-500 mt-1">Critical/High</p>
-            </div>
-          </CardContent>
-        </Card>
+      <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-2 gap-3">
+          <Card>
+            <CardContent className="pt-6">
+              <div className="text-center">
+                <p className="text-3xl font-bold text-slate-900">{phases.length}</p>
+                <p className="text-xs text-slate-500 mt-1">Phases</p>
+              </div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="pt-6">
+              <div className="text-center">
+                <p className="text-3xl font-bold text-blue-600">{completedProcedures}/{totalProcedures}</p>
+                <p className="text-xs text-slate-500 mt-1">Procedures</p>
+              </div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="pt-6">
+              <div className="text-center">
+                <p className="text-3xl font-bold text-purple-600">{sampleSets.length}</p>
+                <p className="text-xs text-slate-500 mt-1">Sample Sets</p>
+              </div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="pt-6">
+              <div className="text-center">
+                <p className="text-3xl font-bold text-teal-600">{evidenceItems.length}</p>
+                <p className="text-xs text-slate-500 mt-1">Evidence</p>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        <DefenseReadiness checks={defenseReadinessChecks} />
       </div>
 
       {/* Audit Overview */}
@@ -209,9 +276,9 @@ export default function AuditDetail() {
       </Card>
 
       {/* Audit Phases */}
-      <Card>
+      <Card id="phases">
         <CardHeader>
-          <CardTitle className="text-base">Audit Phases</CardTitle>
+          <CardTitle className="text-base">Audit Phases ({phases.length})</CardTitle>
         </CardHeader>
         <CardContent>
           {phases.length === 0 ? (
@@ -260,27 +327,120 @@ export default function AuditDetail() {
         </CardContent>
       </Card>
 
-      {/* Audit Workflow */}
-      <Card className="border-blue-200">
+      {/* Procedures Summary */}
+      <Card id="procedures">
         <CardHeader>
-          <CardTitle className="text-base">Audit Workflow</CardTitle>
+          <CardTitle className="text-base">Procedures ({totalProcedures})</CardTitle>
         </CardHeader>
-        <CardContent className="text-sm text-slate-600 space-y-3">
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-            <p className="font-medium text-blue-900 mb-2">Audit Flow:</p>
-            <div className="text-xs text-blue-700 space-y-1">
-              <p>1. <strong>Audit Program</strong> → Schedule audits</p>
-              <p>2. <strong>Audit</strong> → Define scope and phases</p>
-              <p>3. <strong>Phase</strong> → Organize procedures</p>
-              <p>4. <strong>Procedure</strong> → Execute testing</p>
-              <p>5. <strong>Sample / Evidence</strong> → Collect and review</p>
-              <p>6. <strong>Finding</strong> → Document issues</p>
-              <p>7. <strong>Remediation</strong> → Verify resolution</p>
-              <p>8. <strong>Defense Package</strong> → Export for regulators</p>
+        <CardContent>
+          {procedures.length === 0 ? (
+            <EmptyState
+              icon={List}
+              title="No procedures created"
+              description="Add audit procedures to define testing activities"
+            />
+          ) : (
+            <div className="space-y-2">
+              {procedures.slice(0, 5).map(proc => (
+                <Link key={proc.id} to={createPageUrl(`AuditProcedureExecution?procedure_id=${proc.id}`)}>
+                  <div className="p-3 bg-slate-50 border border-slate-200 rounded-lg hover:border-blue-300 transition-colors">
+                    <div className="flex items-center justify-between">
+                      <p className="text-sm font-medium text-slate-900">{proc.name}</p>
+                      <Badge className={
+                        proc.execution_status === 'complete' ? 'bg-green-100 text-green-700' :
+                        proc.execution_status === 'running' ? 'bg-blue-100 text-blue-700' :
+                        'bg-slate-100 text-slate-700'
+                      }>
+                        {proc.execution_status}
+                      </Badge>
+                    </div>
+                  </div>
+                </Link>
+              ))}
+              {procedures.length > 5 && (
+                <p className="text-xs text-slate-500 text-center pt-2">
+                  +{procedures.length - 5} more procedures
+                </p>
+              )}
             </div>
-          </div>
+          )}
         </CardContent>
       </Card>
+
+      {/* Samples, Evidence, Findings, Defense Package Sections */}
+      <div className="grid grid-cols-2 gap-4">
+        <Card id="samples">
+          <CardHeader>
+            <CardTitle className="text-sm">Sample Sets ({sampleSets.length})</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {sampleSets.length === 0 ? (
+              <p className="text-xs text-slate-500 text-center py-4">No sample sets created</p>
+            ) : (
+              <p className="text-xs text-slate-600">{sampleSets.length} sample set{sampleSets.length !== 1 ? 's' : ''} across all procedures</p>
+            )}
+          </CardContent>
+        </Card>
+
+        <Card id="evidence">
+          <CardHeader>
+            <CardTitle className="text-sm">Evidence Items ({evidenceItems.length})</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {evidenceItems.length === 0 ? (
+              <p className="text-xs text-slate-500 text-center py-4">No evidence collected</p>
+            ) : (
+              <div className="space-y-1 text-xs">
+                <div className="flex justify-between">
+                  <span className="text-slate-600">Reviewed:</span>
+                  <span className="font-medium text-green-700">{reviewedEvidence}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-600">Pending:</span>
+                  <span className="font-medium text-slate-700">{evidenceItems.length - reviewedEvidence}</span>
+                </div>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        <Card id="findings">
+          <CardHeader>
+            <CardTitle className="text-sm">Findings ({findings.length})</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {findings.length === 0 ? (
+              <p className="text-xs text-slate-500 text-center py-4">No findings documented</p>
+            ) : (
+              <div className="space-y-1 text-xs">
+                <div className="flex justify-between">
+                  <span className="text-slate-600">Critical/High:</span>
+                  <span className="font-medium text-red-700">{criticalFindings + highFindings}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-600">Medium/Low:</span>
+                  <span className="font-medium text-slate-700">{findings.length - criticalFindings - highFindings}</span>
+                </div>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        <Card id="defense">
+          <CardHeader>
+            <CardTitle className="text-sm">Defense Package ({defensePackages.length})</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {defensePackages.length === 0 ? (
+              <p className="text-xs text-slate-500 text-center py-4">No package generated</p>
+            ) : (
+              <div className="text-xs text-green-700">
+                Last generated: {new Date(defensePackages[0].generated_at).toLocaleDateString()}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 }

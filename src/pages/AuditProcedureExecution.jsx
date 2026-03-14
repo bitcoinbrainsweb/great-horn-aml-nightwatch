@@ -299,6 +299,12 @@ export default function AuditProcedureExecution() {
         </div>
       </PageHeader>
 
+      {/* Jump Links */}
+      <AuditJumpLinks links={jumpLinks} />
+
+      {/* Relationships */}
+      <RelationshipPanel title="Related Objects" relationships={relationships} />
+
       {/* Procedure Details */}
       <Card>
         <CardHeader>

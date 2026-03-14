@@ -13,6 +13,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import PageHeader from '@/components/ui/PageHeader';
 import EmptyState from '@/components/ui/EmptyState';
+import RelationshipPanel from '@/components/audit/RelationshipPanel';
 import { AlertTriangle, Repeat, Link2, CheckCircle, XCircle, ArrowLeft } from 'lucide-react';
 
 export default function AuditFindings() {
@@ -199,6 +200,27 @@ export default function AuditFindings() {
             const remediation = remediations.find(r => r.id === finding.remediation_action_id);
             const previousFinding = findings.find(f => f.id === finding.previous_finding_id);
             
+            const findingRelationships = [];
+            if (finding.detected_during_procedure_id) {
+              findingRelationships.push({
+                label: 'Detected During Procedure',
+                subtitle: 'Link to procedure',
+                link: createPageUrl(`AuditProcedureExecution?procedure_id=${finding.detected_during_procedure_id}`)
+              });
+            }
+            if (control) {
+              findingRelationships.push({
+                label: `Control: ${control.control_name}`,
+                subtitle: control.control_category
+              });
+            }
+            if (risk) {
+              findingRelationships.push({
+                label: `Risk: ${risk.risk_name}`,
+                subtitle: risk.risk_category
+              });
+            }
+            
             return (
               <Card key={finding.id}>
                 <CardHeader>
@@ -319,6 +341,12 @@ export default function AuditFindings() {
                   {finding.target_remediation_date && (
                     <div className="text-xs text-slate-500">
                       Target Remediation: {new Date(finding.target_remediation_date).toLocaleDateString()}
+                    </div>
+                  )}
+
+                  {findingRelationships.length > 0 && (
+                    <div className="mt-3">
+                      <RelationshipPanel title="Related Objects" relationships={findingRelationships} />
                     </div>
                   )}
                 </CardContent>
