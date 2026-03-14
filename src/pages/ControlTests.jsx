@@ -17,6 +17,7 @@ export default function ControlTests() {
   const [controls, setControls] = useState([]);
   const [cycles, setCycles] = useState([]);
   const [evidence, setEvidence] = useState([]);
+  const [testResults, setTestResults] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showTestDialog, setShowTestDialog] = useState(false);
   const [showEvidenceDialog, setShowEvidenceDialog] = useState(false);
@@ -50,14 +51,16 @@ export default function ControlTests() {
   async function loadData() {
     setLoading(true);
     try {
-      const [testsData, controlsData, cyclesData] = await Promise.all([
+      const [testsData, controlsData, cyclesData, resultsData] = await Promise.all([
         base44.entities.ControlTest.list('-created_date'),
         base44.entities.ControlLibrary.filter({ status: 'Active' }),
-        base44.entities.TestCycle.list()
+        base44.entities.TestCycle.list(),
+        base44.entities.TestResult.list('-created_date')
       ]);
       setTests(testsData);
       setControls(controlsData);
       setCycles(cyclesData);
+      setTestResults(resultsData);
     } catch (error) {
       console.error('Error loading data:', error);
     } finally {
@@ -267,6 +270,7 @@ export default function ControlTests() {
           {tests.map(t => {
             const control = controls.find(c => c.id === (t.control_library_id || t.control_id));
             const cycle = cycles.find(c => c.id === t.test_cycle_id);
+            const result = testResults.find(r => r.test_id === t.id);
             return (
               <div key={t.id} className="bg-white rounded-lg border border-slate-200 p-4">
                 <div className="flex items-start justify-between mb-3">
@@ -277,11 +281,26 @@ export default function ControlTests() {
                       {t.effectiveness_rating && (
                         <Badge className={ratingColors[t.effectiveness_rating]}>{t.effectiveness_rating}</Badge>
                       )}
+                      {result && (
+                        <>
+                          <Badge variant="outline" className="text-xs">
+                            {result.result_status}
+                          </Badge>
+                          {result.result_score !== null && result.result_score !== undefined && (
+                            <Badge variant="outline" className="text-xs">
+                              Score: {result.result_score}
+                            </Badge>
+                          )}
+                        </>
+                      )}
                     </div>
                     <div className="text-xs text-slate-500 space-y-1">
                       <div>Cycle: {cycle?.name || 'Unknown'}</div>
                       {t.prepared_by && <div>Prepared by: {t.prepared_by}</div>}
                       {t.reviewed_by && <div>Reviewed by: {t.reviewed_by} on {t.review_date}</div>}
+                      {result && result.review_status && (
+                        <div>Result Review: {result.review_status}</div>
+                      )}
                     </div>
                   </div>
                   <div className="flex items-center gap-2">

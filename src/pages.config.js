@@ -63,8 +63,11 @@ import AdminRiskLibrary from './pages/AdminRiskLibrary';
 import AdminRiskProposals from './pages/AdminRiskProposals';
 import AdminSuggestions from './pages/AdminSuggestions';
 import AdminTestScenarios from './pages/AdminTestScenarios';
+import AdminTestTemplates from './pages/AdminTestTemplates';
 import AdminUsers from './pages/AdminUsers';
 import ArtifactDiagnostics from './pages/ArtifactDiagnostics';
+import BuildVerificationDashboard from './pages/BuildVerificationDashboard';
+import ChangeLog from './pages/ChangeLog';
 import ClientDetail from './pages/ClientDetail';
 import Clients from './pages/Clients';
 import ControlTests from './pages/ControlTests';
@@ -97,9 +100,6 @@ import ReviewerDashboard from './pages/ReviewerDashboard';
 import RunNW040Verification from './pages/RunNW040Verification';
 import Tasks from './pages/Tasks';
 import TestCycles from './pages/TestCycles';
-import BuildVerificationDashboard from './pages/BuildVerificationDashboard';
-import ChangeLog from './pages/ChangeLog';
-import AdminTestTemplates from './pages/AdminTestTemplates';
 
 
 export const PAGES = {
@@ -119,8 +119,11 @@ export const PAGES = {
     "AdminRiskProposals": AdminRiskProposals,
     "AdminSuggestions": AdminSuggestions,
     "AdminTestScenarios": AdminTestScenarios,
+    "AdminTestTemplates": AdminTestTemplates,
     "AdminUsers": AdminUsers,
     "ArtifactDiagnostics": ArtifactDiagnostics,
+    "BuildVerificationDashboard": BuildVerificationDashboard,
+    "ChangeLog": ChangeLog,
     "ClientDetail": ClientDetail,
     "Clients": Clients,
     "ControlTests": ControlTests,
@@ -153,9 +156,6 @@ export const PAGES = {
     "RunNW040Verification": RunNW040Verification,
     "Tasks": Tasks,
     "TestCycles": TestCycles,
-    "BuildVerificationDashboard": BuildVerificationDashboard,
-    "ChangeLog": ChangeLog,
-    "AdminTestTemplates": AdminTestTemplates,
 }
 
 export const pagesConfig = {
