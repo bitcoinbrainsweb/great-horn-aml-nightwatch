@@ -17,6 +17,7 @@ export default function ControlTests() {
   const [controls, setControls] = useState([]);
   const [cycles, setCycles] = useState([]);
   const [evidence, setEvidence] = useState([]);
+  const [normalizedEvidence, setNormalizedEvidence] = useState([]);
   const [testResults, setTestResults] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showTestDialog, setShowTestDialog] = useState(false);
@@ -53,6 +54,14 @@ export default function ControlTests() {
     sufficiency_flag: true,
     notes: ''
   });
+  const [normalizedEvidenceFormData, setNormalizedEvidenceFormData] = useState({
+    evidence_type: 'Document',
+    title: '',
+    notes: '',
+    reference_link: '',
+    evidence_date: '',
+    evidence_strength: 'moderate'
+  });
 
   useEffect(() => {
     loadData();
@@ -80,10 +89,16 @@ export default function ControlTests() {
 
   async function loadEvidence(testId) {
     try {
-      const data = await base44.entities.Evidence.filter({ control_test_id: testId });
-      setEvidence(data);
+      const [legacyEvidence, normalizedEv] = await Promise.all([
+        base44.entities.Evidence.filter({ control_test_id: testId }),
+        base44.entities.NormalizedEvidence.filter({ related_test_id: testId }).catch(() => [])
+      ]);
+      setEvidence(legacyEvidence);
+      setNormalizedEvidence(normalizedEv);
     } catch (error) {
       console.error('Error loading evidence:', error);
+      setEvidence([]);
+      setNormalizedEvidence([]);
     }
   }
 
@@ -180,6 +195,14 @@ export default function ControlTests() {
       evidence_date: '',
       sufficiency_flag: true,
       notes: ''
+    });
+    setNormalizedEvidenceFormData({
+      evidence_type: 'Document',
+      title: '',
+      notes: '',
+      reference_link: '',
+      evidence_date: '',
+      evidence_strength: 'moderate'
     });
     setShowEvidenceDialog(true);
   }
@@ -338,6 +361,57 @@ export default function ControlTests() {
 
       await loadEvidence(selectedTest.id);
       await loadData();
+    } catch (error) {
+      console.error('Error saving evidence:', error);
+    }
+  }
+
+  async function handleNormalizedEvidenceSubmit(e) {
+    e.preventDefault();
+    try {
+      // Validate that test is In Progress
+      if (selectedTest.status !== 'In Progress') {
+        alert(`Cannot attach evidence to ${selectedTest.status} tests. Evidence can only be added to In Progress tests.`);
+        return;
+      }
+
+      const user = await base44.auth.me();
+      const timestamp = new Date().toISOString();
+
+      // Create normalized evidence record (NW-UPGRADE-055)
+      await base44.entities.NormalizedEvidence.create({
+        ...normalizedEvidenceFormData,
+        related_test_id: selectedTest.id,
+        captured_at: timestamp,
+        captured_by: user.email,
+        review_status: 'pending'
+      });
+
+      // Update test with evidence capture metadata
+      await base44.entities.ControlTest.update(selectedTest.id, {
+        evidence_captured_at: timestamp,
+        evidence_captured_by: user.email
+      });
+
+      // Log evidence addition
+      await logTestEvent('evidence_added', selectedTest.id, user.email, {
+        evidence_type: normalizedEvidenceFormData.evidence_type,
+        evidence_date: normalizedEvidenceFormData.evidence_date,
+        normalized: true
+      });
+
+      await loadEvidence(selectedTest.id);
+      await loadData();
+      
+      // Reset form
+      setNormalizedEvidenceFormData({
+        evidence_type: 'Document',
+        title: '',
+        notes: '',
+        reference_link: '',
+        evidence_date: '',
+        evidence_strength: 'moderate'
+      });
       setEvidenceFormData({
         evidence_type: 'Text',
         text_description: '',
@@ -404,7 +478,7 @@ export default function ControlTests() {
               <div key={t.id} className="bg-white rounded-lg border border-slate-200 p-4">
                 <div className="flex items-start justify-between mb-3">
                   <div className="flex-1">
-                    <div className="flex items-center gap-3 mb-2">
+                    <div className="flex items-center gap-3 mb-2 flex-wrap">
                       <h3 className="text-sm font-semibold text-slate-900">{control?.control_name || control?.name || 'Unknown Control'}</h3>
                       <Badge className={statusColors[t.status]}>{t.status}</Badge>
                       {t.lifecycle_status && (
@@ -722,8 +796,44 @@ export default function ControlTests() {
               </div>
             )}
 
-            {evidence.length > 0 && (
-              <div className="space-y-2">
+            {(evidence.length > 0 || normalizedEvidence.length > 0) && (
+              <div className="space-y-3">
+                <div className="text-xs font-medium text-slate-700">
+                  Evidence Items ({evidence.length + normalizedEvidence.length})
+                </div>
+                
+                {/* Normalized Evidence (NW-UPGRADE-055) */}
+                {normalizedEvidence.map(e => (
+                  <div key={e.id} className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                    <div className="flex items-start justify-between mb-2">
+                      <div className="flex items-center gap-2">
+                        <Badge className="bg-blue-100 text-blue-800 text-xs">{e.evidence_type}</Badge>
+                        {e.evidence_strength && (
+                          <Badge variant="outline" className="text-xs">
+                            {e.evidence_strength}
+                          </Badge>
+                        )}
+                        <Badge variant="outline" className="text-xs">{e.review_status}</Badge>
+                      </div>
+                    </div>
+                    <div className="text-sm font-medium text-slate-900 mb-1">{e.title}</div>
+                    {e.notes && <div className="text-xs text-slate-600 mb-2">{e.notes}</div>}
+                    {e.reference_link && (
+                      <div className="text-xs text-blue-600">
+                        <a href={e.reference_link} target="_blank" rel="noopener noreferrer" className="underline">
+                          {e.reference_link}
+                        </a>
+                      </div>
+                    )}
+                    <div className="text-xs text-slate-500 mt-2 space-y-0.5">
+                      <div>Captured: {new Date(e.captured_at).toLocaleString()} by {e.captured_by}</div>
+                      {e.evidence_date && <div>Evidence Date: {e.evidence_date}</div>}
+                      {e.reviewed_by && <div>Reviewed by: {e.reviewed_by} on {e.reviewed_at ? new Date(e.reviewed_at).toLocaleDateString() : 'N/A'}</div>}
+                    </div>
+                  </div>
+                ))}
+
+                {/* Legacy Evidence */}
                 {evidence.map(e => (
                   <EvidenceCard key={e.id} evidence={e} />
                 ))}
@@ -731,32 +841,90 @@ export default function ControlTests() {
             )}
 
             {selectedTest && selectedTest.status === 'In Progress' && (
-              <form onSubmit={handleEvidenceSubmit} className="space-y-3 pt-3 border-t">
-              <div>
-                <label className="text-xs font-medium text-slate-700">Evidence Type</label>
-                <Select value={evidenceFormData.evidence_type} onValueChange={v => setEvidenceFormData({...evidenceFormData, evidence_type: v})}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Text">Text</SelectItem>
-                    <SelectItem value="File">File</SelectItem>
-                    <SelectItem value="URL">URL</SelectItem>
-                  </SelectContent>
-                </Select>
+              <div className="pt-3 border-t space-y-4">
+                {/* Normalized Evidence Form (NW-UPGRADE-055) */}
+                <form onSubmit={handleNormalizedEvidenceSubmit} className="space-y-3 bg-blue-50 border border-blue-200 rounded-lg p-3">
+                  <div className="text-xs font-medium text-blue-900 mb-2">Add Normalized Evidence (Recommended)</div>
+                  <div>
+                    <label className="text-xs font-medium text-slate-700">Evidence Type *</label>
+                    <Select value={normalizedEvidenceFormData.evidence_type} onValueChange={v => setNormalizedEvidenceFormData({...normalizedEvidenceFormData, evidence_type: v})} required>
+                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Document">Document</SelectItem>
+                        <SelectItem value="Screenshot">Screenshot</SelectItem>
+                        <SelectItem value="System Export">System Export</SelectItem>
+                        <SelectItem value="Interview Note">Interview Note</SelectItem>
+                        <SelectItem value="Observation">Observation</SelectItem>
+                        <SelectItem value="Configuration">Configuration</SelectItem>
+                        <SelectItem value="Transaction Sample">Transaction Sample</SelectItem>
+                        <SelectItem value="Report">Report</SelectItem>
+                        <SelectItem value="Other">Other</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <label className="text-xs font-medium text-slate-700">Title *</label>
+                    <Input value={normalizedEvidenceFormData.title} onChange={e => setNormalizedEvidenceFormData({...normalizedEvidenceFormData, title: e.target.value})} required placeholder="Brief evidence title" />
+                  </div>
+                  <div>
+                    <label className="text-xs font-medium text-slate-700">Notes</label>
+                    <Textarea value={normalizedEvidenceFormData.notes} onChange={e => setNormalizedEvidenceFormData({...normalizedEvidenceFormData, notes: e.target.value})} placeholder="Detailed evidence notes" rows={2} />
+                  </div>
+                  <div>
+                    <label className="text-xs font-medium text-slate-700">Reference Link</label>
+                    <Input value={normalizedEvidenceFormData.reference_link} onChange={e => setNormalizedEvidenceFormData({...normalizedEvidenceFormData, reference_link: e.target.value})} placeholder="URL or file path" />
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="text-xs font-medium text-slate-700">Evidence Date</label>
+                      <Input type="date" value={normalizedEvidenceFormData.evidence_date} onChange={e => setNormalizedEvidenceFormData({...normalizedEvidenceFormData, evidence_date: e.target.value})} />
+                    </div>
+                    <div>
+                      <label className="text-xs font-medium text-slate-700">Strength</label>
+                      <Select value={normalizedEvidenceFormData.evidence_strength} onValueChange={v => setNormalizedEvidenceFormData({...normalizedEvidenceFormData, evidence_strength: v})}>
+                        <SelectTrigger><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="weak">Weak</SelectItem>
+                          <SelectItem value="moderate">Moderate</SelectItem>
+                          <SelectItem value="strong">Strong</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                  <Button type="submit" className="w-full">Add Normalized Evidence</Button>
+                </form>
+
+                {/* Legacy Evidence Form (Backward Compatibility) */}
+                <details className="text-xs">
+                  <summary className="cursor-pointer text-slate-600 mb-2">Legacy Evidence Format (For Compatibility)</summary>
+                  <form onSubmit={handleEvidenceSubmit} className="space-y-3 bg-slate-50 border border-slate-200 rounded-lg p-3">
+                    <div>
+                      <label className="text-xs font-medium text-slate-700">Evidence Type</label>
+                      <Select value={evidenceFormData.evidence_type} onValueChange={v => setEvidenceFormData({...evidenceFormData, evidence_type: v})}>
+                        <SelectTrigger><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="Text">Text</SelectItem>
+                          <SelectItem value="File">File</SelectItem>
+                          <SelectItem value="URL">URL</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div>
+                      <label className="text-xs font-medium text-slate-700">Description</label>
+                      <Textarea value={evidenceFormData.text_description} onChange={e => setEvidenceFormData({...evidenceFormData, text_description: e.target.value})} rows={2} />
+                    </div>
+                    <div>
+                      <label className="text-xs font-medium text-slate-700">Evidence Date</label>
+                      <Input type="date" value={evidenceFormData.evidence_date} onChange={e => setEvidenceFormData({...evidenceFormData, evidence_date: e.target.value})} />
+                    </div>
+                    <div>
+                      <label className="text-xs font-medium text-slate-700">Notes</label>
+                      <Textarea value={evidenceFormData.notes} onChange={e => setEvidenceFormData({...evidenceFormData, notes: e.target.value})} rows={2} />
+                    </div>
+                    <Button type="submit" variant="outline" className="w-full">Add Legacy Evidence</Button>
+                  </form>
+                </details>
               </div>
-              <div>
-                <label className="text-xs font-medium text-slate-700">Description</label>
-                <Textarea value={evidenceFormData.text_description} onChange={e => setEvidenceFormData({...evidenceFormData, text_description: e.target.value})} />
-              </div>
-              <div>
-                <label className="text-xs font-medium text-slate-700">Evidence Date</label>
-                <Input type="date" value={evidenceFormData.evidence_date} onChange={e => setEvidenceFormData({...evidenceFormData, evidence_date: e.target.value})} />
-              </div>
-              <div>
-                <label className="text-xs font-medium text-slate-700">Notes</label>
-                <Textarea value={evidenceFormData.notes} onChange={e => setEvidenceFormData({...evidenceFormData, notes: e.target.value})} />
-              </div>
-              <Button type="submit" className="w-full">Add Evidence</Button>
-              </form>
               )}
               </div>
         </DialogContent>
