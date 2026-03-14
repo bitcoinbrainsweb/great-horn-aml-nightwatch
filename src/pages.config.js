@@ -49,6 +49,9 @@
  */
 import Admin from './pages/Admin';
 import AdminAuditLog from './pages/AdminAuditLog';
+import AdminAuditPrograms from './pages/AdminAuditPrograms';
+import AdminAuditTemplates from './pages/AdminAuditTemplates';
+import AdminAudits from './pages/AdminAudits';
 import AdminChangeManagement from './pages/AdminChangeManagement';
 import AdminControlLibrary from './pages/AdminControlLibrary';
 import AdminEngagementSetup from './pages/AdminEngagementSetup';
@@ -66,6 +69,11 @@ import AdminTestScenarios from './pages/AdminTestScenarios';
 import AdminTestTemplates from './pages/AdminTestTemplates';
 import AdminUsers from './pages/AdminUsers';
 import ArtifactDiagnostics from './pages/ArtifactDiagnostics';
+import AuditDetail from './pages/AuditDetail';
+import AuditFindings from './pages/AuditFindings';
+import AuditProcedureExecution from './pages/AuditProcedureExecution';
+import AuditReport from './pages/AuditReport';
+import AuditReview from './pages/AuditReview';
 import BuildVerificationDashboard from './pages/BuildVerificationDashboard';
 import ChangeLog from './pages/ChangeLog';
 import ClientDetail from './pages/ClientDetail';
@@ -102,19 +110,14 @@ import ReviewerDashboard from './pages/ReviewerDashboard';
 import RunNW040Verification from './pages/RunNW040Verification';
 import Tasks from './pages/Tasks';
 import TestCycles from './pages/TestCycles';
-import AdminAudits from './pages/AdminAudits';
-import AuditDetail from './pages/AuditDetail';
-import AuditProcedureExecution from './pages/AuditProcedureExecution';
-import AuditReview from './pages/AuditReview';
-import AuditReport from './pages/AuditReport';
-import AdminAuditPrograms from './pages/AdminAuditPrograms';
-import AdminAuditTemplates from './pages/AdminAuditTemplates';
-import AuditFindings from './pages/AuditFindings';
 
 
 export const PAGES = {
     "Admin": Admin,
     "AdminAuditLog": AdminAuditLog,
+    "AdminAuditPrograms": AdminAuditPrograms,
+    "AdminAuditTemplates": AdminAuditTemplates,
+    "AdminAudits": AdminAudits,
     "AdminChangeManagement": AdminChangeManagement,
     "AdminControlLibrary": AdminControlLibrary,
     "AdminEngagementSetup": AdminEngagementSetup,
@@ -132,6 +135,11 @@ export const PAGES = {
     "AdminTestTemplates": AdminTestTemplates,
     "AdminUsers": AdminUsers,
     "ArtifactDiagnostics": ArtifactDiagnostics,
+    "AuditDetail": AuditDetail,
+    "AuditFindings": AuditFindings,
+    "AuditProcedureExecution": AuditProcedureExecution,
+    "AuditReport": AuditReport,
+    "AuditReview": AuditReview,
     "BuildVerificationDashboard": BuildVerificationDashboard,
     "ChangeLog": ChangeLog,
     "ClientDetail": ClientDetail,
@@ -168,14 +176,6 @@ export const PAGES = {
     "RunNW040Verification": RunNW040Verification,
     "Tasks": Tasks,
     "TestCycles": TestCycles,
-    "AdminAudits": AdminAudits,
-    "AuditDetail": AuditDetail,
-    "AuditProcedureExecution": AuditProcedureExecution,
-    "AuditReview": AuditReview,
-    "AuditReport": AuditReport,
-    "AdminAuditPrograms": AdminAuditPrograms,
-    "AdminAuditTemplates": AdminAuditTemplates,
-    "AuditFindings": AuditFindings,
 }
 
 export const pagesConfig = {

@@ -44,6 +44,12 @@ export default function AuditReport() {
     queryFn: () => base44.entities.RiskLibrary.list('-created_date', 100)
   });
 
+  const { data: defensePackages = [] } = useQuery({
+    queryKey: ['defensePackages', auditId],
+    queryFn: () => base44.entities.DefensePackage.filter({ audit_id: auditId }),
+    enabled: !!auditId
+  });
+
   const { data: observations = [] } = useQuery({
     queryKey: ['observations'],
     queryFn: () => base44.entities.Observation.list('-created_date', 100)
