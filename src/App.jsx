@@ -42,6 +42,16 @@ import EngagementsV2 from './pages/EngagementsV2';
 import EngagementDetailV2 from './pages/EngagementDetailV2';
 import EngagementControlTesting from './pages/EngagementControlTesting';
 import AdminEngagementSetup from './pages/AdminEngagementSetup';
+import AdminAudits from './pages/AdminAudits';
+import AdminAuditPrograms from './pages/AdminAuditPrograms';
+import AdminAuditTemplates from './pages/AdminAuditTemplates';
+import AuditDetail from './pages/AuditDetail';
+import AuditFindings from './pages/AuditFindings';
+import AuditProcedureExecution from './pages/AuditProcedureExecution';
+import AuditReport from './pages/AuditReport';
+import AuditReview from './pages/AuditReview';
+import ComplianceOperations from './pages/ComplianceOperations';
+import ControlCoverageMap from './pages/ControlCoverageMap';
 import BuildVerificationDashboard from './pages/BuildVerificationDashboard';
 
 const LayoutWrapper = ({ children, currentPageName }) => (
@@ -109,6 +119,16 @@ const AuthenticatedApp = () => {
       <Route path="/EngagementDetailV2" element={<LayoutWrapper currentPageName="EngagementDetailV2"><EngagementDetailV2 /></LayoutWrapper>} />
       <Route path="/EngagementControlTesting" element={<LayoutWrapper currentPageName="EngagementControlTesting"><EngagementControlTesting /></LayoutWrapper>} />
       <Route path="/AdminEngagementSetup" element={<LayoutWrapper currentPageName="AdminEngagementSetup"><AdminEngagementSetup /></LayoutWrapper>} />
+      <Route path="/AdminAudits" element={<LayoutWrapper currentPageName="AdminAudits"><AdminAudits /></LayoutWrapper>} />
+      <Route path="/AdminAuditPrograms" element={<LayoutWrapper currentPageName="AdminAuditPrograms"><AdminAuditPrograms /></LayoutWrapper>} />
+      <Route path="/AdminAuditTemplates" element={<LayoutWrapper currentPageName="AdminAuditTemplates"><AdminAuditTemplates /></LayoutWrapper>} />
+      <Route path="/AuditDetail" element={<LayoutWrapper currentPageName="AuditDetail"><AuditDetail /></LayoutWrapper>} />
+      <Route path="/AuditFindings" element={<LayoutWrapper currentPageName="AuditFindings"><AuditFindings /></LayoutWrapper>} />
+      <Route path="/AuditProcedureExecution" element={<LayoutWrapper currentPageName="AuditProcedureExecution"><AuditProcedureExecution /></LayoutWrapper>} />
+      <Route path="/AuditReport" element={<LayoutWrapper currentPageName="AuditReport"><AuditReport /></LayoutWrapper>} />
+      <Route path="/AuditReview" element={<LayoutWrapper currentPageName="AuditReview"><AuditReview /></LayoutWrapper>} />
+      <Route path="/ComplianceOperations" element={<LayoutWrapper currentPageName="ComplianceOperations"><ComplianceOperations /></LayoutWrapper>} />
+      <Route path="/ControlCoverageMap" element={<LayoutWrapper currentPageName="ControlCoverageMap"><ControlCoverageMap /></LayoutWrapper>} />
       <Route path="/BuildVerificationDashboard" element={<LayoutWrapper currentPageName="BuildVerificationDashboard"><BuildVerificationDashboard /></LayoutWrapper>} />
       <Route path="*" element={<PageNotFound />} />
     </Routes>
