@@ -115,9 +115,14 @@ export default function AdminAudits() {
       {audits.length === 0 ? (
         <EmptyState
           icon={FileText}
-          title="No audits"
-          description="Create your first audit engagement"
-        />
+          title="No audits created yet"
+          description="Create your first audit to begin tracking procedures, evidence, and findings"
+        >
+          <Button onClick={() => setShowDialog(true)} size="sm" className="mt-4">
+            <Plus className="w-4 h-4 mr-2" />
+            Create First Audit
+          </Button>
+        </EmptyState>
       ) : (
         <div className="grid gap-4">
           {audits.map(audit => {

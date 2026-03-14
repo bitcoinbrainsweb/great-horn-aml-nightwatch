@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { Link } from 'react-router-dom';
+import { createPageUrl } from '@/utils';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -11,7 +13,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import PageHeader from '@/components/ui/PageHeader';
 import EmptyState from '@/components/ui/EmptyState';
-import { AlertTriangle, Repeat, Link2, CheckCircle, XCircle } from 'lucide-react';
+import { AlertTriangle, Repeat, Link2, CheckCircle, XCircle, ArrowLeft } from 'lucide-react';
 
 export default function AuditFindings() {
   const urlParams = new URLSearchParams(window.location.search);
@@ -171,7 +173,13 @@ export default function AuditFindings() {
   return (
     <div className="space-y-6">
       <PageHeader title="Audit Findings" subtitle={audit.name}>
-        <div className="flex gap-2">
+        <div className="flex items-center gap-2">
+          <Link to={createPageUrl(`AuditDetail?id=${auditId}`)}>
+            <Button variant="outline" size="sm">
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Back to Audit
+            </Button>
+          </Link>
           <Badge variant="outline">{findings.length} Finding{findings.length !== 1 ? 's' : ''}</Badge>
           <Badge variant="outline">{findings.filter(f => f.repeat_finding).length} Repeat</Badge>
         </div>
@@ -180,8 +188,8 @@ export default function AuditFindings() {
       {findings.length === 0 ? (
         <EmptyState
           icon={AlertTriangle}
-          title="No findings"
-          description="Findings will appear here as they are created during audit execution"
+          title="No findings documented yet"
+          description="Findings will appear here as issues are identified during audit procedures"
         />
       ) : (
         <div className="space-y-4">

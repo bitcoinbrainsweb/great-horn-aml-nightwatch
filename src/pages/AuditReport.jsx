@@ -1,12 +1,15 @@
 import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { Link } from 'react-router-dom';
+import { createPageUrl } from '@/utils';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import PageHeader from '@/components/ui/PageHeader';
-import { FileText, Download, CheckCircle, Package } from 'lucide-react';
+import EmptyState from '@/components/ui/EmptyState';
+import { FileText, Download, CheckCircle, Package, ArrowLeft, AlertTriangle } from 'lucide-react';
 
 export default function AuditReport() {
   const urlParams = new URLSearchParams(window.location.search);
@@ -114,14 +117,20 @@ export default function AuditReport() {
   return (
     <div className="space-y-6">
       <PageHeader title="Audit Report" subtitle={audit.name}>
-        <div className="flex gap-2">
+        <div className="flex items-center gap-2">
+          <Link to={createPageUrl(`AuditDetail?id=${auditId}`)}>
+            <Button variant="outline" size="sm">
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Back to Audit
+            </Button>
+          </Link>
           <Button 
             variant="outline" 
             onClick={() => generateDefensePackageMutation.mutate()}
             disabled={generateDefensePackageMutation.isPending}
           >
             <Package className="w-4 h-4 mr-2" />
-            {generateDefensePackageMutation.isPending ? 'Generating...' : 'Generate Defense Package'}
+            {generateDefensePackageMutation.isPending ? 'Generating...' : 'Defense Package'}
           </Button>
           <Badge className={reportStatusColors[audit.report_status]}>{audit.report_status}</Badge>
           {audit.report_status === 'review' && (
@@ -260,7 +269,11 @@ export default function AuditReport() {
         </CardHeader>
         <CardContent>
           {findings.length === 0 ? (
-            <p className="text-sm text-slate-500 text-center py-8">No findings included in report</p>
+            <EmptyState
+              icon={AlertTriangle}
+              title="No findings in report"
+              description="Findings marked for inclusion will appear here once documented"
+            />
           ) : (
             <div className="space-y-4">
               {findings.map((finding, idx) => {

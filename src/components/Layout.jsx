@@ -29,10 +29,14 @@ const NAV_ITEMS = [
   { label: 'ISSUES' },
   { name: 'Findings', icon: AlertTriangle, page: 'Findings' },
   { name: 'Remediation Actions', icon: Wrench, page: 'RemediationActions' },
+  // AUDIT section
+  { label: 'AUDIT' },
+  { name: 'Audit Programs', icon: FileText, page: 'AdminAuditPrograms', adminOnly: true },
+  { name: 'Audits', icon: Briefcase, page: 'AdminAudits', adminOnly: true },
+  { name: 'Templates', icon: FileText, page: 'AdminAuditTemplates', adminOnly: true },
   // GOVERNANCE section
   { label: 'GOVERNANCE' },
   { name: 'Admin', icon: Settings, page: 'Admin' },
-  { name: 'Audits', icon: FileText, page: 'AdminAudits', adminOnly: true },
   { name: 'ChangeLog', icon: GitBranch, page: 'ChangeLog', adminOnly: true },
   { name: 'Build Verification', icon: ShieldCheck, page: 'BuildVerificationDashboard', adminOnly: true },
   { name: 'Feedback', icon: HelpCircle, page: 'Feedback' },
@@ -229,7 +233,9 @@ export default function Layout({ children, currentPageName }) {
                (item.page === 'BuildVerificationDashboard' && currentPageName === 'BuildVerificationDashboard') ||
                (item.page === 'ComplianceOperations' && currentPageName === 'ComplianceOperations') ||
                (item.page === 'ControlCoverageMap' && currentPageName === 'ControlCoverageMap') ||
-               (item.page === 'AdminAudits' && ['AdminAudits', 'AuditDetail'].includes(currentPageName)) ||
+               (item.page === 'AdminAudits' && ['AdminAudits', 'AuditDetail', 'AuditProcedureExecution', 'AuditReview', 'AuditReport', 'AuditFindings'].includes(currentPageName)) ||
+               (item.page === 'AdminAuditPrograms' && currentPageName === 'AdminAuditPrograms') ||
+               (item.page === 'AdminAuditTemplates' && currentPageName === 'AdminAuditTemplates') ||
                (item.page === 'Admin' && ['AdminRiskLibrary', 'AdminControlLibrary', 'AdminMethodologies', 'AdminNarratives', 'AdminUsers', 'AdminAuditLog', 'AdminJurisdictions', 'AdminIndustries', 'AdminTestScenarios', 'AdminInvitations', 'AdminRiskProposals', 'LibraryReviewDashboard', 'AdminGovernance'].includes(currentPageName));
              return (
                <Link
