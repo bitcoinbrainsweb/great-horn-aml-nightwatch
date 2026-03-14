@@ -369,8 +369,17 @@ export default function BuildVerificationDashboard() {
             <p className="text-xs text-slate-600 mb-2">
               <strong>NW-UPGRADE-045:</strong> Added admin-only sidebar navigation + auto-run verification on deployment
             </p>
-            <p className="text-xs text-slate-600">
+            <p className="text-xs text-slate-600 mb-2">
               <strong>NW-UPGRADE-045A:</strong> Fixed auto-run logic to check build identity instead of time-based recency (current build vs. latest verified build comparison)
+            </p>
+            <p className="text-xs text-slate-600 mb-2">
+              <strong>NW-UPGRADE-046A:</strong> Added 5 verification contracts for Evidence & Control Testing Framework
+            </p>
+            <p className="text-xs text-slate-600 mb-2">
+              <strong>NW-UPGRADE-046B:</strong> Added explicit delivery gate metrics tracking
+            </p>
+            <p className="text-xs text-slate-600">
+              <strong>NW-UPGRADE-047:</strong> Test Template System + Build Identity Hardening (TestTemplate entity, template references, unified build identity source)
             </p>
           </div>
           
