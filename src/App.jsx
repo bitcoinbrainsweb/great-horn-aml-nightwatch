@@ -42,8 +42,6 @@ import EngagementsV2 from './pages/EngagementsV2';
 import EngagementDetailV2 from './pages/EngagementDetailV2';
 import EngagementControlTesting from './pages/EngagementControlTesting';
 import AdminEngagementSetup from './pages/AdminEngagementSetup';
-import NW040UpgradeSummary from './pages/NW040UpgradeSummary';
-import RunNW040Verification from './pages/RunNW040Verification';
 import BuildVerificationDashboard from './pages/BuildVerificationDashboard';
 
 const LayoutWrapper = ({ children, currentPageName }) => (
@@ -111,8 +109,6 @@ const AuthenticatedApp = () => {
       <Route path="/EngagementDetailV2" element={<LayoutWrapper currentPageName="EngagementDetailV2"><EngagementDetailV2 /></LayoutWrapper>} />
       <Route path="/EngagementControlTesting" element={<LayoutWrapper currentPageName="EngagementControlTesting"><EngagementControlTesting /></LayoutWrapper>} />
       <Route path="/AdminEngagementSetup" element={<LayoutWrapper currentPageName="AdminEngagementSetup"><AdminEngagementSetup /></LayoutWrapper>} />
-      <Route path="/NW040UpgradeSummary" element={<LayoutWrapper currentPageName="NW040UpgradeSummary"><NW040UpgradeSummary /></LayoutWrapper>} />
-      <Route path="/RunNW040Verification" element={<LayoutWrapper currentPageName="RunNW040Verification"><RunNW040Verification /></LayoutWrapper>} />
       <Route path="/BuildVerificationDashboard" element={<LayoutWrapper currentPageName="BuildVerificationDashboard"><BuildVerificationDashboard /></LayoutWrapper>} />
       <Route path="*" element={<PageNotFound />} />
     </Routes>

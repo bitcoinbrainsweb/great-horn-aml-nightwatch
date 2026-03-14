@@ -3,11 +3,27 @@ import { base44 } from '@/api/base44Client';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Loader2, Download, RotateCw } from 'lucide-react';
+import { Loader2, Download, RotateCw, ShieldAlert } from 'lucide-react';
 import PageHeader from '@/components/ui/PageHeader';
 import ReportPublicationDashboard from '@/components/admin/ReportPublicationDashboard';
 
+function AdminGate({ children }) {
+  const [allowed, setAllowed] = useState(null);
+  useEffect(() => {
+    base44.auth.me().then(me => {
+      setAllowed(['admin', 'super_admin'].includes(me?.role));
+    }).catch(() => setAllowed(false));
+  }, []);
+  if (allowed === null) return <div className="flex items-center justify-center min-h-screen"><div className="w-8 h-8 border-4 border-slate-200 border-t-slate-800 rounded-full animate-spin" /></div>;
+  if (!allowed) return <div className="flex flex-col items-center justify-center min-h-screen gap-4"><ShieldAlert className="w-12 h-12 text-red-500" /><p className="text-lg font-semibold text-slate-800">Access Denied</p><p className="text-sm text-slate-500">This page requires admin privileges.</p></div>;
+  return children;
+}
+
 export default function ReportPublicationDebug() {
+  return <AdminGate><ReportPublicationDebugContent /></AdminGate>;
+}
+
+function ReportPublicationDebugContent() {
   const [deliveryGateReport, setDeliveryGateReport] = useState(null);
   const [loading, setLoading] = useState(true);
 

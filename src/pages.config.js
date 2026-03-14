@@ -82,8 +82,6 @@ import ComplianceOperations from './pages/ComplianceOperations';
 import ControlCoverageMap from './pages/ControlCoverageMap';
 import ControlTests from './pages/ControlTests';
 import Dashboard from './pages/Dashboard';
-import DeterministicEngineArchitecture from './pages/DeterministicEngineArchitecture';
-import DeterministicEngineUpgradeSummary from './pages/DeterministicEngineUpgradeSummary';
 import EngagementControlTesting from './pages/EngagementControlTesting';
 import EngagementDetail from './pages/EngagementDetail';
 import EngagementDetailV2 from './pages/EngagementDetailV2';
@@ -91,23 +89,14 @@ import Engagements from './pages/Engagements';
 import EngagementsV2 from './pages/EngagementsV2';
 import Feedback from './pages/Feedback';
 import Findings from './pages/Findings';
-import GovernanceDeliveryGateSummary from './pages/GovernanceDeliveryGateSummary';
 import Help from './pages/Help';
-import HistoricalNormalizationSummary from './pages/HistoricalNormalizationSummary';
-import InfrastructureLayerOverview from './pages/InfrastructureLayerOverview';
 import LibraryReviewDashboard from './pages/LibraryReviewDashboard';
-import NW010DeliveryGateSummary from './pages/NW010DeliveryGateSummary';
-import NW013DeliveryGateFinal from './pages/NW013DeliveryGateFinal';
-import NW040UpgradeSummary from './pages/NW040UpgradeSummary';
 import PageInventoryAudit from './pages/PageInventoryAudit';
-import PromptTemplateSystemSummary from './pages/PromptTemplateSystemSummary';
-import PublishNW013 from './pages/PublishNW013';
 import RegressionTestDashboard from './pages/RegressionTestDashboard';
 import RemediationActions from './pages/RemediationActions';
 import ReportPublicationDebug from './pages/ReportPublicationDebug';
 import Reports from './pages/Reports';
 import ReviewerDashboard from './pages/ReviewerDashboard';
-import RunNW040Verification from './pages/RunNW040Verification';
 import Tasks from './pages/Tasks';
 import TestCycles from './pages/TestCycles';
 
@@ -148,8 +137,6 @@ export const PAGES = {
     "ControlCoverageMap": ControlCoverageMap,
     "ControlTests": ControlTests,
     "Dashboard": Dashboard,
-    "DeterministicEngineArchitecture": DeterministicEngineArchitecture,
-    "DeterministicEngineUpgradeSummary": DeterministicEngineUpgradeSummary,
     "EngagementControlTesting": EngagementControlTesting,
     "EngagementDetail": EngagementDetail,
     "EngagementDetailV2": EngagementDetailV2,
@@ -157,23 +144,14 @@ export const PAGES = {
     "EngagementsV2": EngagementsV2,
     "Feedback": Feedback,
     "Findings": Findings,
-    "GovernanceDeliveryGateSummary": GovernanceDeliveryGateSummary,
     "Help": Help,
-    "HistoricalNormalizationSummary": HistoricalNormalizationSummary,
-    "InfrastructureLayerOverview": InfrastructureLayerOverview,
     "LibraryReviewDashboard": LibraryReviewDashboard,
-    "NW010DeliveryGateSummary": NW010DeliveryGateSummary,
-    "NW013DeliveryGateFinal": NW013DeliveryGateFinal,
-    "NW040UpgradeSummary": NW040UpgradeSummary,
     "PageInventoryAudit": PageInventoryAudit,
-    "PromptTemplateSystemSummary": PromptTemplateSystemSummary,
-    "PublishNW013": PublishNW013,
     "RegressionTestDashboard": RegressionTestDashboard,
     "RemediationActions": RemediationActions,
     "ReportPublicationDebug": ReportPublicationDebug,
     "Reports": Reports,
     "ReviewerDashboard": ReviewerDashboard,
-    "RunNW040Verification": RunNW040Verification,
     "Tasks": Tasks,
     "TestCycles": TestCycles,
 }
