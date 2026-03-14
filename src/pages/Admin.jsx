@@ -13,6 +13,7 @@ const ADMIN_SECTIONS = {
     { name: 'Methodologies', description: 'Assessment methodology profiles', icon: BookOpen, page: 'AdminMethodologies', color: 'bg-blue-50 text-blue-600' },
     { name: 'Risk Library', description: 'Manage risk definitions and categories', icon: ShieldCheck, page: 'AdminRiskLibrary', color: 'bg-red-50 text-red-600' },
     { name: 'Control Library', description: 'Manage control definitions', icon: ShieldCheck, page: 'AdminControlLibrary', color: 'bg-emerald-50 text-emerald-600' },
+    { name: 'Test Templates', description: 'Manage reusable test templates', icon: FlaskConical, page: 'AdminTestTemplates', color: 'bg-amber-50 text-amber-600' },
   ],
   content: [
     { name: 'Narrative Templates', description: 'Report narrative templates', icon: FileText, page: 'AdminNarratives', color: 'bg-purple-50 text-purple-600' },

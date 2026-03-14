@@ -13,7 +13,8 @@ const VerificationContractRegistry = {
     { name: 'SampleSet', requiredFields: ['engagement_id', 'population_description', 'sample_method'], description: 'Statistical sampling definitions' },
     { name: 'SampleItem', requiredFields: ['sample_set_id', 'item_identifier'], description: 'Individual sampled items' },
     { name: 'PublishedOutput', requiredFields: ['outputName', 'classification', 'status'], description: 'Canonical artifact store' },
-    { name: 'UpgradeRegistry', requiredFields: ['upgrade_id', 'product_version', 'title', 'status'], description: 'System upgrade tracking' }
+    { name: 'UpgradeRegistry', requiredFields: ['upgrade_id', 'product_version', 'title', 'status'], description: 'System upgrade tracking' },
+    { name: 'TestTemplate', requiredFields: ['name', 'test_type', 'active'], description: 'Test template system (NW-UPGRADE-047)' }
   ],
   routeContracts: [
     { name: 'Engagements', entityDependency: 'Engagement', description: 'Primary engagement management interface' },
@@ -233,9 +234,10 @@ Deno.serve(async (req) => {
     const warnings = [];
     const violations = [];
     const changed_files_summary = [
-      'functions/resolveBuildIdentity — Shared build identity resolver (NW-UPGRADE-045A)',
-      'functions/verifyLatestBuild — Dynamic build label from UpgradeRegistry',
-      'pages/BuildVerificationDashboard — Dynamic build identity + auto-run comparison'
+      'entities/TestTemplate.json — New Test Template System entity (NW-UPGRADE-047)',
+      'entities/EngagementControlTest.json — Added test_template_id field (NW-UPGRADE-047)',
+      'pages/AdminTestTemplates.js — Test template management UI (NW-UPGRADE-047)',
+      'functions/verifyLatestBuild — Added TestTemplate to entity contracts (NW-UPGRADE-047)'
     ];
 
     if (buildIdentity.source === 'fallback') {
@@ -671,20 +673,20 @@ function generateResultMarkdown(data) {
   md += `- **Permission Contracts:** ${contractSummary.permissionContracts}\n`;
   md += `- **Graph Contracts:** ${contractSummary.graphContracts}\n\n`;
   
-  md += `## Architecture Change (NW-UPGRADE-045 / NW-UPGRADE-045A)\n\n`;
+  md += `## Architecture Change (NW-UPGRADE-047)\n\n`;
   md += `**What Changed:**\n`;
-  md += `- Added admin-only Build Verification sidebar navigation link\n`;
-  md += `- Implemented build-identity-based auto-run verification on dashboard load\n`;
-  md += `- Fixed auto-run logic to check current build vs. latest verified build (not time-based)\n`;
-  md += `- Auto-run triggers only when latest verified build label does NOT match current build label\n`;
-  md += `- All verification architecture preserved (VerificationContractRegistry, Graph Contracts, canonical publishing)\n\n`;
+  md += `- Added TestTemplate entity for standardized, reusable test definitions\n`;
+  md += `- Added test_template_id field to EngagementControlTest (backwards compatible)\n`;
+  md += `- Created AdminTestTemplates page for template management\n`;
+  md += `- Added TestTemplate to verification entity contracts\n`;
+  md += `- Build identity already unified from NW-UPGRADE-045A (preserved)\n\n`;
   
   md += `**Benefits:**\n`;
-  md += `- Build verification now accessible from sidebar for admin users\n`;
-  md += `- Each new build/upgrade automatically triggers verification once\n`;
-  md += `- Safe idempotency: no duplicate verification for same build\n`;
-  md += `- Manual "Run Verification" button still available for reruns\n`;
-  md += `- Dashboard clearly displays current build vs. latest verified build\n\n`;
+  md += `- Tests can now be created from standardized templates\n`;
+  md += `- Template system supports sample_review, data_validation, process_walkthrough, etc.\n`;
+  md += `- Existing tests remain fully functional (no breaking changes)\n`;
+  md += `- Ready for future schedule/evidence workflow enhancements\n`;
+  md += `- Single-source build identity prevents drift (NW-UPGRADE-045A preserved)\n\n`;
   
   md += `## Summary\n\n`;
   md += `- **Total Checks:** ${checks.length}\n`;
