@@ -556,6 +556,22 @@ Deno.serve(async (req) => {
     const generated_at = new Date().toISOString();
 
     // ===========================
+    // NW-UPGRADE-050: Publish Guard - Do not publish 0/0 artifacts
+    // ===========================
+    if (contractSummary.total === 0) {
+      return Response.json({
+        success: false,
+        build_label,
+        build_identity: buildIdentity,
+        verification_mode: 'runtime_contract_verification',
+        error: 'PUBLISH_GUARD_TRIGGERED',
+        message: 'Verification cannot proceed: 0 contracts loaded. No artifact published.',
+        contract_registry: contractSummary,
+        generated_at
+      }, { status: 500 });
+    }
+
+    // ===========================
     // Publish canonical verification artifact
     // ===========================
     let artifact_publish_status = {};
