@@ -598,51 +598,55 @@ Deno.serve(async (req) => {
     // ===========================
     // Publish canonical verification artifact
     // ===========================
+
+    // NW-UPGRADE-058: Build delivery_gate_results from executed contract checks
+    // so VerificationRecordCard can display real gate counts.
+    const MAX_EVIDENCE = 200;
+    const delivery_gate_results: Record<string, { status: string; evidence: string }> = {};
+    for (const check of checks) {
+      const key = `${check.category}__${check.check}`.replace(/\s+/g, '_').toLowerCase();
+      const rawEvidence = check.details || check.contract || '';
+      delivery_gate_results[key] = {
+        status: check.status === 'PASS' ? 'pass' : 'fail',
+        evidence: rawEvidence.length > MAX_EVIDENCE ? rawEvidence.slice(0, MAX_EVIDENCE) + '...' : rawEvidence
+      };
+    }
+    for (const v of violations) {
+      const key = `${v.category}__${v.check}`.replace(/\s+/g, '_').toLowerCase();
+      const rawEvidence = v.error || v.details || v.contract || '';
+      delivery_gate_results[key] = {
+        status: 'fail',
+        evidence: rawEvidence.length > MAX_EVIDENCE ? rawEvidence.slice(0, MAX_EVIDENCE) + '...' : rawEvidence
+      };
+    }
+
+    const gateKeys = Object.keys(delivery_gate_results);
+    const gatesPassed = Object.values(delivery_gate_results).filter(g => g.status === 'pass').length;
+
     let artifact_publish_status = {};
     try {
-      // NW-UPGRADE-054: Enhanced artifact content with contract execution details
+      // NW-UPGRADE-058: Compact artifact content — only delivery_gate_results + summary counts
+      // are stored. Full checks/warnings/violations remain in the API response only.
       const artifactContent = {
         build_label,
-        build_identity: buildIdentity,
         success,
         generated_at,
         verification_mode: 'runtime_contract_verification',
         contract_registry: contractSummary,
-        contract_execution: {
-          total_contracts_executed: contractSummary.total,
-          entity_contracts_passed: checks.filter(c => c.category === 'Entity Contract').length,
-          route_contracts_passed: checks.filter(c => c.category === 'Route Contract').length,
-          artifact_contracts_passed: checks.filter(c => c.category === 'Artifact Contract').length,
-          permission_contracts_passed: checks.filter(c => c.category === 'Permission Contract').length,
-          graph_contracts_passed: checks.filter(c => c.category === 'Graph Contract').length,
-          entity_contracts_failed: violations.filter(v => v.category === 'Entity Contract').length,
-          route_contracts_failed: violations.filter(v => v.category === 'Route Contract').length,
-          artifact_contracts_failed: violations.filter(v => v.category === 'Artifact Contract').length,
-          permission_contracts_failed: violations.filter(v => v.category === 'Permission Contract').length,
-          graph_contracts_failed: violations.filter(v => v.category === 'Graph Contract').length
-        },
+        delivery_gate_results,
         summary: {
           total_checks: totalChecks,
           total_warnings: totalWarnings,
-          total_violations: totalViolations
+          total_violations: totalViolations,
+          gates_total: gateKeys.length,
+          gates_passed: gatesPassed
         },
-        checks,
-        warnings,
-        violations,
-        changed_files_summary,
-        architecture_notes: {
-          registry_based_verification: true,
-          contracts_loaded: contractSummary.total,
-          contract_categories: {
-            entities: contractSummary.entityContracts,
-            routes: contractSummary.routeContracts,
-            artifacts: contractSummary.artifactContracts,
-            permissions: contractSummary.permissionContracts,
-            graph: contractSummary.graphContracts
-          },
-          compliance_graph_verified: true
-        }
+        changed_files_summary
       };
+
+      const artifactVersion = buildIdentity.product_version !== 'UNKNOWN'
+        ? buildIdentity.product_version
+        : 'v0.6.0';
 
       const artifact = await base44.asServiceRole.entities.PublishedOutput.create({
         outputName: `Nightwatch_BuildVerification_${build_label}_${new Date().toISOString().split('T')[0]}`,
@@ -651,12 +655,12 @@ Deno.serve(async (req) => {
         display_zone: 'internal_only',
         source_module: 'BuildVerificationRunner',
         source_event_type: 'build_verification_complete',
-        product_version: 'v0.6.0',
+        product_version: artifactVersion,
         upgrade_id: build_label,
         status: 'published',
         published_at: generated_at,
         content: JSON.stringify(artifactContent),
-        summary: `Contract-based verification for ${build_label}: ${contractSummary.total} contracts checked, ${totalChecks} checks passed, ${totalWarnings} warnings, ${totalViolations} violations`,
+        summary: `${build_label}: ${gatesPassed}/${gateKeys.length} delivery gates passed, ${totalWarnings} warnings, ${totalViolations} violations`,
         is_user_visible: false,
         is_runnable: false
       });
@@ -704,13 +708,14 @@ Deno.serve(async (req) => {
       artifact_publish_status
     });
 
-    // Return structured response
+    // Return structured response (includes full arrays for dashboard display)
     return Response.json({
       success,
       build_label,
       build_identity: buildIdentity,
       verification_mode: 'runtime_contract_verification',
       contract_registry: contractSummary,
+      delivery_gate_results,
       checks,
       warnings,
       violations,

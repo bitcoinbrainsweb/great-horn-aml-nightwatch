@@ -11,6 +11,10 @@ export default function CoverageBadge({ status }) {
       className: 'bg-amber-100 text-amber-800 border-amber-200',
       label: 'Partial'
     },
+    'INEFFECTIVE': {
+      className: 'bg-red-100 text-red-800 border-red-200',
+      label: 'Ineffective'
+    },
     'UNCONTROLLED': { 
       className: 'bg-red-100 text-red-800 border-red-200',
       label: 'Uncontrolled'
