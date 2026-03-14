@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
-import { Plus, Pencil, FileText, Paperclip, AlertCircle } from 'lucide-react';
+import { Plus, Pencil, FileText, Paperclip, AlertCircle, History } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -21,8 +21,10 @@ export default function ControlTests() {
   const [loading, setLoading] = useState(true);
   const [showTestDialog, setShowTestDialog] = useState(false);
   const [showEvidenceDialog, setShowEvidenceDialog] = useState(false);
+  const [showHistoryDialog, setShowHistoryDialog] = useState(false);
   const [editingTest, setEditingTest] = useState(null);
   const [selectedTest, setSelectedTest] = useState(null);
+  const [executionHistory, setExecutionHistory] = useState([]);
   const [testFormData, setTestFormData] = useState({
     control_library_id: '',
     test_cycle_id: '',
@@ -82,6 +84,39 @@ export default function ControlTests() {
       setEvidence(data);
     } catch (error) {
       console.error('Error loading evidence:', error);
+    }
+  }
+
+  async function loadExecutionHistory(testId) {
+    try {
+      const data = await base44.entities.TestExecutionHistory.filter(
+        { test_id: testId },
+        '-executed_at'
+      );
+      setExecutionHistory(data);
+    } catch (error) {
+      console.error('Error loading execution history:', error);
+      setExecutionHistory([]);
+    }
+  }
+
+  async function openHistoryDialog(test) {
+    setSelectedTest(test);
+    await loadExecutionHistory(test.id);
+    setShowHistoryDialog(true);
+  }
+
+  async function logTestEvent(eventType, testId, actor, eventData = {}) {
+    try {
+      await base44.entities.TestExecutionLog.create({
+        event_type: eventType,
+        timestamp: new Date().toISOString(),
+        actor,
+        related_test_id: testId,
+        event_data: JSON.stringify(eventData)
+      });
+    } catch (error) {
+      console.error('Error logging test event:', error);
     }
   }
 
@@ -186,6 +221,40 @@ export default function ControlTests() {
           testFormData.snapshot_captured_at = new Date().toISOString();
         }
 
+        // Log state change if lifecycle_status changed
+        if (editingTest.lifecycle_status !== testFormData.lifecycle_status) {
+          await logTestEvent('test_state_changed', editingTest.id, user.email, {
+            from: editingTest.lifecycle_status,
+            to: testFormData.lifecycle_status
+          });
+        }
+
+        // Log completion if transitioning to completed
+        if (editingTest.lifecycle_status !== 'completed' && testFormData.lifecycle_status === 'completed') {
+          await logTestEvent('test_completed', editingTest.id, user.email, {
+            effectiveness_rating: testFormData.effectiveness_rating
+          });
+
+          // Create execution history record
+          await base44.entities.TestExecutionHistory.create({
+            test_id: editingTest.id,
+            executed_at: new Date().toISOString(),
+            executed_by: user.email,
+            lifecycle_state: testFormData.lifecycle_status,
+            execution_notes: testFormData.evidence_notes || '',
+            evidence_summary: testFormData.evidence_reference || '',
+            effectiveness_rating: testFormData.effectiveness_rating
+          });
+        }
+
+        // Log review if transitioning to reviewed
+        if (editingTest.lifecycle_status !== 'reviewed' && testFormData.lifecycle_status === 'reviewed') {
+          await logTestEvent('test_reviewed', editingTest.id, user.email, {
+            reviewed_by: testFormData.reviewed_by,
+            review_date: testFormData.review_date
+          });
+        }
+
         await base44.entities.ControlTest.update(editingTest.id, testFormData);
       } else {
         // For new tests, capture snapshot on creation
@@ -198,11 +267,17 @@ export default function ControlTests() {
           control_tags: control.scope_tags || []
         } : null;
 
-        await base44.entities.ControlTest.create({
+        const newTest = await base44.entities.ControlTest.create({
           ...testFormData,
           prepared_by: user.email,
           control_snapshot: snapshot ? JSON.stringify(snapshot) : null,
           snapshot_captured_at: testFormData.status === 'In Progress' ? new Date().toISOString() : null
+        });
+
+        // Log test creation
+        await logTestEvent('test_created', newTest.id, user.email, {
+          control_id: testFormData.control_library_id,
+          test_cycle_id: testFormData.test_cycle_id
         });
       }
       setShowTestDialog(false);
@@ -253,6 +328,12 @@ export default function ControlTests() {
       await base44.entities.ControlTest.update(selectedTest.id, {
         evidence_captured_at: timestamp,
         evidence_captured_by: user.email
+      });
+
+      // Log evidence addition (NW-UPGRADE-054)
+      await logTestEvent('evidence_added', selectedTest.id, user.email, {
+        evidence_type: evidenceFormData.evidence_type,
+        evidence_date: evidenceFormData.evidence_date
       });
 
       await loadEvidence(selectedTest.id);
@@ -386,6 +467,10 @@ export default function ControlTests() {
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
+                    <Button variant="ghost" size="sm" onClick={() => openHistoryDialog(t)}>
+                      <History className="w-3 h-3 mr-1" />
+                      History
+                    </Button>
                     <Button variant="ghost" size="sm" onClick={() => openEvidenceDialog(t)}>
                       <Paperclip className="w-3 h-3 mr-1" />
                       Evidence
@@ -558,6 +643,66 @@ export default function ControlTests() {
               <Button type="submit">{editingTest ? 'Update' : 'Create'}</Button>
             </DialogFooter>
           </form>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={showHistoryDialog} onOpenChange={setShowHistoryDialog}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Execution History — {controls.find(c => c.id === (selectedTest?.control_library_id || selectedTest?.control_id))?.control_name || 'Control'}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3">
+            {executionHistory.length === 0 ? (
+              <div className="text-center py-8 text-sm text-slate-500">
+                No execution history recorded yet. Execution history is created when tests are marked as completed.
+              </div>
+            ) : (
+              executionHistory.map((exec, idx) => (
+                <div key={exec.id} className="bg-slate-50 border border-slate-200 rounded-lg p-3">
+                  <div className="flex items-start justify-between mb-2">
+                    <div className="flex items-center gap-2">
+                      <Badge variant="outline" className="text-xs">
+                        Execution #{executionHistory.length - idx}
+                      </Badge>
+                      {exec.lifecycle_state && (
+                        <Badge className={lifecycleColors[exec.lifecycle_state] || 'bg-slate-100 text-slate-600'}>
+                          {exec.lifecycle_state.replace('_', ' ')}
+                        </Badge>
+                      )}
+                      {exec.effectiveness_rating && (
+                        <Badge className={ratingColors[exec.effectiveness_rating]}>
+                          {exec.effectiveness_rating}
+                        </Badge>
+                      )}
+                      {exec.result_score !== null && exec.result_score !== undefined && (
+                        <Badge variant="outline" className="text-xs">
+                          Score: {exec.result_score}
+                        </Badge>
+                      )}
+                    </div>
+                  </div>
+                  <div className="text-xs text-slate-600 space-y-1">
+                    <div>
+                      <span className="font-medium">Executed:</span> {new Date(exec.executed_at).toLocaleString()}
+                    </div>
+                    <div>
+                      <span className="font-medium">Executed by:</span> {exec.executed_by}
+                    </div>
+                    {exec.execution_notes && (
+                      <div>
+                        <span className="font-medium">Notes:</span> {exec.execution_notes}
+                      </div>
+                    )}
+                    {exec.evidence_summary && (
+                      <div>
+                        <span className="font-medium">Evidence:</span> {exec.evidence_summary}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
         </DialogContent>
       </Dialog>
 

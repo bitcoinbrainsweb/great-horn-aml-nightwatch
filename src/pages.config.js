@@ -70,6 +70,7 @@ import BuildVerificationDashboard from './pages/BuildVerificationDashboard';
 import ChangeLog from './pages/ChangeLog';
 import ClientDetail from './pages/ClientDetail';
 import Clients from './pages/Clients';
+import ComplianceOperations from './pages/ComplianceOperations';
 import ControlTests from './pages/ControlTests';
 import Dashboard from './pages/Dashboard';
 import DeterministicEngineArchitecture from './pages/DeterministicEngineArchitecture';
@@ -100,7 +101,6 @@ import ReviewerDashboard from './pages/ReviewerDashboard';
 import RunNW040Verification from './pages/RunNW040Verification';
 import Tasks from './pages/Tasks';
 import TestCycles from './pages/TestCycles';
-import ComplianceOperations from './pages/ComplianceOperations';
 
 
 export const PAGES = {
@@ -127,6 +127,7 @@ export const PAGES = {
     "ChangeLog": ChangeLog,
     "ClientDetail": ClientDetail,
     "Clients": Clients,
+    "ComplianceOperations": ComplianceOperations,
     "ControlTests": ControlTests,
     "Dashboard": Dashboard,
     "DeterministicEngineArchitecture": DeterministicEngineArchitecture,
@@ -157,7 +158,6 @@ export const PAGES = {
     "RunNW040Verification": RunNW040Verification,
     "Tasks": Tasks,
     "TestCycles": TestCycles,
-    "ComplianceOperations": ComplianceOperations,
 }
 
 export const pagesConfig = {

@@ -600,12 +600,27 @@ Deno.serve(async (req) => {
     // ===========================
     let artifact_publish_status = {};
     try {
+      // NW-UPGRADE-054: Enhanced artifact content with contract execution details
       const artifactContent = {
         build_label,
+        build_identity: buildIdentity,
         success,
         generated_at,
         verification_mode: 'runtime_contract_verification',
         contract_registry: contractSummary,
+        contract_execution: {
+          total_contracts_executed: contractSummary.total,
+          entity_contracts_passed: checks.filter(c => c.category === 'Entity Contract').length,
+          route_contracts_passed: checks.filter(c => c.category === 'Route Contract').length,
+          artifact_contracts_passed: checks.filter(c => c.category === 'Artifact Contract').length,
+          permission_contracts_passed: checks.filter(c => c.category === 'Permission Contract').length,
+          graph_contracts_passed: checks.filter(c => c.category === 'Graph Contract').length,
+          entity_contracts_failed: violations.filter(v => v.category === 'Entity Contract').length,
+          route_contracts_failed: violations.filter(v => v.category === 'Route Contract').length,
+          artifact_contracts_failed: violations.filter(v => v.category === 'Artifact Contract').length,
+          permission_contracts_failed: violations.filter(v => v.category === 'Permission Contract').length,
+          graph_contracts_failed: violations.filter(v => v.category === 'Graph Contract').length
+        },
         summary: {
           total_checks: totalChecks,
           total_warnings: totalWarnings,
