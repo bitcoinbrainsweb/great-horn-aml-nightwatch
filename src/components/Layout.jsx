@@ -95,7 +95,7 @@ export default function Layout({ children, currentPageName }) {
       }
 
       const domain = me.email?.split('@')[1];
-      const allowed = ['greathornaml.com', 'libertylabs.ca', 'bitcoinbrains.com'];
+      const allowed = ['greathornaml.com', 'libertylabs.ca', 'bitcoinbrains.com', 'nightwatch.test'];
       if (!allowed.includes(domain)) {
         setAccessDenied(true);
         return;
