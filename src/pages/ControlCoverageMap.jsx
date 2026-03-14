@@ -103,16 +103,28 @@ export default function ControlCoverageMap() {
       risk_coverage_percentage: riskCoveragePercentage
     });
 
-    // Identify untested controls
+    // Identify untested controls (sorted: no owner first, then alphabetically)
     const untested = Object.values(controlCoverageMap)
       .filter(c => !c.has_test)
-      .map(c => c.control);
+      .map(c => c.control)
+      .sort((a, b) => {
+        if (!a.owner && b.owner) return -1;
+        if (a.owner && !b.owner) return 1;
+        return (a.control_name || '').localeCompare(b.control_name || '');
+      });
     setUntestedControls(untested);
 
-    // Identify uncovered risks
+    // Identify uncovered risks (sorted: high severity first, then by control count descending)
     const uncovered = Object.values(riskCoverageMap)
       .filter(r => r.tested_controls_count === 0 && r.control_count > 0)
-      .map(r => r.risk);
+      .map(r => ({ ...r.risk, control_count_for_sort: r.control_count }))
+      .sort((a, b) => {
+        const severityOrder = { 'High': 0, 'Moderate': 1, 'Low': 2 };
+        const aSev = severityOrder[a.inherent_risk_rating] ?? 3;
+        const bSev = severityOrder[b.inherent_risk_rating] ?? 3;
+        if (aSev !== bSev) return aSev - bSev;
+        return (b.control_count_for_sort || 0) - (a.control_count_for_sort || 0);
+      });
     setUncoveredRisks(uncovered);
 
     setLoading(false);
@@ -135,55 +147,93 @@ export default function ControlCoverageMap() {
 
       {/* Coverage Summary */}
       <div>
-        <h2 className="text-sm font-semibold text-slate-700 mb-3">Coverage Summary</h2>
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
+        <h2 className="text-base font-semibold text-slate-900 mb-4">Coverage Summary</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {/* Control Test Coverage */}
+          <Card className="border-blue-200">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-sm font-medium text-slate-700 flex items-center gap-2">
+                <Shield className="w-4 h-4 text-blue-600" />
+                Control Test Coverage
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <div className="flex items-end justify-between">
                 <div>
-                  <p className="text-xs text-slate-500 mb-1">Total Controls</p>
-                  <p className="text-2xl font-bold text-slate-900">{coverageMetrics.total_controls}</p>
+                  <p className="text-3xl font-bold text-slate-900">{coverageMetrics.control_coverage_percentage}%</p>
+                  <p className="text-xs text-slate-500 mt-1">of controls tested</p>
                 </div>
-                <Shield className="w-8 h-8 text-slate-300" />
+                <CheckCircle className="w-8 h-8 text-blue-300" />
+              </div>
+              <div className="flex items-center justify-between text-xs pt-2 border-t border-slate-100">
+                <span className="text-slate-600">Total Controls:</span>
+                <span className="font-semibold text-slate-900">{coverageMetrics.total_controls}</span>
+              </div>
+              <div className="flex items-center justify-between text-xs">
+                <span className="text-green-600">Tested:</span>
+                <span className="font-semibold text-green-700">{coverageMetrics.tested_controls}</span>
+              </div>
+              <div className="flex items-center justify-between text-xs">
+                <span className="text-amber-600">Untested:</span>
+                <span className="font-semibold text-amber-700">{coverageMetrics.untested_controls}</span>
               </div>
             </CardContent>
           </Card>
 
-          <Card className="border-green-200">
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
+          {/* Risk Control Coverage */}
+          <Card className="border-purple-200">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-sm font-medium text-slate-700 flex items-center gap-2">
+                <TrendingUp className="w-4 h-4 text-purple-600" />
+                Risk Control Coverage
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <div className="flex items-end justify-between">
                 <div>
-                  <p className="text-xs text-slate-500 mb-1">Tested Controls</p>
-                  <p className="text-2xl font-bold text-green-700">{coverageMetrics.tested_controls}</p>
-                  <p className="text-xs text-green-600 mt-1">{coverageMetrics.control_coverage_percentage}% coverage</p>
+                  <p className="text-3xl font-bold text-slate-900">{coverageMetrics.risk_coverage_percentage}%</p>
+                  <p className="text-xs text-slate-500 mt-1">of risks covered</p>
                 </div>
-                <CheckCircle className="w-8 h-8 text-green-300" />
+                <Shield className="w-8 h-8 text-purple-300" />
+              </div>
+              <div className="flex items-center justify-between text-xs pt-2 border-t border-slate-100">
+                <span className="text-slate-600">Total Risks:</span>
+                <span className="font-semibold text-slate-900">{coverageMetrics.total_risks}</span>
+              </div>
+              <div className="flex items-center justify-between text-xs">
+                <span className="text-green-600">With Tested Controls:</span>
+                <span className="font-semibold text-green-700">{coverageMetrics.risks_with_tested_controls}</span>
+              </div>
+              <div className="flex items-center justify-between text-xs">
+                <span className="text-red-600">Without Tested Controls:</span>
+                <span className="font-semibold text-red-700">{coverageMetrics.risks_without_tested_controls}</span>
               </div>
             </CardContent>
           </Card>
 
-          <Card className="border-amber-200">
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
+          {/* Assurance Gap Summary */}
+          <Card className="border-amber-200 bg-amber-50">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-sm font-medium text-amber-900 flex items-center gap-2">
+                <AlertTriangle className="w-4 h-4 text-amber-700" />
+                Assurance Gaps
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <div className="flex items-end justify-between">
                 <div>
-                  <p className="text-xs text-slate-500 mb-1">Untested Controls</p>
-                  <p className="text-2xl font-bold text-amber-700">{coverageMetrics.untested_controls}</p>
-                  <p className="text-xs text-amber-600 mt-1">Gaps identified</p>
+                  <p className="text-3xl font-bold text-amber-900">{coverageMetrics.untested_controls + coverageMetrics.risks_without_tested_controls}</p>
+                  <p className="text-xs text-amber-700 mt-1">total gaps identified</p>
                 </div>
                 <AlertTriangle className="w-8 h-8 text-amber-300" />
               </div>
-            </CardContent>
-          </Card>
-
-          <Card className="border-blue-200">
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-xs text-slate-500 mb-1">Risk Coverage</p>
-                  <p className="text-2xl font-bold text-blue-700">{coverageMetrics.risk_coverage_percentage}%</p>
-                  <p className="text-xs text-blue-600 mt-1">{coverageMetrics.risks_with_tested_controls} / {coverageMetrics.total_risks} risks</p>
-                </div>
-                <TrendingUp className="w-8 h-8 text-blue-300" />
+              <div className="flex items-center justify-between text-xs pt-2 border-t border-amber-200">
+                <span className="text-amber-700">Untested Controls:</span>
+                <span className="font-semibold text-amber-900">{coverageMetrics.untested_controls}</span>
+              </div>
+              <div className="flex items-center justify-between text-xs">
+                <span className="text-amber-700">Uncovered Risks:</span>
+                <span className="font-semibold text-amber-900">{coverageMetrics.risks_without_tested_controls}</span>
               </div>
             </CardContent>
           </Card>
@@ -192,7 +242,12 @@ export default function ControlCoverageMap() {
 
       {/* Untested Controls */}
       <div>
-        <h2 className="text-sm font-semibold text-slate-700 mb-3">Untested Controls ({untestedControls.length})</h2>
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-base font-semibold text-slate-900">Untested Controls</h2>
+          <Badge className="bg-amber-100 text-amber-700 border-amber-200">
+            {untestedControls.length} gap{untestedControls.length !== 1 ? 's' : ''}
+          </Badge>
+        </div>
         {untestedControls.length === 0 ? (
           <Card className="border-green-200 bg-green-50">
             <CardContent className="p-4 text-center">
@@ -205,20 +260,24 @@ export default function ControlCoverageMap() {
             <CardContent className="p-4">
               <div className="space-y-2">
                 {untestedControls.slice(0, 20).map(control => (
-                  <div key={control.id} className="flex items-start justify-between bg-amber-50 border border-amber-200 rounded-lg p-3">
+                  <div key={control.id} className="flex items-start justify-between bg-white border border-amber-200 rounded-lg p-3 hover:border-amber-300 transition-colors">
                     <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-1">
+                      <div className="flex items-center gap-2 mb-1 flex-wrap">
                         <h3 className="text-sm font-semibold text-slate-900">{control.control_name}</h3>
-                        <Badge className="bg-amber-100 text-amber-700">{control.control_category}</Badge>
+                        <Badge variant="outline" className="text-xs">{control.control_category}</Badge>
+                        {!control.owner && (
+                          <Badge className="bg-red-100 text-red-700 border-red-200 text-xs">No Owner</Badge>
+                        )}
                       </div>
                       {control.description && (
-                        <p className="text-xs text-slate-600 line-clamp-2">{control.description}</p>
+                        <p className="text-xs text-slate-600 line-clamp-2 mb-1">{control.description}</p>
                       )}
-                      {control.owner && (
-                        <p className="text-xs text-slate-500 mt-1">Owner: {control.owner}</p>
-                      )}
+                      <div className="flex items-center gap-3 text-xs text-slate-500">
+                        {control.owner && <span>Owner: {control.owner}</span>}
+                        <span className="text-amber-600 font-medium">⚠ No test coverage</span>
+                      </div>
                     </div>
-                    <AlertTriangle className="w-5 h-5 text-amber-600 flex-shrink-0 ml-3" />
+                    <AlertTriangle className="w-5 h-5 text-amber-600 flex-shrink-0 ml-3 mt-0.5" />
                   </div>
                 ))}
                 {untestedControls.length > 20 && (
@@ -234,7 +293,12 @@ export default function ControlCoverageMap() {
 
       {/* Uncovered Risks */}
       <div>
-        <h2 className="text-sm font-semibold text-slate-700 mb-3">Uncovered Risks ({uncoveredRisks.length})</h2>
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-base font-semibold text-slate-900">Uncovered Risks</h2>
+          <Badge className="bg-red-100 text-red-700 border-red-200">
+            {uncoveredRisks.length} risk{uncoveredRisks.length !== 1 ? 's' : ''} exposed
+          </Badge>
+        </div>
         {uncoveredRisks.length === 0 ? (
           <Card className="border-green-200 bg-green-50">
             <CardContent className="p-4 text-center">
@@ -251,21 +315,33 @@ export default function ControlCoverageMap() {
                     ? risk.linked_control_ids
                     : (risk.linked_control_ids ? JSON.parse(risk.linked_control_ids) : []);
                   
+                  const severityColors = {
+                    'High': 'bg-red-100 text-red-800 border-red-200',
+                    'Moderate': 'bg-amber-100 text-amber-800 border-amber-200',
+                    'Low': 'bg-yellow-100 text-yellow-800 border-yellow-200'
+                  };
+                  
                   return (
-                    <div key={risk.id} className="flex items-start justify-between bg-red-50 border border-red-200 rounded-lg p-3">
+                    <div key={risk.id} className="flex items-start justify-between bg-white border border-red-200 rounded-lg p-3 hover:border-red-300 transition-colors">
                       <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-1">
+                        <div className="flex items-center gap-2 mb-1 flex-wrap">
                           <h3 className="text-sm font-semibold text-slate-900">{risk.risk_name}</h3>
-                          <Badge className="bg-red-100 text-red-700">{risk.risk_category}</Badge>
+                          <Badge variant="outline" className="text-xs">{risk.risk_category}</Badge>
+                          {risk.inherent_risk_rating && (
+                            <Badge className={severityColors[risk.inherent_risk_rating] || 'bg-slate-100 text-slate-700'}>
+                              {risk.inherent_risk_rating}
+                            </Badge>
+                          )}
                         </div>
                         {risk.description && (
-                          <p className="text-xs text-slate-600 line-clamp-2">{risk.description}</p>
+                          <p className="text-xs text-slate-600 line-clamp-2 mb-1">{risk.description}</p>
                         )}
-                        <p className="text-xs text-slate-500 mt-1">
-                          {riskControlIds.length} control(s) — none have tests
-                        </p>
+                        <div className="flex items-center gap-3 text-xs text-slate-500">
+                          <span>{riskControlIds.length} linked control{riskControlIds.length !== 1 ? 's' : ''}</span>
+                          <span className="text-red-600 font-medium">⚠ Zero tested controls</span>
+                        </div>
                       </div>
-                      <AlertTriangle className="w-5 h-5 text-red-600 flex-shrink-0 ml-3" />
+                      <AlertTriangle className="w-5 h-5 text-red-600 flex-shrink-0 ml-3 mt-0.5" />
                     </div>
                   );
                 })}
@@ -283,7 +359,12 @@ export default function ControlCoverageMap() {
       {/* Recently Tested Controls */}
       {executionHistory.length > 0 && (
         <div>
-          <h2 className="text-sm font-semibold text-slate-700 mb-3">Recently Tested Controls</h2>
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-base font-semibold text-slate-900">Recently Tested Controls</h2>
+            <Badge className="bg-green-100 text-green-700 border-green-200">
+              Last 10 executions
+            </Badge>
+          </div>
           <Card className="border-green-200">
             <CardContent className="p-4">
               <div className="space-y-2">
@@ -293,21 +374,31 @@ export default function ControlCoverageMap() {
                   
                   if (!control) return null;
                   
+                  const effectivenessColors = {
+                    'Effective': 'bg-green-100 text-green-800',
+                    'Partially Effective': 'bg-amber-100 text-amber-800',
+                    'Ineffective': 'bg-red-100 text-red-800',
+                    'Not Tested': 'bg-slate-100 text-slate-600'
+                  };
+                  
                   return (
-                    <div key={exec.id} className="flex items-start justify-between bg-green-50 border border-green-200 rounded-lg p-3">
+                    <div key={exec.id} className="flex items-start justify-between bg-white border border-green-200 rounded-lg p-3 hover:border-green-300 transition-colors">
                       <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-1">
+                        <div className="flex items-center gap-2 mb-1 flex-wrap">
                           <h3 className="text-sm font-semibold text-slate-900">{control.control_name}</h3>
-                          <Badge className="bg-green-100 text-green-700">{control.control_category}</Badge>
+                          <Badge variant="outline" className="text-xs">{control.control_category}</Badge>
                           {exec.effectiveness_rating && (
-                            <Badge variant="outline" className="text-xs">{exec.effectiveness_rating}</Badge>
+                            <Badge className={effectivenessColors[exec.effectiveness_rating] || 'bg-slate-100 text-slate-600'}>
+                              {exec.effectiveness_rating}
+                            </Badge>
                           )}
                         </div>
-                        <p className="text-xs text-slate-600">
-                          Tested {new Date(exec.executed_at).toLocaleDateString()} by {exec.executed_by}
-                        </p>
+                        <div className="flex items-center gap-3 text-xs text-slate-500">
+                          <span>Tested: {new Date(exec.executed_at).toLocaleDateString()}</span>
+                          <span>By: {exec.executed_by}</span>
+                        </div>
                       </div>
-                      <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0 ml-3" />
+                      <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0 ml-3 mt-0.5" />
                     </div>
                   );
                 })}
@@ -318,31 +409,48 @@ export default function ControlCoverageMap() {
       )}
 
       {/* Information Panel */}
-      <Card>
+      <Card className="border-blue-200">
         <CardHeader>
-          <CardTitle className="text-base">About Control Coverage</CardTitle>
+          <CardTitle className="text-base flex items-center gap-2">
+            <FileText className="w-4 h-4 text-blue-600" />
+            About Control Coverage Map
+          </CardTitle>
         </CardHeader>
-        <CardContent className="text-sm text-slate-600 space-y-2">
+        <CardContent className="text-sm text-slate-600 space-y-3">
           <p>
             The Control Coverage Map evaluates the compliance graph (Regulation → Risk → Control → Test) 
-            to identify gaps in testing coverage and provide early assurance insight.
+            to identify assurance gaps and provide early visibility into testing coverage before audits.
           </p>
           
-          <p className="font-medium text-slate-900">Coverage Calculation:</p>
-          <ul className="list-disc list-inside space-y-1 ml-2">
-            <li><strong>Control Coverage:</strong> % of active controls that have at least one associated test</li>
-            <li><strong>Risk Coverage:</strong> % of risks where at least one linked control has a test</li>
-            <li><strong>Untested Controls:</strong> Active controls with no associated test records</li>
-            <li><strong>Uncovered Risks:</strong> Risks where none of the linked controls have tests</li>
-          </ul>
+          <div>
+            <p className="font-semibold text-slate-900 mb-2">Coverage Metrics:</p>
+            <div className="bg-slate-50 rounded-lg p-3 space-y-1.5 text-xs">
+              <div className="flex items-start gap-2">
+                <span className="font-medium text-slate-700 min-w-[140px]">Control Test Coverage:</span>
+                <span className="text-slate-600">% of active controls with at least one test</span>
+              </div>
+              <div className="flex items-start gap-2">
+                <span className="font-medium text-slate-700 min-w-[140px]">Risk Control Coverage:</span>
+                <span className="text-slate-600">% of risks with at least one tested control</span>
+              </div>
+              <div className="flex items-start gap-2">
+                <span className="font-medium text-slate-700 min-w-[140px]">Untested Controls:</span>
+                <span className="text-slate-600">Active controls with zero test records</span>
+              </div>
+              <div className="flex items-start gap-2">
+                <span className="font-medium text-slate-700 min-w-[140px]">Uncovered Risks:</span>
+                <span className="text-slate-600">Risks where no linked controls have tests</span>
+              </div>
+            </div>
+          </div>
 
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mt-3">
-            <p className="font-medium text-blue-900 mb-1">Use Cases:</p>
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+            <p className="font-semibold text-blue-900 mb-2">Pre-Audit Preparation:</p>
             <ul className="list-disc list-inside text-blue-700 space-y-1 ml-2 text-xs">
-              <li>Identify testing gaps before audits or reviews</li>
-              <li>Prioritize control testing based on risk exposure</li>
-              <li>Track testing progress over time</li>
-              <li>Support audit planning and resource allocation</li>
+              <li>Identify and prioritize testing gaps before system audits</li>
+              <li>Focus resources on high-severity uncovered risks</li>
+              <li>Track testing completion progress over time</li>
+              <li>Provide evidence of systematic control testing coverage</li>
             </ul>
           </div>
         </CardContent>
