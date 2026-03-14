@@ -23,6 +23,7 @@ const NAV_ITEMS = [
   { label: 'TESTING' },
   { name: 'Test Cycles', icon: Repeat, page: 'TestCycles' },
   { name: 'Control Tests', icon: ClipboardCheck, page: 'ControlTests' },
+  { name: 'Coverage Map', icon: TrendingUp, page: 'ControlCoverageMap', adminOnly: true },
   { name: 'Reviewer', icon: UserCheck, page: 'ReviewerDashboard' },
   // ISSUES section
   { label: 'ISSUES' },
