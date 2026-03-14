@@ -205,7 +205,7 @@ export default function AdminAudits() {
                         {engagement && (
                           <div className="flex items-center gap-1">
                             <FileText className="w-3 h-3" />
-                            <span>{engagement.engagement_name}</span>
+                            <span>{engagement.engagement_name || engagement.engagement_type || 'Unnamed'}</span>
                           </div>
                         )}
                         {audit.start_date && (
@@ -267,9 +267,15 @@ export default function AdminAudits() {
                 >
                   <SelectTrigger><SelectValue placeholder="Select engagement..." /></SelectTrigger>
                   <SelectContent>
-                    {engagements.map(e => (
-                      <SelectItem key={e.id} value={e.id}>{e.engagement_name}</SelectItem>
-                    ))}
+                    {engagements.length === 0 ? (
+                      <div className="px-3 py-2 text-xs text-slate-500 italic">No engagements available. Create one first.</div>
+                    ) : (
+                      engagements.map(e => (
+                        <SelectItem key={e.id} value={String(e.id)}>
+                          {e.engagement_name || e.engagement_type || `Engagement ${e.id}`}
+                        </SelectItem>
+                      ))
+                    )}
                   </SelectContent>
                 </Select>
               </div>

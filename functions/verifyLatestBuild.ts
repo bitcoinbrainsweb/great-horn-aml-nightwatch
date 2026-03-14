@@ -1,6 +1,6 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.20';
 
-// Build Identity Resolver (NW-UPGRADE-045A / NW-UPGRADE-047)
+// Build Identity Resolver (NW-UPGRADE-045A)
 async function resolveBuildIdentity(base44) {
   try {
     const entries = await base44.asServiceRole.entities.UpgradeRegistry.list('-created_date', 1);
@@ -484,10 +484,7 @@ Deno.serve(async (req) => {
     const warnings = [];
     const violations = [];
     const changed_files_summary = [
-      'entities/TestTemplate.json — New Test Template System entity (NW-UPGRADE-047)',
-      'entities/EngagementControlTest.json — Added test_template_id field (NW-UPGRADE-047)',
-      'pages/AdminTestTemplates.js — Test template management UI (NW-UPGRADE-047)',
-      'functions/verifyLatestBuild — Added TestTemplate to entity contracts (NW-UPGRADE-047)'
+      `functions/verifyLatestBuild — Registry-based contract verification (${build_label})`
     ];
 
     if (buildIdentity.source === 'fallback') {
@@ -929,7 +926,7 @@ Deno.serve(async (req) => {
 
       const artifactVersion = buildIdentity.product_version !== 'UNKNOWN'
         ? buildIdentity.product_version
-        : 'v0.6.0';
+        : 'unknown';
 
       const artifact = await base44.asServiceRole.entities.PublishedOutput.create({
         outputName: `Nightwatch_BuildVerification_${build_label}_${new Date().toISOString().split('T')[0]}`,
@@ -1041,21 +1038,10 @@ function generateResultMarkdown(data) {
   md += `- **Permission Contracts:** ${contractSummary.permissionContracts}\n`;
   md += `- **Graph Contracts:** ${contractSummary.graphContracts}\n\n`;
   
-  md += `## Architecture Change (NW-UPGRADE-047)\n\n`;
-  md += `**What Changed (Latest):**\n`;
-  md += `- **NW-UPGRADE-066:** Created DefensePackage entity and generation system\n`;
-  md += `- Added generateDefensePackage backend function to bundle full audit graph\n`;
-  md += `- Enhanced AuditReport page with defense package generation and preview\n`;
-  md += `- Bundle includes: audit metadata, scope, phases, procedures, sampling, evidence, findings, remediation\n`;
-  md += `- Evidence references include hash values and review status for integrity\n`;
-  md += `- JSON export support with download capability\n\n`;
-  
-  md += `**Benefits:**\n`;
-  md += `- Regulator-ready defense package with complete audit artifact bundle\n`;
-  md += `- Evidence integrity tracking (hash values + review status)\n`;
-  md += `- Full audit graph export (procedures→samples→evidence→findings→remediation)\n`;
-  md += `- Remediation verification status included in bundle\n`;
-  md += `- JSON export for downstream analysis and regulatory submission\n\n`;
+  md += `## Build Details\n\n`;
+  md += `**Build:** ${build_label}\n`;
+  md += `**Verification:** Registry-based runtime contract verification\n`;
+  md += `**Contract Coverage:** ${contractSummary.total} contracts across ${contractSummary.entityContracts} entities, ${contractSummary.navigationContracts || 0} navigation checks\n\n`;
   
   md += `## Summary\n\n`;
   md += `- **Total Checks:** ${checks.length}\n`;

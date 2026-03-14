@@ -306,9 +306,15 @@ export default function AdminAuditPrograms() {
               >
                 <SelectTrigger><SelectValue placeholder="Select engagement..." /></SelectTrigger>
                 <SelectContent>
-                  {engagements.map(e => (
-                    <SelectItem key={e.id} value={e.id}>{e.engagement_name}</SelectItem>
-                  ))}
+                  {engagements.length === 0 ? (
+                    <div className="px-3 py-2 text-xs text-slate-500 italic">No engagements available.</div>
+                  ) : (
+                    engagements.map(e => (
+                      <SelectItem key={e.id} value={String(e.id)}>
+                        {e.engagement_name || e.engagement_type || `Engagement ${e.id}`}
+                      </SelectItem>
+                    ))
+                  )}
                 </SelectContent>
               </Select>
             </div>
