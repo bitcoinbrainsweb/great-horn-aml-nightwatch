@@ -1,0 +1,134 @@
+================================================================
+UPGRADE PROTOCOL — AI Development Operating System
+================================================================
+
+Every upgrade follows this exact sequence.
+No steps may be skipped. No next upgrade proceeds without GATE.
+
+================================================================
+STEP 1 — SANITY CHECK
+================================================================
+
+File: docs/[UPGRADE_ID]_SANITYCHECK.md
+
+Purpose: Assess scope, risk, and readiness before implementation.
+
+Must include:
+- Subsystems affected
+- Files likely to change
+- Risk level: LOW / MEDIUM / HIGH
+- Whether REVIEW is required
+- Confirmation of protected systems not affected
+
+Hard gate: If SANITYCHECK is not created, do not proceed.
+
+Risk routing:
+- LOW:    Proceed directly to IMPLEMENT after SANITYCHECK
+- MEDIUM: Create REVIEW before implementing
+- HIGH:   Create REVIEW, escalate to ChatGPT/user before implementing
+
+================================================================
+STEP 2 — REVIEW (conditional)
+================================================================
+
+File: docs/[UPGRADE_ID]_REVIEW.md
+
+Required when: Risk is MEDIUM or HIGH.
+
+Must include:
+- Root cause or change rationale
+- Exact files to create/modify
+- Implementation plan
+- Risks and rollback strategy
+- Any ambiguities requiring user decision
+
+================================================================
+STEP 3 — IMPLEMENT
+================================================================
+
+Execute the change set.
+
+Rules:
+- Sequential execution only
+- Smallest durable fix
+- Preserve prior verified fixes
+- Do not modify protected systems without explicit scope
+- Do not create throwaway pages or debug utilities
+- Fix linter errors introduced by changes
+
+================================================================
+STEP 4 — RESULT
+================================================================
+
+File: docs/[UPGRADE_ID]_RESULT.md
+
+Must include:
+- Files created or modified
+- Summary of changes
+- Validation results
+- Any follow-up issues discovered
+- Go/no-go recommendation
+
+================================================================
+STEP 5 — GATE
+================================================================
+
+File: docs/[UPGRADE_ID]_GATE.md
+
+Purpose: Canonical go/no-go decision artifact.
+
+Required structure:
+
+  BUILD:          [UPGRADE_ID]
+  DATE:           [YYYY-MM-DD]
+  SMOKE TEST:     [PASS / FAIL / SKIPPED — reason]
+  CHECKLIST:      [verification items, each PASS/FAIL]
+  VERDICT:        [GO / NO-GO]
+  FAILURE REASON: [if NO-GO, why]
+  ESCALATION:     [if NO-GO, who/what receives escalation]
+  NEXT ACTION:    [next upgrade ID or follow-up task]
+
+Rules:
+- The GATE file is concise, binary, and operational
+- It is not a report — it is a decision record
+- No next upgrade proceeds until GATE exists with VERDICT
+- GATE may be produced by Cursor but reviewed/approved by user
+
+================================================================
+ARTIFACT NAMING
+================================================================
+
+All artifacts follow this naming convention:
+
+  docs/[UPGRADE_ID]_SANITYCHECK.md
+  docs/[UPGRADE_ID]_REVIEW.md
+  docs/[UPGRADE_ID]_RESULT.md
+  docs/[UPGRADE_ID]_GATE.md
+
+Example:
+
+  docs/NW-UPGRADE-069C_SANITYCHECK.md
+  docs/NW-UPGRADE-069C_REVIEW.md
+  docs/NW-UPGRADE-069C_RESULT.md
+  docs/NW-UPGRADE-069C_GATE.md
+
+================================================================
+SEQUENCE DIAGRAM
+================================================================
+
+  USER ──── Session Brief ────→ CURSOR
+                                  │
+                                  ├─→ SANITYCHECK
+                                  │
+                         (if medium/high risk)
+                                  │
+                                  ├─→ REVIEW ──→ CHATGPT reviews
+                                  │
+                                  ├─→ IMPLEMENT
+                                  │
+                                  ├─→ RESULT
+                                  │
+                                  └─→ GATE ──→ USER approves
+                                                  │
+                                            GO ──→ next upgrade
+                                         NO-GO ──→ escalation / fix

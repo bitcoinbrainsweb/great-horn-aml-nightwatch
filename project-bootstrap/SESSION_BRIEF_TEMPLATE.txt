@@ -1,0 +1,84 @@
+================================================================
+SESSION BRIEF — [UPGRADE_ID]
+================================================================
+
+Upgrade ID:       [NW-UPGRADE-XXX]
+Product Version:  [VERSION]
+Chat:             [CHAT_NAME]
+
+================================================================
+OBJECTIVE
+================================================================
+
+[One paragraph. What this upgrade must accomplish.]
+
+================================================================
+SCOPE
+================================================================
+
+[Numbered list of specific deliverables.]
+
+1. ...
+2. ...
+3. ...
+
+================================================================
+STANDING RULES
+================================================================
+
+- Follow the [PROJECT_NAME] upgrade protocol
+- Preserve prior verified fixes unless explicitly replacing them
+- Make the smallest durable fix
+- Do not create throwaway debug or upgrade pages
+- [Add project-specific rules here]
+
+================================================================
+DO NOT MODIFY
+================================================================
+
+- [List protected systems, pages, or subsystems]
+- [e.g. Core compliance graph architecture]
+- [e.g. Help system content]
+- [e.g. Unrelated UI pages]
+
+================================================================
+EXECUTION
+================================================================
+
+Step 1 — SANITY CHECK
+Create: docs/[UPGRADE_ID]_SANITYCHECK.md
+Hard gate: do not proceed without this file.
+
+Step 2 — REVIEW (if medium/high risk)
+Create: docs/[UPGRADE_ID]_REVIEW.md
+
+Step 3 — IMPLEMENT
+Execute the smallest durable change set.
+
+Step 4 — RESULT
+Create: docs/[UPGRADE_ID]_RESULT.md
+
+Step 5 — GATE
+Create: docs/[UPGRADE_ID]_GATE.md
+Hard gate: no next upgrade proceeds without GATE.
+
+================================================================
+OUTPUTS
+================================================================
+
+Required:
+- docs/[UPGRADE_ID]_SANITYCHECK.md
+- docs/[UPGRADE_ID]_RESULT.md
+- docs/[UPGRADE_ID]_GATE.md
+
+Conditional:
+- docs/[UPGRADE_ID]_REVIEW.md (if medium/high risk)
+
+================================================================
+BEFORE FINISHING
+================================================================
+
+- Confirm upgrade ID consistency everywhere
+- Confirm no unrelated files changed
+- Confirm GATE artifact produced
+- [Add project-specific validations]

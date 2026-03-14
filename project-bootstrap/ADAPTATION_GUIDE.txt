@@ -1,0 +1,81 @@
+================================================================
+ADAPTATION GUIDE — AI Development Operating System
+================================================================
+
+This guide helps you adapt the project bootstrap templates
+to a new project. Answer these 5 questions, then fill in
+the templates.
+
+================================================================
+QUESTION 1: What is your project?
+================================================================
+
+Name:        [e.g. Nightwatch, Acme Platform, Internal Tool X]
+One-liner:   [e.g. Continuous AML assurance engine on Base44]
+Platform:    [e.g. Base44, Next.js, Django, Rails, standalone]
+
+→ Fill into: KERNEL_TEMPLATE.txt — Product, Platform, Description
+
+================================================================
+QUESTION 2: What is your core architecture?
+================================================================
+
+Describe the primary data/domain chain your system enforces.
+
+Example: Regulation → Risk → Control → Test → Evidence → Observation → Remediation
+
+If you don't have one yet, write "flat entity model" or "TBD".
+
+→ Fill into: KERNEL_TEMPLATE.txt — Architecture, Architecture Chain
+
+================================================================
+QUESTION 3: What must never be modified without explicit approval?
+================================================================
+
+List the protected subsystems, data models, or conventions.
+
+Examples:
+- Core compliance graph
+- User authentication flow
+- Payment processing pipeline
+- Database migration system
+
+→ Fill into: KERNEL_TEMPLATE.txt — Standing Rules, Protected Systems
+→ Fill into: SESSION_BRIEF_TEMPLATE.txt — Do Not Modify section
+
+================================================================
+QUESTION 4: What is your upgrade ID convention?
+================================================================
+
+Examples:
+- NW-UPGRADE-001, NW-UPGRADE-002, ...
+- ACME-FIX-001, ACME-FEAT-002, ...
+- v1.0.1, v1.0.2, ...
+
+→ Fill into: KERNEL_TEMPLATE.txt — Active Upgrade section
+→ Fill into: All artifact file names
+
+================================================================
+QUESTION 5: What tools are in your workflow?
+================================================================
+
+Check which apply and note any additions:
+
+[x] Cursor — implementation agent
+[ ] ChatGPT — architecture review (optional but recommended)
+[ ] Browser Use — smoke testing (future/optional)
+[ ] Other: [describe]
+
+→ Fill into: TOOL_ROLES.txt — enable/disable sections as needed
+
+================================================================
+AFTER ANSWERING
+================================================================
+
+1. Copy KERNEL_TEMPLATE.txt → your project root as PROJECT_KERNEL.txt
+2. Fill in all [PLACEHOLDER] values with your answers
+3. Use SESSION_BRIEF_TEMPLATE.txt for each new upgrade prompt
+4. Use GATE_TEMPLATE.txt after each implementation
+5. Follow UPGRADE_PROTOCOL.txt for execution sequence
+
+You are ready to run your AI development operating system.

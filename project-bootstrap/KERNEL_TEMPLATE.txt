@@ -1,0 +1,56 @@
+================================================================
+PROJECT KERNEL — [PROJECT_NAME]
+================================================================
+
+Product:        [PROJECT_NAME]
+Version:        [PRODUCT_VERSION]
+Platform:       [PLATFORM — e.g. Base44, Next.js, Rails]
+Architecture:   [PRIMARY_ARCHITECTURE — e.g. Entity-driven SaaS, compliance graph]
+
+================================================================
+CANONICAL CONTEXT
+================================================================
+
+[PROJECT_NAME] is a [ONE_SENTENCE_DESCRIPTION].
+
+Core architecture:
+[ARCHITECTURE_CHAIN — e.g. Regulation → Risk → Control → Test → Evidence → Observation → Remediation]
+
+Do not change core architectural direction.
+
+================================================================
+REFERENCE FILES
+================================================================
+
+Master State:     [PATH_TO_MASTER_STATE or "not yet created"]
+Architecture Map: [PATH_TO_ARCHITECTURE_MAP or "not yet created"]
+Workflow Doc:     [PATH_TO_WORKFLOW_DOC]
+
+================================================================
+TOOL ROLES
+================================================================
+
+Cursor:   Implementation. Reads kernel, follows protocol, produces artifacts.
+ChatGPT:  Architecture review. Reviews SANITYCHECK/REVIEW files. Advises on risk.
+User:     Decision authority. Approves GATE. Sets scope. Resolves ambiguity.
+
+================================================================
+STANDING RULES
+================================================================
+
+1. Follow the upgrade protocol exactly (SANITYCHECK → REVIEW → IMPLEMENT → RESULT → GATE).
+2. Preserve prior verified fixes unless explicitly replacing them.
+3. Make the smallest durable fix.
+4. Do not create throwaway debug pages.
+5. Do not modify [PROTECTED_SYSTEMS — e.g. core compliance graph, audit graph].
+6. Sequential execution only within each upgrade.
+7. No next upgrade proceeds until the current GATE file exists.
+
+================================================================
+ACTIVE UPGRADE
+================================================================
+
+Upgrade ID:       [NW-UPGRADE-XXX]
+Product Version:  [VERSION]
+Chat:             [CHAT_NAME]
+Branch:           [BRANCH_NAME]

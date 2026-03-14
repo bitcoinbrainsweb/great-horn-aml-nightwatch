@@ -1,0 +1,55 @@
+================================================================
+GATE — [UPGRADE_ID]
+================================================================
+
+BUILD:          [UPGRADE_ID]
+DATE:           [YYYY-MM-DD]
+
+================================================================
+SMOKE TEST
+================================================================
+
+[PASS / FAIL / SKIPPED]
+
+If SKIPPED, reason: [e.g. Browser Use not yet integrated, no UI changes]
+If FAIL, details:   [what failed and where]
+
+================================================================
+CHECKLIST
+================================================================
+
+[ ] SANITYCHECK file exists
+[ ] REVIEW file exists (if required by risk level)
+[ ] RESULT file exists
+[ ] All listed files were created/modified as planned
+[ ] No unrelated files changed
+[ ] No linter errors introduced
+[ ] Protected systems not modified
+[ ] Upgrade ID consistent everywhere
+[ ] [Add project-specific checks here]
+
+================================================================
+VERDICT
+================================================================
+
+[GO / NO-GO]
+
+================================================================
+FAILURE REASON
+================================================================
+
+[If NO-GO: concise explanation of what blocks approval]
+[If GO: "N/A"]
+
+================================================================
+ESCALATION
+================================================================
+
+[If NO-GO: who or what receives the escalation — e.g. "User review required", "ChatGPT architecture review needed", "Bug fix required before re-gate"]
+[If GO: "None"]
+
+================================================================
+NEXT ACTION
+================================================================
+
+[Next upgrade ID, follow-up task, or "ready for next bundle"]

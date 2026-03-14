@@ -1,0 +1,95 @@
+================================================================
+TOOL ROLES — AI Development Operating System
+================================================================
+
+This document defines the responsibility boundaries for each tool
+in the AI development operating system workflow.
+
+================================================================
+CURSOR (Implementation Agent)
+================================================================
+
+Role:       Hands-on implementation
+Inputs:     Session brief, kernel, codebase
+Outputs:    Code changes, SANITYCHECK, REVIEW, RESULT, GATE artifacts
+
+Responsibilities:
+- Read the project kernel before starting work
+- Follow the upgrade protocol exactly
+- Perform sanity checks before modifying code
+- Create review files when risk is medium or higher
+- Implement the smallest durable fix
+- Validate changes before producing RESULT
+- Produce the GATE artifact after implementation and validation
+- Never proceed to next upgrade without completing current GATE
+
+Does NOT:
+- Make architectural decisions without user approval
+- Skip protocol steps
+- Modify protected systems without explicit scope
+- Create throwaway pages or debug utilities
+
+================================================================
+CHATGPT (Architecture Advisor)
+================================================================
+
+Role:       Strategic review, architecture guidance, risk assessment
+Inputs:     SANITYCHECK files, REVIEW files, user questions
+Outputs:    Architecture recommendations, risk assessments, protocol guidance
+
+Responsibilities:
+- Review SANITYCHECK and REVIEW files when risk is medium or higher
+- Advise on architectural decisions and tradeoffs
+- Identify risks the implementation agent may miss
+- Maintain long-term architectural coherence
+- Help draft upgrade prompts and session briefs
+
+Does NOT:
+- Modify code directly
+- Override user decisions
+- Produce GATE artifacts (that is user + Cursor responsibility)
+
+================================================================
+USER (Decision Authority)
+================================================================
+
+Role:       Scope definition, approval, go/no-go decisions
+Inputs:     RESULT files, GATE files, tool recommendations
+Outputs:    Approval, scope changes, escalation decisions
+
+Responsibilities:
+- Define upgrade scope and objectives
+- Review GATE artifacts and approve go/no-go
+- Resolve ambiguity when tools disagree
+- Set priorities and sequencing
+- Approve or reject architectural changes
+- Trigger smoke tests when Browser Use is available
+
+Does NOT:
+- Need to write code
+- Need to understand every implementation detail
+- Need to produce SANITYCHECK or REVIEW files
+
+================================================================
+BROWSER USE (Smoke Test Agent) — FUTURE
+================================================================
+
+Role:       Runtime validation via browser automation
+Inputs:     Smoke test scripts, page URLs, expected behaviors
+Outputs:    Pass/fail results for GATE smoke test field
+
+Status:     Placeholder. Not yet integrated.
+When ready: Will provide automated smoke test input to GATE artifacts.
+
+================================================================
+WORKFLOW SEQUENCE
+================================================================
+
+1. User provides SESSION BRIEF to Cursor
+2. Cursor produces SANITYCHECK
+3. If medium/high risk: Cursor produces REVIEW → ChatGPT reviews
+4. Cursor implements changes
+5. Cursor produces RESULT
+6. Cursor produces GATE
+7. User reviews GATE → approves GO or escalates NO-GO
+8. Next upgrade begins only after GO
