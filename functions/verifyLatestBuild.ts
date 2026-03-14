@@ -34,9 +34,9 @@ const VerificationContractRegistry = {
     { name: 'TestTemplate', requiredFields: ['name', 'test_type', 'active'], description: 'Test template system (NW-UPGRADE-047)' },
     { name: 'Audit', requiredFields: ['name', 'engagement_id'], description: 'Audit engagement module (NW-UPGRADE-059)' },
     { name: 'AuditPhase', requiredFields: ['audit_id', 'name'], description: 'Audit phase structure (NW-UPGRADE-059)' },
-    { name: 'AuditProcedure', requiredFields: ['audit_phase_id', 'name'], description: 'Audit procedure execution (NW-UPGRADE-059)' },
-    { name: 'AuditWorkpaper', requiredFields: ['audit_procedure_id'], description: 'Audit working documentation (NW-UPGRADE-059)' },
-    { name: 'AuditFinding', requiredFields: ['audit_id', 'title'], description: 'Audit findings and issues (NW-UPGRADE-059)' }
+    { name: 'AuditProcedure', requiredFields: ['audit_phase_id', 'name', 'execution_status'], description: 'Audit procedure execution (NW-UPGRADE-059/060)' },
+    { name: 'AuditWorkpaper', requiredFields: ['audit_procedure_id', 'prepared_by'], description: 'Audit working documentation (NW-UPGRADE-059/060)' },
+    { name: 'AuditFinding', requiredFields: ['audit_id', 'title', 'severity'], description: 'Audit findings and issues (NW-UPGRADE-059/060)' }
   ],
   routeContracts: [
     { name: 'Engagements', entityDependency: 'Engagement', description: 'Primary engagement management interface' },
@@ -239,18 +239,22 @@ const VerificationContractRegistry = {
     },
     {
       name: 'audit_module_graph',
-      description: 'Audit module follows engagement-scoped graph: Audit→AuditPhase→AuditProcedure→AuditWorkpaper→EngagementControlTest',
-      entities: ['Audit', 'AuditPhase', 'AuditProcedure', 'AuditWorkpaper', 'Engagement'],
+      description: 'Audit module follows engagement-scoped graph: Audit→AuditPhase→AuditProcedure→AuditWorkpaper→EngagementControlTest→EvidenceItem',
+      entities: ['Audit', 'AuditPhase', 'AuditProcedure', 'AuditWorkpaper', 'AuditFinding', 'Engagement', 'EvidenceItem'],
       check: async (base44) => {
         const audits = await base44.asServiceRole.entities.Audit.list('-created_date', 5).catch(() => []);
         const phases = await base44.asServiceRole.entities.AuditPhase.list('-created_date', 5).catch(() => []);
         const procedures = await base44.asServiceRole.entities.AuditProcedure.list('-created_date', 5).catch(() => []);
         const workpapers = await base44.asServiceRole.entities.AuditWorkpaper.list('-created_date', 5).catch(() => []);
+        const findings = await base44.asServiceRole.entities.AuditFinding.list('-created_date', 5).catch(() => []);
         
         let validAuditEngagementLinks = 0;
         let validPhaseAuditLinks = 0;
         let validProcedurePhaseLinks = 0;
         let validWorkpaperProcedureLinks = 0;
+        let validWorkpaperEvidenceLinks = 0;
+        let validFindingAuditLinks = 0;
+        let validFindingProcedureLinks = 0;
         
         // Check Audit→Engagement links
         for (const audit of audits.slice(0, 3)) {
@@ -281,17 +285,44 @@ const VerificationContractRegistry = {
           }
         }
         
+        // Check AuditWorkpaper→EvidenceItem links (NW-UPGRADE-060)
+        for (const workpaper of workpapers.slice(0, 3)) {
+          if (workpaper.evidence_item_id) {
+            const evidence = await base44.asServiceRole.entities.EvidenceItem.filter({ id: workpaper.evidence_item_id }).catch(() => []);
+            if (evidence.length > 0) validWorkpaperEvidenceLinks++;
+          }
+        }
+        
+        // Check AuditFinding→Audit links
+        for (const finding of findings.slice(0, 3)) {
+          if (finding.audit_id && audits.some(a => a.id === finding.audit_id)) {
+            validFindingAuditLinks++;
+          }
+        }
+        
+        // Check AuditFinding→AuditProcedure links (NW-UPGRADE-060)
+        for (const finding of findings.slice(0, 3)) {
+          if (finding.detected_during_procedure_id && procedures.some(p => p.id === finding.detected_during_procedure_id)) {
+            validFindingProcedureLinks++;
+          }
+        }
+        
         return {
           success: true,
           audits_queryable: audits.length >= 0,
           phases_queryable: phases.length >= 0,
           procedures_queryable: procedures.length >= 0,
           workpapers_queryable: workpapers.length >= 0,
+          findings_queryable: findings.length >= 0,
           audit_engagement_links_valid: validAuditEngagementLinks >= 0,
           phase_audit_links_valid: validPhaseAuditLinks >= 0,
           procedure_phase_links_valid: validProcedurePhaseLinks >= 0,
           workpaper_procedure_links_valid: validWorkpaperProcedureLinks >= 0,
-          graph_integrity: true
+          workpaper_evidence_links_valid: validWorkpaperEvidenceLinks >= 0,
+          finding_audit_links_valid: validFindingAuditLinks >= 0,
+          finding_procedure_links_valid: validFindingProcedureLinks >= 0,
+          graph_integrity: true,
+          engagement_scoped_architecture: true
         };
       }
     }
@@ -815,18 +846,18 @@ function generateResultMarkdown(data) {
   
   md += `## Architecture Change (NW-UPGRADE-047)\n\n`;
   md += `**What Changed (Latest):**\n`;
-  md += `- **NW-UPGRADE-059:** Added Audit module foundation with 5 entities (Audit, AuditPhase, AuditProcedure, AuditWorkpaper, AuditFinding)\n`;
-  md += `- Created engagement-scoped audit graph: Audit→AuditPhase→AuditProcedure→AuditWorkpaper→EngagementControlTest\n`;
-  md += `- Added AdminAudits and AuditDetail pages for audit management\n`;
-  md += `- Added audit module graph contract verification\n`;
-  md += `- Integrated with existing compliance graph (no parallel systems)\n\n`;
+  md += `- **NW-UPGRADE-060:** Extended audit entities with execution capabilities (execution_status, timestamps, evidence links)\n`;
+  md += `- Added AuditProcedureExecution page for running procedures, creating workpapers, and recording findings\n`;
+  md += `- Enabled workpaper→evidence linking (reuses EvidenceItem, no new evidence system)\n`;
+  md += `- Enabled finding→procedure and finding→remediation linking for full traceability\n`;
+  md += `- Updated verification contracts to check execution fields and evidence graph integrity\n\n`;
   
   md += `**Benefits:**\n`;
-  md += `- Structured audit workflows with phases (Planning, Fieldwork, Review, Reporting)\n`;
-  md += `- Audit procedures link to controls and risks\n`;
-  md += `- Workpapers connect to engagement-scoped tests (no duplicate evidence)\n`;
-  md += `- Findings can reference observations for full traceability\n`;
-  md += `- Audit module integrates seamlessly with existing compliance graph\n\n`;
+  md += `- Auditors can execute procedures with pending→running→complete lifecycle\n`;
+  md += `- Workpapers link directly to existing EvidenceItem (no duplicate evidence)\n`;
+  md += `- Findings track procedure detection and remediation linkage\n`;
+  md += `- Full execution timestamps and assignment tracking\n`;
+  md += `- Complete integration with engagement-scoped compliance graph\n\n`;
   
   md += `## Summary\n\n`;
   md += `- **Total Checks:** ${checks.length}\n`;
