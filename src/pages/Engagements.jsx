@@ -153,9 +153,9 @@ export default function Engagements() {
   }
 
   return (
-    <div>
+    <div data-test="page-engagements">
       <PageHeader title="Engagements" subtitle={`${engagements.length} total engagements`}>
-        <Button onClick={() => setShowCreate(true)} className="bg-slate-900 hover:bg-slate-800 text-white gap-2">
+        <Button onClick={() => setShowCreate(true)} className="bg-slate-900 hover:bg-slate-800 text-white gap-2" data-test="create-engagement-button">
           <Plus className="w-4 h-4" /> New Engagement
         </Button>
       </PageHeader>

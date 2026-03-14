@@ -125,9 +125,9 @@ export default function AdminAudits() {
   }
 
   return (
-    <div className="space-y-6">
+    <div data-test="page-admin-audits" className="space-y-6">
       <PageHeader title="Audits" subtitle="Manage audit engagements and procedures">
-        <Button onClick={() => setShowDialog(true)} size="sm">
+        <Button onClick={() => setShowDialog(true)} size="sm" data-test="create-audit-button">
           <Plus className="w-4 h-4 mr-2" />
           New Audit
         </Button>
@@ -244,6 +244,7 @@ export default function AdminAudits() {
                 onChange={e => setFormData({...formData, name: e.target.value})}
                 required
                 placeholder="e.g., Q4 2025 AML Compliance Audit"
+                data-test="audit-name-input"
               />
             </div>
             
@@ -265,7 +266,7 @@ export default function AdminAudits() {
                   onValueChange={v => setFormData({...formData, engagement_id: v})}
                   required
                 >
-                  <SelectTrigger><SelectValue placeholder="Select engagement..." /></SelectTrigger>
+                  <SelectTrigger data-test="audit-engagement-select"><SelectValue placeholder="Select engagement..." /></SelectTrigger>
                   <SelectContent>
                     {engagements.length === 0 ? (
                       <div className="px-3 py-2 text-xs text-slate-500 italic">No engagements available. Create one first.</div>

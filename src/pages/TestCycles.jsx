@@ -124,9 +124,9 @@ export default function TestCycles() {
   }
 
   return (
-    <div>
+    <div data-test="page-test-cycles">
       <PageHeader title="Test Cycles" subtitle="Control testing periods and review events">
-        <Button onClick={() => openDialog()} size="sm">
+        <Button onClick={() => openDialog()} size="sm" data-test="create-test-cycle-button">
           <Plus className="w-4 h-4 mr-2" />
           New Test Cycle
         </Button>

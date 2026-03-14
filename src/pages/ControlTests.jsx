@@ -458,9 +458,9 @@ export default function ControlTests() {
   }
 
   return (
-    <div>
+    <div data-test="page-control-tests">
       <PageHeader title="Control Tests" subtitle="Control testing results and evidence">
-        <Button onClick={() => openTestDialog()} size="sm">
+        <Button onClick={() => openTestDialog()} size="sm" data-test="create-control-test-button">
           <Plus className="w-4 h-4 mr-2" />
           New Test
         </Button>

@@ -205,7 +205,7 @@ export default function Findings() {
   }
 
   return (
-    <div>
+    <div data-test="page-findings">
       <PageHeader title="Findings" subtitle="Control testing findings and governance issues">
         <Button onClick={() => openDialog()} size="sm">
           <Plus className="w-4 h-4 mr-2" />

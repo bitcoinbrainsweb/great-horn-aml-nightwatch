@@ -10,6 +10,29 @@ import {
   AlertTriangle, Wrench, Menu, Bell, HelpCircle, GitBranch, ShieldCheck, TrendingUp
 } from 'lucide-react';
 
+/** Stable test selectors for Browser Use / smoke tests (NW-UPGRADE-074) */
+const NAV_TEST_IDS = {
+  Dashboard: 'nav-dashboard',
+  ComplianceOperations: 'nav-compliance-ops',
+  Clients: 'nav-clients',
+  Engagements: 'nav-engagements',
+  Tasks: 'nav-tasks',
+  Reports: 'nav-reports',
+  TestCycles: 'nav-test-cycles',
+  ControlTests: 'nav-control-tests',
+  ControlCoverageMap: 'nav-control-coverage-map',
+  ReviewerDashboard: 'nav-reviewer',
+  Findings: 'nav-findings',
+  RemediationActions: 'nav-remediation-actions',
+  AdminAuditPrograms: 'nav-audit-programs',
+  AdminAudits: 'nav-audits',
+  AdminAuditTemplates: 'nav-audit-templates',
+  Admin: 'nav-admin',
+  ChangeLog: 'nav-changelog',
+  BuildVerificationDashboard: 'nav-build-verification',
+  Feedback: 'nav-feedback',
+};
+
 const NAV_ITEMS = [
   { name: 'Dashboard', icon: LayoutDashboard, page: 'Dashboard' },
   { name: 'Compliance Ops', icon: TrendingUp, page: 'ComplianceOperations' },
@@ -237,12 +260,13 @@ export default function Layout({ children, currentPageName }) {
                (item.page === 'AdminAuditPrograms' && currentPageName === 'AdminAuditPrograms') ||
                (item.page === 'AdminAuditTemplates' && currentPageName === 'AdminAuditTemplates') ||
                (item.page === 'Admin' && ['AdminRiskLibrary', 'AdminControlLibrary', 'AdminMethodologies', 'AdminNarratives', 'AdminUsers', 'AdminAuditLog', 'AdminJurisdictions', 'AdminIndustries', 'AdminTestScenarios', 'AdminInvitations', 'AdminRiskProposals', 'LibraryReviewDashboard', 'AdminGovernance'].includes(currentPageName));
-             return (
-               <Link
-                 key={item.page}
-                 to={createPageUrl(item.page)}
-                 onClick={() => setMobileOpen(false)}
-                 className={`
+            return (
+              <Link
+                key={item.page}
+                to={createPageUrl(item.page)}
+                onClick={() => setMobileOpen(false)}
+                data-test={NAV_TEST_IDS[item.page]}
+                className={`
                    flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-150
                    ${isActive
                      ? 'bg-white/10 text-amber-400'

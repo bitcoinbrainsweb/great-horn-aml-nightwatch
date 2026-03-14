@@ -105,9 +105,9 @@ export default function Clients() {
   }
 
   return (
-    <div>
+    <div data-test="page-clients">
       <PageHeader title="Clients" subtitle={`${clients.length} total clients`}>
-        <Button onClick={() => setShowCreate(true)} className="bg-slate-900 hover:bg-slate-800 text-white gap-2">
+        <Button onClick={() => setShowCreate(true)} className="bg-slate-900 hover:bg-slate-800 text-white gap-2" data-test="create-client-button">
           <Plus className="w-4 h-4" /> New Client
         </Button>
       </PageHeader>
@@ -231,7 +231,7 @@ export default function Clients() {
             <div className="grid grid-cols-2 gap-4">
               <div className="col-span-2">
                 <Label>Legal Name *</Label>
-                <Input required value={form.legal_name || ''} onChange={e => setForm({...form, legal_name: e.target.value})} />
+                <Input required value={form.legal_name || ''} onChange={e => setForm({...form, legal_name: e.target.value})} data-test="client-name-input" />
               </div>
               <div className="col-span-2">
                 <Label>Operating Name</Label>

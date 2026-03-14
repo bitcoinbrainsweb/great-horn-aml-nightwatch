@@ -150,7 +150,7 @@ export default function RemediationActions() {
   }
 
   return (
-    <div>
+    <div data-test="page-remediation-actions">
       {filterFindingId && !loading && !findingExists && (
         <div className="mb-6 bg-amber-50 border border-amber-200 rounded-lg p-4 text-sm text-amber-800">
           <p className="font-semibold">⚠️ Warning: Finding not found</p>

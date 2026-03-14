@@ -121,7 +121,7 @@ export default function ControlCoverageMap() {
   }
 
   return (
-    <div>
+    <div data-test="page-control-coverage-map">
       <div className="flex items-center gap-3 mb-6">
         <Link to={createPageUrl('Admin')} className="p-2 rounded-lg hover:bg-slate-100 text-slate-500">
           <ArrowLeft className="w-4 h-4" />

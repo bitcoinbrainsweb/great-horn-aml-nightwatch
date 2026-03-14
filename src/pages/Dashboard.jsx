@@ -40,7 +40,7 @@ export default function Dashboard() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-64">
+      <div data-test="page-dashboard" className="flex items-center justify-center h-64">
         <div className="w-8 h-8 border-2 border-slate-300 border-t-slate-800 rounded-full animate-spin" />
       </div>
     );
@@ -64,7 +64,7 @@ export default function Dashboard() {
   const drafts = engagements.filter(e => ['Intake In Progress', 'Risk Analysis', 'Draft Report'].includes(e.status)).slice(0, 5);
 
   return (
-    <div className="space-y-6">
+    <div data-test="page-dashboard" className="space-y-6">
       {/* Stats */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard title="Active Engagements" value={active.length} icon={FileStack} color="blue" />

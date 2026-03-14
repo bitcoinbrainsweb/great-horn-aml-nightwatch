@@ -61,9 +61,9 @@ export default function AdminAuditTemplates() {
   const showNextStepNoTemplates = templates.length === 0;
 
   return (
-    <div className="space-y-6">
+    <div data-test="page-admin-audit-templates" className="space-y-6">
       <PageHeader title="Audit Templates" subtitle="Manage reusable audit templates">
-        <Button onClick={() => setShowTemplateDialog(true)} size="sm">
+        <Button onClick={() => setShowTemplateDialog(true)} size="sm" data-test="create-audit-template-button">
           <Plus className="w-4 h-4 mr-2" />
           New Template
         </Button>

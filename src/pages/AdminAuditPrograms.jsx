@@ -130,9 +130,9 @@ export default function AdminAuditPrograms() {
   const showNextStepNoSchedules = activePrograms.length > 0 && programsWithNoSchedules.length > 0;
 
   return (
-    <div className="space-y-6">
+    <div data-test="page-admin-audit-programs" className="space-y-6">
       <PageHeader title="Audit Programs" subtitle="Manage recurring audit programs and schedules">
-        <Button onClick={() => setShowProgramDialog(true)} size="sm">
+        <Button onClick={() => setShowProgramDialog(true)} size="sm" data-test="create-audit-program-button">
           <Plus className="w-4 h-4 mr-2" />
           New Program
         </Button>
@@ -304,7 +304,7 @@ export default function AdminAuditPrograms() {
                 onValueChange={v => setScheduleFormData({...scheduleFormData, engagement_id: v})}
                 required
               >
-                <SelectTrigger><SelectValue placeholder="Select engagement..." /></SelectTrigger>
+                <SelectTrigger data-test="audit-program-engagement-select"><SelectValue placeholder="Select engagement..." /></SelectTrigger>
                 <SelectContent>
                   {engagements.length === 0 ? (
                     <div className="px-3 py-2 text-xs text-slate-500 italic">No engagements available.</div>
