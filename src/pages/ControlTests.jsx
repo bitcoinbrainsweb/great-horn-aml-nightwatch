@@ -34,7 +34,10 @@ export default function ControlTests() {
     remediation_required: false,
     remediation_notes: '',
     remediation_target_date: '',
-    evidence_sufficiency: 'Pending'
+    evidence_sufficiency: 'Pending',
+    test_frequency: '',
+    next_due_date: '',
+    schedule_status: 'not_scheduled'
   });
   const [evidenceFormData, setEvidenceFormData] = useState({
     evidence_type: 'Text',
@@ -91,7 +94,10 @@ export default function ControlTests() {
         remediation_required: test.remediation_required || false,
         remediation_notes: test.remediation_notes || '',
         remediation_target_date: test.remediation_target_date || '',
-        evidence_sufficiency: test.evidence_sufficiency || 'Pending'
+        evidence_sufficiency: test.evidence_sufficiency || 'Pending',
+        test_frequency: test.test_frequency || '',
+        next_due_date: test.next_due_date || '',
+        schedule_status: test.schedule_status || 'not_scheduled'
       });
     } else {
       setEditingTest(null);
@@ -106,7 +112,10 @@ export default function ControlTests() {
         remediation_required: false,
         remediation_notes: '',
         remediation_target_date: '',
-        evidence_sufficiency: 'Pending'
+        evidence_sufficiency: 'Pending',
+        test_frequency: '',
+        next_due_date: '',
+        schedule_status: 'not_scheduled'
       });
     }
     setShowTestDialog(true);
@@ -250,6 +259,13 @@ export default function ControlTests() {
     'Not Tested': 'bg-slate-100 text-slate-600'
   };
 
+  const scheduleColors = {
+    'on_track': 'bg-green-100 text-green-700',
+    'due_soon': 'bg-amber-100 text-amber-700',
+    'overdue': 'bg-red-100 text-red-700',
+    'not_scheduled': 'bg-slate-100 text-slate-600'
+  };
+
   if (loading) {
     return <div className="flex items-center justify-center h-64"><div className="w-8 h-8 border-2 border-slate-300 border-t-slate-800 rounded-full animate-spin" /></div>;
   }
@@ -300,6 +316,19 @@ export default function ControlTests() {
                       {t.reviewed_by && <div>Reviewed by: {t.reviewed_by} on {t.review_date}</div>}
                       {result && result.review_status && (
                         <div>Result Review: {result.review_status}</div>
+                      )}
+                      {t.test_frequency && (
+                        <div className="flex items-center gap-2 mt-1">
+                          <span>Schedule: {t.test_frequency}</span>
+                          {t.schedule_status && t.schedule_status !== 'not_scheduled' && (
+                            <Badge className={scheduleColors[t.schedule_status]} variant="outline">
+                              {t.schedule_status.replace('_', ' ')}
+                            </Badge>
+                          )}
+                          {t.next_due_date && (
+                            <span className="text-slate-400">• Next: {t.next_due_date}</span>
+                          )}
+                        </div>
                       )}
                     </div>
                   </div>
@@ -390,6 +419,25 @@ export default function ControlTests() {
               <div>
                 <label className="text-xs font-medium text-slate-700">Review Date</label>
                 <Input type="date" value={testFormData.review_date} onChange={e => setTestFormData({...testFormData, review_date: e.target.value})} />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="text-xs font-medium text-slate-700">Test Frequency</label>
+                <Select value={testFormData.test_frequency} onValueChange={v => setTestFormData({...testFormData, test_frequency: v})}>
+                  <SelectTrigger><SelectValue placeholder="Select..." /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="weekly">Weekly</SelectItem>
+                    <SelectItem value="monthly">Monthly</SelectItem>
+                    <SelectItem value="quarterly">Quarterly</SelectItem>
+                    <SelectItem value="annual">Annual</SelectItem>
+                    <SelectItem value="ad_hoc">Ad-hoc</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <label className="text-xs font-medium text-slate-700">Next Due Date</label>
+                <Input type="date" value={testFormData.next_due_date} onChange={e => setTestFormData({...testFormData, next_due_date: e.target.value})} />
               </div>
             </div>
             <div className="flex items-center gap-2">
