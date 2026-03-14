@@ -32,6 +32,7 @@ const NAV_ITEMS = [
   // GOVERNANCE section
   { label: 'GOVERNANCE' },
   { name: 'Admin', icon: Settings, page: 'Admin' },
+  { name: 'Audits', icon: FileText, page: 'AdminAudits', adminOnly: true },
   { name: 'ChangeLog', icon: GitBranch, page: 'ChangeLog', adminOnly: true },
   { name: 'Build Verification', icon: ShieldCheck, page: 'BuildVerificationDashboard', adminOnly: true },
   { name: 'Feedback', icon: HelpCircle, page: 'Feedback' },
@@ -228,6 +229,7 @@ export default function Layout({ children, currentPageName }) {
                (item.page === 'BuildVerificationDashboard' && currentPageName === 'BuildVerificationDashboard') ||
                (item.page === 'ComplianceOperations' && currentPageName === 'ComplianceOperations') ||
                (item.page === 'ControlCoverageMap' && currentPageName === 'ControlCoverageMap') ||
+               (item.page === 'AdminAudits' && ['AdminAudits', 'AuditDetail'].includes(currentPageName)) ||
                (item.page === 'Admin' && ['AdminRiskLibrary', 'AdminControlLibrary', 'AdminMethodologies', 'AdminNarratives', 'AdminUsers', 'AdminAuditLog', 'AdminJurisdictions', 'AdminIndustries', 'AdminTestScenarios', 'AdminInvitations', 'AdminRiskProposals', 'LibraryReviewDashboard', 'AdminGovernance'].includes(currentPageName));
              return (
                <Link

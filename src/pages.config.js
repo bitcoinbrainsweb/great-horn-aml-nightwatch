@@ -71,6 +71,7 @@ import ChangeLog from './pages/ChangeLog';
 import ClientDetail from './pages/ClientDetail';
 import Clients from './pages/Clients';
 import ComplianceOperations from './pages/ComplianceOperations';
+import ControlCoverageMap from './pages/ControlCoverageMap';
 import ControlTests from './pages/ControlTests';
 import Dashboard from './pages/Dashboard';
 import DeterministicEngineArchitecture from './pages/DeterministicEngineArchitecture';
@@ -101,7 +102,8 @@ import ReviewerDashboard from './pages/ReviewerDashboard';
 import RunNW040Verification from './pages/RunNW040Verification';
 import Tasks from './pages/Tasks';
 import TestCycles from './pages/TestCycles';
-import ControlCoverageMap from './pages/ControlCoverageMap';
+import AdminAudits from './pages/AdminAudits';
+import AuditDetail from './pages/AuditDetail';
 
 
 export const PAGES = {
@@ -129,6 +131,7 @@ export const PAGES = {
     "ClientDetail": ClientDetail,
     "Clients": Clients,
     "ComplianceOperations": ComplianceOperations,
+    "ControlCoverageMap": ControlCoverageMap,
     "ControlTests": ControlTests,
     "Dashboard": Dashboard,
     "DeterministicEngineArchitecture": DeterministicEngineArchitecture,
@@ -159,7 +162,8 @@ export const PAGES = {
     "RunNW040Verification": RunNW040Verification,
     "Tasks": Tasks,
     "TestCycles": TestCycles,
-    "ControlCoverageMap": ControlCoverageMap,
+    "AdminAudits": AdminAudits,
+    "AuditDetail": AuditDetail,
 }
 
 export const pagesConfig = {
