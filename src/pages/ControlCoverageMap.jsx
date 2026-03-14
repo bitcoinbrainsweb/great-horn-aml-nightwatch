@@ -2,9 +2,14 @@ import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
-import { ArrowLeft, ShieldCheck, AlertTriangle, CheckCircle2, XCircle } from 'lucide-react';
+import { ArrowLeft, ShieldCheck, AlertTriangle, CheckCircle2, XCircle, Filter, TrendingUp } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import PageHeader from '../components/ui/PageHeader';
+import NextStepGuidance from '../components/help/NextStepGuidance';
+import EmptyState from '../components/ui/EmptyState';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 const STATUS_CONFIG = {
   COVERED: { className: 'bg-green-100 text-green-800 border-green-200', label: 'Covered', icon: CheckCircle2 },
@@ -19,6 +24,9 @@ export default function ControlCoverageMap() {
   const [controls, setControls] = useState([]);
   const [tests, setTests] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [statusFilter, setStatusFilter] = useState('all');
+  const [categoryFilter, setCategoryFilter] = useState('all');
+  const [showGapsOnly, setShowGapsOnly] = useState(false);
 
   useEffect(() => { load(); }, []);
 
@@ -80,8 +88,29 @@ export default function ControlCoverageMap() {
     ineffective: riskCoverage.filter(r => r.status === 'INEFFECTIVE').length,
     notTested: riskCoverage.filter(r => r.status === 'NOT_TESTED').length,
     uncontrolled: riskCoverage.filter(r => r.status === 'UNCONTROLLED').length,
+    totalControls: controls.length,
+    controlsWithTests: controlsWithTests.size,
+    controlsWithoutTests: controls.length - controlsWithTests.size,
+    risksWithControls: riskCoverage.filter(r => r.totalControls > 0).length,
   };
   const coveragePct = summary.total > 0 ? Math.round((summary.covered / summary.total) * 100) : 0;
+  const gapCount = summary.uncontrolled + summary.notTested + summary.ineffective;
+
+  // Filtering logic
+  const categories = [...new Set(risks.map(r => r.risk_category).filter(Boolean))];
+  
+  const filteredCoverage = riskCoverage.filter(risk => {
+    const matchesStatus = statusFilter === 'all' || risk.status === statusFilter;
+    const matchesCategory = categoryFilter === 'all' || risk.risk_category === categoryFilter;
+    const matchesGapsOnly = !showGapsOnly || ['UNCONTROLLED', 'NOT_TESTED', 'INEFFECTIVE'].includes(risk.status);
+    return matchesStatus && matchesCategory && matchesGapsOnly;
+  });
+
+  // Next step logic
+  const showNextStepNoRisks = risks.length === 0;
+  const showNextStepNoControls = risks.length > 0 && controls.length === 0;
+  const showNextStepUncontrolledRisks = risks.length > 0 && controls.length > 0 && summary.uncontrolled > 0;
+  const showNextStepUntestedControls = summary.controlsWithoutTests > 0 && summary.uncontrolled === 0;
 
   if (loading) {
     return (
@@ -97,17 +126,177 @@ export default function ControlCoverageMap() {
         <Link to={createPageUrl('Admin')} className="p-2 rounded-lg hover:bg-slate-100 text-slate-500">
           <ArrowLeft className="w-4 h-4" />
         </Link>
-        <PageHeader title="Control Coverage Map" subtitle={`${risks.length} risks | ${controls.length} active controls`} />
+        <div className="flex-1">
+          <PageHeader title="Control Coverage Map" subtitle="Track which risks have controls and which controls are tested" />
+        </div>
       </div>
 
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 mb-6">
-        <SummaryCard label="Total Risks" value={summary.total} color="text-slate-900" />
-        <SummaryCard label="Covered" value={summary.covered} color="text-green-700" />
-        <SummaryCard label="Partial" value={summary.partial} color="text-amber-700" />
-        <SummaryCard label="Ineffective" value={summary.ineffective} color="text-red-700" />
-        <SummaryCard label="Not Tested" value={summary.notTested} color="text-slate-500" />
-        <SummaryCard label="Uncontrolled" value={summary.uncontrolled} color="text-red-700" />
-      </div>
+      {showNextStepNoRisks && (
+        <NextStepGuidance
+          currentState="No risks defined yet."
+          recommendedAction="Add risks to your risk library before mapping controls."
+          explanation="The coverage map shows how well your controls protect against identified risks. Start by defining what risks you're managing."
+          ctaText="View Risk Library"
+          onCtaClick={() => window.location.href = createPageUrl('AdminRiskLibrary')}
+          variant="warning"
+        />
+      )}
+
+      {showNextStepNoControls && (
+        <NextStepGuidance
+          currentState={`${risks.length} risk${risks.length > 1 ? 's exist' : ' exists'}, but no controls are defined yet.`}
+          recommendedAction="Add controls to your control library and link them to risks."
+          explanation="Controls are how you reduce risk. Without controls, all risks show as uncontrolled gaps."
+          ctaText="View Control Library"
+          onCtaClick={() => window.location.href = createPageUrl('AdminControlLibrary')}
+          variant="warning"
+        />
+      )}
+
+      {showNextStepUncontrolledRisks && (
+        <NextStepGuidance
+          currentState={`${summary.uncontrolled} risk${summary.uncontrolled > 1 ? 's have' : ' has'} no controls assigned.`}
+          recommendedAction="Link controls to these uncontrolled risks."
+          explanation="Uncontrolled risks are gaps in your compliance program. Assign or create controls to address them."
+          ctaText="View Risk Library"
+          onCtaClick={() => window.location.href = createPageUrl('AdminRiskLibrary')}
+          variant="warning"
+        />
+      )}
+
+      {showNextStepUntestedControls && (
+        <NextStepGuidance
+          currentState={`${summary.controlsWithoutTests} control${summary.controlsWithoutTests > 1 ? 's have' : ' has'} no tests.`}
+          recommendedAction="Create test cycles and assign controls for testing."
+          explanation="Untested controls can't prove they're working. Regular testing validates your control environment."
+          ctaText="View Control Tests"
+          onCtaClick={() => window.location.href = createPageUrl('ControlTests')}
+        />
+      )}
+
+      {risks.length === 0 ? (
+        <EmptyState
+          icon={ShieldCheck}
+          title="No risks to map"
+          description="Add risks to your risk library to start tracking control coverage"
+        >
+          <Button 
+            size="sm" 
+            className="mt-4"
+            onClick={() => window.location.href = createPageUrl('AdminRiskLibrary')}
+          >
+            Go to Risk Library
+          </Button>
+        </EmptyState>
+      ) : (
+        <>
+          {/* Summary Cards */}
+          <div className="grid gap-4 mb-6">
+            <Card className="border-blue-200 bg-blue-50">
+              <CardContent className="p-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-xs text-blue-700 font-medium uppercase mb-1">Coverage Overview</p>
+                    <p className="text-2xl font-bold text-blue-900">{coveragePct}%</p>
+                    <p className="text-xs text-blue-600 mt-1">
+                      {summary.covered} of {summary.total} risks fully covered
+                    </p>
+                  </div>
+                  <TrendingUp className="w-8 h-8 text-blue-400" />
+                </div>
+                <div className="w-full bg-blue-100 rounded-full h-2 mt-3">
+                  <div
+                    className="bg-blue-600 h-2 rounded-full transition-all"
+                    style={{ width: `${coveragePct}%` }}
+                  />
+                </div>
+              </CardContent>
+            </Card>
+
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              <SummaryCard label="Total Risks" value={summary.total} color="text-slate-900" icon={ShieldCheck} />
+              <SummaryCard label="Coverage Gaps" value={gapCount} color="text-red-700" icon={AlertTriangle} highlight={gapCount > 0} />
+              <SummaryCard label="Active Controls" value={summary.totalControls} color="text-blue-700" icon={CheckCircle2} />
+              <SummaryCard label="Untested Controls" value={summary.controlsWithoutTests} color="text-amber-700" icon={XCircle} highlight={summary.controlsWithoutTests > 0} />
+            </div>
+          </div>
+
+          {/* Filters */}
+          <Card className="mb-6">
+            <CardContent className="p-4">
+              <div className="flex items-center gap-3 flex-wrap">
+                <Filter className="w-4 h-4 text-slate-500" />
+                <span className="text-sm font-medium text-slate-700">Filters:</span>
+                
+                <Select value={statusFilter} onValueChange={setStatusFilter}>
+                  <SelectTrigger className="w-[160px]">
+                    <SelectValue placeholder="All Status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Status</SelectItem>
+                    <SelectItem value="COVERED">Covered</SelectItem>
+                    <SelectItem value="PARTIALLY_COVERED">Partial</SelectItem>
+                    <SelectItem value="NOT_TESTED">Not Tested</SelectItem>
+                    <SelectItem value="INEFFECTIVE">Ineffective</SelectItem>
+                    <SelectItem value="UNCONTROLLED">Uncontrolled</SelectItem>
+                  </SelectContent>
+                </Select>
+
+                {categories.length > 0 && (
+                  <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+                    <SelectTrigger className="w-[160px]">
+                      <SelectValue placeholder="All Categories" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Categories</SelectItem>
+                      {categories.map(cat => (
+                        <SelectItem key={cat} value={cat}>{cat}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
+
+                <Button
+                  variant={showGapsOnly ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setShowGapsOnly(!showGapsOnly)}
+                  className={showGapsOnly ? "bg-red-600 hover:bg-red-700" : ""}
+                >
+                  {showGapsOnly ? "Showing Gaps Only" : "Show Gaps Only"}
+                </Button>
+
+                {(statusFilter !== 'all' || categoryFilter !== 'all' || showGapsOnly) && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => {
+                      setStatusFilter('all');
+                      setCategoryFilter('all');
+                      setShowGapsOnly(false);
+                    }}
+                  >
+                    Clear Filters
+                  </Button>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Status Legend */}
+          <Card className="mb-6">
+            <CardHeader>
+              <CardTitle className="text-sm">Status Guide</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 text-xs">
+                <StatusLegend status="COVERED" description="All controls tested and effective" />
+                <StatusLegend status="PARTIALLY_COVERED" description="Some controls effective, some not" />
+                <StatusLegend status="NOT_TESTED" description="Controls exist but not tested yet" />
+                <StatusLegend status="INEFFECTIVE" description="Controls tested but ineffective" />
+                <StatusLegend status="UNCONTROLLED" description="No controls assigned to this risk" />
+              </div>
+            </CardContent>
+          </Card>
 
       <div className="bg-white rounded-xl border border-slate-200/60 p-4 mb-6">
         <div className="flex items-center justify-between">
@@ -122,51 +311,125 @@ export default function ControlCoverageMap() {
         </div>
       </div>
 
-      <div className="bg-white rounded-xl border border-slate-200/60 overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b border-slate-100 bg-slate-50/50">
-                <th className="text-left px-5 py-3 text-xs font-semibold text-slate-500 uppercase">Risk</th>
-                <th className="text-left px-5 py-3 text-xs font-semibold text-slate-500 uppercase hidden md:table-cell">Category</th>
-                <th className="text-left px-5 py-3 text-xs font-semibold text-slate-500 uppercase">Controls</th>
-                <th className="text-left px-5 py-3 text-xs font-semibold text-slate-500 uppercase">Tested</th>
-                <th className="text-left px-5 py-3 text-xs font-semibold text-slate-500 uppercase">Effective</th>
-                <th className="text-left px-5 py-3 text-xs font-semibold text-slate-500 uppercase">Status</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100">
-              {riskCoverage.map(risk => {
-                const cfg = STATUS_CONFIG[risk.status] || STATUS_CONFIG.NOT_TESTED;
-                return (
-                  <tr key={risk.id} className="hover:bg-slate-50/50">
-                    <td className="px-5 py-3">
-                      <p className="font-medium text-slate-900">{risk.risk_name || risk.name || '—'}</p>
-                      {risk.risk_category && <p className="text-xs text-slate-500">{risk.risk_category}</p>}
-                    </td>
-                    <td className="px-5 py-3 text-slate-600 hidden md:table-cell">{risk.risk_category || '—'}</td>
-                    <td className="px-5 py-3 text-slate-900 font-medium">{risk.totalControls}</td>
-                    <td className="px-5 py-3 text-slate-900">{risk.testedControls}</td>
-                    <td className="px-5 py-3 text-slate-900">{risk.effectiveControls}</td>
-                    <td className="px-5 py-3">
-                      <Badge className={cfg.className}>{cfg.label}</Badge>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
-      </div>
+          {/* Coverage Table */}
+          <Card>
+            <CardContent className="p-0">
+              {filteredCoverage.length === 0 ? (
+                <div className="p-8 text-center">
+                  <p className="text-sm text-slate-500">No risks match the current filters</p>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="mt-3"
+                    onClick={() => {
+                      setStatusFilter('all');
+                      setCategoryFilter('all');
+                      setShowGapsOnly(false);
+                    }}
+                  >
+                    Clear Filters
+                  </Button>
+                </div>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="border-b border-slate-100 bg-slate-50/50">
+                        <th className="text-left px-5 py-3 text-xs font-semibold text-slate-500 uppercase">Risk</th>
+                        <th className="text-left px-5 py-3 text-xs font-semibold text-slate-500 uppercase hidden md:table-cell">Category</th>
+                        <th className="text-center px-5 py-3 text-xs font-semibold text-slate-500 uppercase">Controls</th>
+                        <th className="text-center px-5 py-3 text-xs font-semibold text-slate-500 uppercase">Tested</th>
+                        <th className="text-center px-5 py-3 text-xs font-semibold text-slate-500 uppercase">Effective</th>
+                        <th className="text-left px-5 py-3 text-xs font-semibold text-slate-500 uppercase">Status</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100">
+                      {filteredCoverage.map(risk => {
+                        const cfg = STATUS_CONFIG[risk.status] || STATUS_CONFIG.NOT_TESTED;
+                        const Icon = cfg.icon;
+                        const isGap = ['UNCONTROLLED', 'NOT_TESTED', 'INEFFECTIVE'].includes(risk.status);
+                        
+                        return (
+                          <tr 
+                            key={risk.id} 
+                            className={`hover:bg-slate-50/50 transition-colors ${isGap ? 'bg-red-50/30' : ''}`}
+                          >
+                            <td className="px-5 py-3">
+                              <div className="flex items-start gap-2">
+                                {isGap && <AlertTriangle className="w-4 h-4 text-red-500 flex-shrink-0 mt-0.5" />}
+                                <div>
+                                  <p className="font-medium text-slate-900">{risk.risk_name || risk.name || '—'}</p>
+                                  {risk.risk_category && <p className="text-xs text-slate-500 mt-0.5">{risk.risk_category}</p>}
+                                </div>
+                              </div>
+                            </td>
+                            <td className="px-5 py-3 text-slate-600 hidden md:table-cell">{risk.risk_category || '—'}</td>
+                            <td className="px-5 py-3 text-center">
+                              <span className={`font-medium ${risk.totalControls === 0 ? 'text-red-600' : 'text-slate-900'}`}>
+                                {risk.totalControls}
+                              </span>
+                            </td>
+                            <td className="px-5 py-3 text-center">
+                              <span className={`${risk.testedControls === 0 && risk.totalControls > 0 ? 'text-amber-600 font-medium' : 'text-slate-900'}`}>
+                                {risk.testedControls}
+                              </span>
+                            </td>
+                            <td className="px-5 py-3 text-center">
+                              <span className={`${risk.effectiveControls < risk.totalControls && risk.totalControls > 0 ? 'text-red-600 font-medium' : 'text-slate-900'}`}>
+                                {risk.effectiveControls}
+                              </span>
+                            </td>
+                            <td className="px-5 py-3">
+                              <Badge className={`${cfg.className} flex items-center gap-1 w-fit`}>
+                                <Icon className="w-3 h-3" />
+                                {cfg.label}
+                              </Badge>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </>
+      )}
     </div>
   );
 }
 
-function SummaryCard({ label, value, color }) {
+function SummaryCard({ label, value, color, icon: Icon, highlight = false }) {
   return (
-    <div className="bg-white rounded-xl border border-slate-200/60 p-3 text-center">
-      <p className="text-xs text-slate-500 mb-1">{label}</p>
-      <p className={`text-xl font-bold ${color}`}>{value}</p>
+    <Card className={highlight ? 'border-red-300 bg-red-50' : ''}>
+      <CardContent className="p-3">
+        <div className="flex items-center justify-between mb-1">
+          <p className="text-xs text-slate-500 font-medium">{label}</p>
+          {Icon && <Icon className="w-4 h-4 text-slate-400" />}
+        </div>
+        <p className={`text-2xl font-bold ${color}`}>{value}</p>
+      </CardContent>
+    </Card>
+  );
+}
+
+function StatusLegend({ status, description }) {
+  const cfg = STATUS_CONFIG[status];
+  const Icon = cfg.icon;
+  
+  return (
+    <div className="flex items-start gap-2">
+      <Icon className={`w-4 h-4 flex-shrink-0 mt-0.5 ${
+        status === 'COVERED' ? 'text-green-600' :
+        status === 'PARTIALLY_COVERED' ? 'text-amber-600' :
+        status === 'UNCONTROLLED' || status === 'INEFFECTIVE' ? 'text-red-600' :
+        'text-slate-500'
+      }`} />
+      <div>
+        <p className="font-medium text-slate-900">{cfg.label}</p>
+        <p className="text-slate-500">{description}</p>
+      </div>
     </div>
   );
 }
