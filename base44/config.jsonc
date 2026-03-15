@@ -1,0 +1,6 @@
+{
+  "name": "great-horn-aml-nightwatch",
+  "description": "Nightwatch AML compliance platform",
+  "entitiesDir": "./entities",
+  "functionsDir": "../functions"
+}

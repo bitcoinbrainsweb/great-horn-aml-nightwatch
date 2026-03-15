@@ -1,0 +1,17 @@
+{
+  "name": "NwAuthSession",
+  "type": "object",
+  "title": "Nightwatch Auth Session",
+  "description": "NW-UPGRADE-076A: Server-side session; token_hash only, no plaintext.",
+  "properties": {
+    "user_id": { "type": "string" },
+    "token_hash": { "type": "string" },
+    "created_at": { "type": "string", "format": "date-time" },
+    "expires_at": { "type": "string", "format": "date-time" },
+    "ip_address": { "type": "string" },
+    "user_agent": { "type": "string" },
+    "revoked_at": { "type": "string", "format": "date-time" },
+    "session_version_snapshot": { "type": "number" }
+  },
+  "required": ["user_id", "token_hash", "expires_at"]
+}

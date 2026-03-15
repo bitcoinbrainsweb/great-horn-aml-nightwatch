@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
-import { ArrowLeft, Plus, Send, X, RotateCcw } from 'lucide-react';
+import { buildInviteLink } from '@/utils/inviteLink';
+import { ArrowLeft, Plus, Send, X, RotateCcw, Link2, Copy } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -33,6 +34,8 @@ const STATUS_COLORS = {
   Revoked: 'bg-slate-100 text-slate-500 border-slate-200',
 };
 
+const SMOKE_EMAIL = 'smoke@nightwatch.test';
+
 export default function AdminInvitations() {
   const [invitations, setInvitations] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -40,18 +43,25 @@ export default function AdminInvitations() {
   const [showInvite, setShowInvite] = useState(false);
   const [form, setForm] = useState({ email: '', role: 'analyst', notes: '' });
   const [saving, setSaving] = useState(false);
+  const [copyFeedback, setCopyFeedback] = useState(null);
 
   useEffect(() => { load(); }, []);
 
+  const [users, setUsers] = useState([]);
+
   async function load() {
-    const [inv, me] = await Promise.all([
+    const [inv, me, uList] = await Promise.all([
       base44.entities.UserInvitation.list('-created_date', 100),
       base44.auth.me(),
+      base44.entities.User.list(),
     ]);
     setInvitations(inv);
     setUser(me);
+    setUsers(uList);
     setLoading(false);
   }
+
+  const userExists = (email) => users.some(u => (u.email || '').toLowerCase() === (email || '').toLowerCase());
 
   const canManage = ['super_admin', 'compliance_admin', 'admin'].includes(user?.role);
 
@@ -104,11 +114,26 @@ export default function AdminInvitations() {
     await load();
   }
 
+  function copyInviteLink(inv) {
+    const url = buildInviteLink(inv);
+    if (!url) return;
+    navigator.clipboard.writeText(url).then(() => {
+      setCopyFeedback(inv.id);
+      setTimeout(() => setCopyFeedback(null), 2000);
+    });
+  }
+
+  function openInviteLink(inv) {
+    const url = buildInviteLink(inv);
+    if (url) window.open(url, '_blank', 'noopener,noreferrer');
+  }
+
   if (loading) return <div className="flex items-center justify-center h-64"><div className="w-8 h-8 border-2 border-slate-300 border-t-slate-800 rounded-full animate-spin" /></div>;
 
   const pending = invitations.filter(i => i.status === 'Pending');
   const active = invitations.filter(i => i.status === 'Active');
   const revoked = invitations.filter(i => i.status === 'Revoked');
+  const smokeInvitation = invitations.find(i => i.email === SMOKE_EMAIL && (i.status === 'Active' || i.status === 'Pending'));
 
   return (
     <div>
@@ -126,6 +151,19 @@ export default function AdminInvitations() {
         </PageHeader>
       </div>
 
+      {canManage && smokeInvitation && (
+        <div className="mb-4 p-3 rounded-lg bg-amber-50 border border-amber-200 flex flex-wrap items-center gap-2">
+          <span className="text-sm font-medium text-amber-800">Smoke test account:</span>
+          <Button variant="outline" size="sm" onClick={() => copyInviteLink(smokeInvitation)} className="gap-1">
+            {copyFeedback === smokeInvitation.id ? 'Copied' : <><Copy className="w-3.5 h-3.5" /> Copy smoke invite link</>}
+          </Button>
+          <Button variant="outline" size="sm" onClick={() => openInviteLink(smokeInvitation)} className="gap-1">
+            <Link2 className="w-3.5 h-3.5" /> Open smoke invite link
+          </Button>
+          <span className="text-xs text-amber-700">Complete registration with smoke@nightwatch.test / SmokeTest123! then log in normally.</span>
+        </div>
+      )}
+
       <div className="bg-white rounded-xl border border-slate-200/60 overflow-hidden">
         <table className="w-full text-sm">
           <thead>
@@ -135,12 +173,13 @@ export default function AdminInvitations() {
               <th className="text-left px-5 py-3 text-xs font-semibold text-slate-500 uppercase hidden md:table-cell">Invited By</th>
               <th className="text-left px-5 py-3 text-xs font-semibold text-slate-500 uppercase hidden lg:table-cell">Date</th>
               <th className="text-left px-5 py-3 text-xs font-semibold text-slate-500 uppercase">Status</th>
+              <th className="text-left px-5 py-3 text-xs font-semibold text-slate-500 uppercase hidden md:table-cell">User</th>
               {canManage && <th className="w-24"></th>}
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100">
             {invitations.length === 0 ? (
-              <tr><td colSpan="6" className="px-5 py-8 text-center text-sm text-slate-500">No invitations yet.</td></tr>
+              <tr><td colSpan="7" className="px-5 py-8 text-center text-sm text-slate-500">No invitations yet.</td></tr>
             ) : invitations.map(inv => (
               <tr key={inv.id} className="hover:bg-slate-50/50">
                 <td className="px-5 py-3 font-medium text-slate-900">{inv.email}</td>
@@ -156,9 +195,30 @@ export default function AdminInvitations() {
                     {inv.status}
                   </span>
                 </td>
+                <td className="px-5 py-3 text-slate-600 hidden md:table-cell">
+                  {userExists(inv.email) ? <span className="text-green-600 font-medium">Registered</span> : '—'}
+                </td>
                 {canManage && (
                   <td className="px-3 py-3">
                     <div className="flex items-center gap-1">
+                      {(inv.status === 'Pending' || inv.status === 'Active') && (
+                        <>
+                          <button
+                            onClick={() => copyInviteLink(inv)}
+                            title="Copy invite link"
+                            className="p-1.5 rounded hover:bg-slate-100 text-slate-400 hover:text-blue-600 transition-colors"
+                          >
+                            {copyFeedback === inv.id ? <span className="text-xs text-green-600">Copied</span> : <Copy className="w-3.5 h-3.5" />}
+                          </button>
+                          <button
+                            onClick={() => openInviteLink(inv)}
+                            title="Open invite link"
+                            className="p-1.5 rounded hover:bg-slate-100 text-slate-400 hover:text-blue-600 transition-colors"
+                          >
+                            <Link2 className="w-3.5 h-3.5" />
+                          </button>
+                        </>
+                      )}
                       {inv.status === 'Pending' && (
                         <>
                           <button

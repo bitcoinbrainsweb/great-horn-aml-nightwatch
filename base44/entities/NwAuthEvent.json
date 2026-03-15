@@ -1,0 +1,15 @@
+{
+  "name": "NwAuthEvent",
+  "type": "object",
+  "title": "Nightwatch Auth Event",
+  "description": "NW-UPGRADE-076A: Append-only auth audit log; no update/delete in application code.",
+  "properties": {
+    "user_id": { "type": "string" },
+    "event_type": { "type": "string" },
+    "performed_by": { "type": "string" },
+    "ip_address": { "type": "string" },
+    "timestamp": { "type": "string", "format": "date-time" },
+    "metadata": { "type": "object" }
+  },
+  "required": ["user_id", "event_type", "timestamp"]
+}
