@@ -1,13 +1,20 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.20';
+import { nwAuthMiddleware, requireAuth } from './auth-nw-middleware.ts';
 
+/**
+ * NW-UPGRADE-076D-PHASE1: Protected by Nightwatch auth middleware (read-only report endpoint).
+ */
 Deno.serve(async (req) => {
   try {
-    const base44 = createClientFromRequest(req);
-    const user = await base44.auth.me();
-
+    const auth = await nwAuthMiddleware(req);
+    const err = requireAuth(auth);
+    if (err) return err;
+    const user = auth.authenticated_user as { role?: string };
     if (!user || user.role !== 'admin') {
       return Response.json({ error: 'Forbidden: Admin access required' }, { status: 403 });
     }
+
+    const base44 = createClientFromRequest(req);
 
     const report = {
       timestamp: new Date().toISOString(),

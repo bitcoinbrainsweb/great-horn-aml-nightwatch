@@ -1,16 +1,20 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.20';
+import { nwAuthMiddleware, requireAuth } from './auth-nw-middleware.ts';
 
+/**
+ * NW-UPGRADE-076D-PHASE1: Protected by Nightwatch auth middleware (read-only health/diagnostics route).
+ */
 Deno.serve(async (req) => {
   try {
-    const base44 = createClientFromRequest(req);
-    const user = await base44.auth.me();
-
-    if (!user) {
-      return Response.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-    if (!['admin', 'super_admin'].includes(user.role)) {
+    const auth = await nwAuthMiddleware(req);
+    const err = requireAuth(auth);
+    if (err) return err;
+    const user = auth.authenticated_user as { role?: string };
+    if (!user || !['admin', 'super_admin'].includes(user.role ?? '')) {
       return Response.json({ error: 'Forbidden: Technical Admin access required' }, { status: 403 });
     }
+
+    const base44 = createClientFromRequest(req);
 
     const checks = [];
 
