@@ -9,7 +9,10 @@
     "lint": "eslint . --quiet",
     "lint:fix": "eslint . --fix",
     "typecheck": "tsc -p ./jsconfig.json",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test:auth-bridge": "tsx tests/authBridgeSmokeTest.ts",
+    "test:auth-full": "tsx tests/fullAuthSystemValidation.ts",
+    "test:post-sunset": "tsx tests/postSunsetAuthSmokeTest.ts"
   },
   "dependencies": {
     "@base44/sdk": "^0.8.0",
@@ -79,6 +82,7 @@
     "zod": "^3.24.2"
   },
   "devDependencies": {
+    "tsx": "^4.19.2",
     "@eslint/js": "^9.19.0",
     "@types/node": "^22.13.5",
     "@types/react": "^18.2.66",

@@ -16,13 +16,12 @@ import { NW_AUTH_ROLES, NW_AUTH_STATUSES } from '@/lib/nw-auth-constants';
 
 const SMOKE_EMAIL = 'smoke@nightwatch.test';
 
+/** NW-076F-PHASE2: Nightwatch roles only. */
 const ROLES = [
   { value: 'admin', label: 'Admin' },
-  { value: 'super_admin', label: 'Technical Admin' },
-  { value: 'compliance_admin', label: 'Compliance Admin' },
-  { value: 'analyst', label: 'Analyst' },
-  { value: 'reviewer', label: 'Reviewer' },
-  { value: 'test_automation', label: 'Test Automation (Read-Only)' },
+  { value: 'operator', label: 'Operator' },
+  { value: 'viewer', label: 'Viewer' },
+  { value: 'auditor', label: 'Auditor' },
 ];
 
 export default function AdminUsers() {
@@ -204,14 +203,8 @@ export default function AdminUsers() {
     }
   }
 
-  async function sendPasswordReset(user) {
-    try {
-      await base44.auth.resetPasswordRequest(user.email);
-      setResetSent(user.id);
-      setTimeout(() => setResetSent(null), 4000);
-    } catch (e) {
-      setSmokeEnsureResult({ success: false, error: `Reset email failed: ${e.message || e}` });
-    }
+  function sendPasswordReset() {
+    setSmokeEnsureResult({ success: false, error: 'Password is managed via Nightwatch admin (NwAuthUser).' });
   }
 
   if (loading) return <div className="flex items-center justify-center h-64"><div className="w-8 h-8 border-2 border-slate-300 border-t-slate-800 rounded-full animate-spin" /></div>;
@@ -288,8 +281,8 @@ export default function AdminUsers() {
                 <td className="px-5 py-3 text-right">
                   <div className="flex items-center justify-end gap-1">
                     <Button variant="ghost" size="icon" onClick={() => { setEditUser(u); setEditRole(u.role || 'analyst'); setEditName(u.full_name || ''); }} className="h-7 w-7" title="Edit"><Edit2 className="w-3.5 h-3.5" /></Button>
-                    <Button variant="ghost" size="icon" onClick={() => sendPasswordReset(u)} disabled={!!resetSent} className="h-7 w-7 text-slate-500" title="Send password reset email">
-                      {resetSent === u.id ? <span className="text-xs">Sent</span> : <KeyRound className="w-3.5 h-3.5" />}
+                    <Button variant="ghost" size="icon" onClick={() => sendPasswordReset()} className="h-7 w-7 text-slate-500" title="Password managed via Nightwatch">
+                      <KeyRound className="w-3.5 h-3.5" />
                     </Button>
                     {u.email !== SMOKE_EMAIL && (
                       <Button variant="ghost" size="icon" onClick={() => setDeleteConfirm(u)} className="h-7 w-7 text-red-600 hover:text-red-700" title="Delete user"><Trash2 className="w-3.5 h-3.5" /></Button>

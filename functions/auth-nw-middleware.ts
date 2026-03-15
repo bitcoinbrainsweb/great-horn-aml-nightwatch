@@ -76,8 +76,57 @@ export async function getSessionUser(token: string, req: Request): Promise<Sessi
   return { ok: true, user: sanitizeUser(user) };
 }
 
+/** NW-UPGRADE-076E-PHASE2: Get session token from Bearer or Cookie nw_session. */
+function getTokenFromRequest(req: Request): string {
+  const authHeader = req.headers.get('authorization');
+  const bearer = authHeader?.replace(/^Bearer\s+/i, '')?.trim() ?? '';
+  if (bearer) return bearer;
+  const cookieHeader = req.headers.get('cookie');
+  if (!cookieHeader) return '';
+  const match = cookieHeader.match(/\bnw_session=([^;]*)/);
+  return match ? decodeURIComponent(match[1].trim()) : '';
+}
+
+const STATE_CHANGING_METHODS = new Set(['POST', 'PUT', 'PATCH', 'DELETE']);
+
+/** NW-076F-PHASE1: Constant-time string comparison. */
+function constantTimeCompare(a: string, b: string): boolean {
+  if (a.length !== b.length) return false;
+  let out = 0;
+  for (let i = 0; i < a.length; i++) out |= a.charCodeAt(i) ^ b.charCodeAt(i);
+  return out === 0;
+}
+
+/** NW-076F-PHASE1: Read nw_csrf_token from Cookie header. */
+function getCsrfTokenFromCookie(req: Request): string {
+  const cookieHeader = req.headers.get('cookie');
+  if (!cookieHeader) return '';
+  const match = cookieHeader.match(/\bnw_csrf_token=([^;]*)/);
+  return match ? decodeURIComponent(match[1].trim()) : '';
+}
+
 /**
- * Middleware: read Authorization Bearer token, validate session, attach user or return 401.
+ * NW-076F-PHASE1: Validate double-submit cookie CSRF.
+ * For POST/PUT/PATCH/DELETE: X-CSRF-Token header must equal nw_csrf_token cookie.
+ * Returns 403 Response if invalid/missing; otherwise null.
+ * Does not invalidate session.
+ */
+export function validateCsrf(req: Request): Response | null {
+  if (!STATE_CHANGING_METHODS.has(req.method)) return null;
+  const headerToken = req.headers.get('x-csrf-token')?.trim() ?? '';
+  const cookieToken = getCsrfTokenFromCookie(req);
+  if (!headerToken || !cookieToken || !constantTimeCompare(headerToken, cookieToken)) {
+    return Response.json(
+      { error: 'Invalid or missing CSRF token' },
+      { status: 403 }
+    );
+  }
+  return null;
+}
+
+/**
+ * Middleware: read Authorization Bearer token or Cookie nw_session, validate session, attach user or return 401.
+ * NW-076F-PHASE1: For POST/PUT/PATCH/DELETE, validates CSRF (double-submit cookie); returns 403 if invalid.
  * On invalid session (revoked/expired), optionally writes AuthEvent session_invalid.
  */
 export async function nwAuthMiddleware(
@@ -87,8 +136,10 @@ export async function nwAuthMiddleware(
   | { authenticated_user: Record<string, unknown> }
   | { error: Response }
 > {
-  const authHeader = req.headers.get('authorization');
-  const token = authHeader?.replace(/^Bearer\s+/i, '')?.trim() ?? '';
+  const csrfError = validateCsrf(req);
+  if (csrfError) return { error: csrfError };
+
+  const token = getTokenFromRequest(req);
 
   const result = await getSessionUser(token, req);
 

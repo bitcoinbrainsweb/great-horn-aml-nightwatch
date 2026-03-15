@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
+import { useAuth } from '@/lib/AuthContext';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { ArrowLeft, Edit2, FileUp, Plus, Trash2, AlertTriangle, StickyNote } from 'lucide-react';
@@ -44,7 +45,7 @@ export default function EngagementDetail() {
   const [methodologies, setMethodologies] = useState([]);
   const [showAddTask, setShowAddTask] = useState(false);
   const [taskForm, setTaskForm] = useState({});
-  const [user, setUser] = useState(null);
+  const { user } = useAuth();
   const [completionError, setCompletionError] = useState('');
   const [activeTab, setActiveTab] = useState('overview');
   const [savingNotes, setSavingNotes] = useState(false);
@@ -54,14 +55,13 @@ export default function EngagementDetail() {
   useEffect(() => { if (engId) loadData(); }, [engId]);
 
   async function loadData() {
-    const [engs, t, d, a, u, m, me, rpts] = await Promise.all([
+    const [engs, t, d, a, u, m, rpts] = await Promise.all([
       base44.entities.Engagement.list(),
       base44.entities.Task.filter({ engagement_id: engId }),
       base44.entities.Document.filter({ engagement_id: engId }),
       base44.entities.ActivityLog.filter({ engagement_id: engId }),
       base44.entities.User.list(),
       base44.entities.Methodology.list(),
-      base44.auth.me(),
       base44.entities.Report.filter({ engagement_id: engId }),
     ]);
     const eng = engs.find(e => e.id === engId);
@@ -72,12 +72,11 @@ export default function EngagementDetail() {
     setActivities(a);
     setUsers(u);
     setMethodologies(m);
-    setUser(me);
     setReports(rpts);
     setLoading(false);
   }
 
-  const isAdmin = ['admin', 'super_admin', 'compliance_admin'].includes(user?.role);
+  const isAdmin = user?.role === 'admin';
 
   async function saveNotes() {
     setSavingNotes(true);
@@ -114,14 +113,13 @@ export default function EngagementDetail() {
     const file = e.target.files[0];
     if (!file) return;
     const { file_url } = await base44.integrations.Core.UploadFile({ file });
-    const me = await base44.auth.me();
     await base44.entities.Document.create({
       engagement_id: engId,
       client_id: engagement?.client_id,
       file_name: file.name,
       file_url,
       document_type: 'Supporting File',
-      uploaded_by: me.email
+      uploaded_by: user?.email
     });
     await loadData();
   }

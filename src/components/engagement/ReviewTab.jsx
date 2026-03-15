@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
+import { useAuth } from '@/lib/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -9,6 +10,7 @@ import { format } from 'date-fns';
 import { logAudit } from '../util/auditLog';
 
 export default function ReviewTab({ engagement }) {
+  const { user } = useAuth();
   const [reviewLogs, setReviewLogs] = useState([]);
   const [reports, setReports] = useState([]);
   const [decision, setDecision] = useState('');
@@ -16,23 +18,20 @@ export default function ReviewTab({ engagement }) {
   const [section, setSection] = useState('');
   const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [user, setUser] = useState(null);
 
   useEffect(() => { loadData(); }, [engagement.id]);
 
   async function loadData() {
-    const [logs, rpts, me] = await Promise.all([
+    const [logs, rpts] = await Promise.all([
       base44.entities.ReviewLog.filter({ engagement_id: engagement.id }),
       base44.entities.Report.filter({ engagement_id: engagement.id }),
-      base44.auth.me()
     ]);
     setReviewLogs(logs.sort((a, b) => new Date(b.created_date) - new Date(a.created_date)));
     setReports(rpts);
-    setUser(me);
     setLoading(false);
   }
 
-  const isReviewer = user?.email === engagement.assigned_reviewer || ['admin', 'super_admin', 'compliance_admin'].includes(user?.role);
+  const isReviewer = user?.email === engagement.assigned_reviewer || user?.role === 'admin';
 
   async function submitReview() {
     if (!isReviewer) return;

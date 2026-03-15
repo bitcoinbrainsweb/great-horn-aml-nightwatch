@@ -6,6 +6,16 @@ import PageNotFound from './lib/PageNotFound';
 import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import UserNotRegisteredError from '@/components/UserNotRegisteredError';
 import Layout from '@/components/Layout';
+import Login from '@/pages/Login';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
 
 // Page imports
 import Dashboard from './pages/Dashboard';
@@ -59,7 +69,7 @@ const LayoutWrapper = ({ children, currentPageName }) => (
 );
 
 const AuthenticatedApp = () => {
-  const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
+  const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin, sessionExpired, setSessionExpired } = useAuth();
 
   // Show loading spinner while checking app public settings or auth
   if (isLoadingPublicSettings || isLoadingAuth) {
@@ -74,17 +84,41 @@ const AuthenticatedApp = () => {
   if (authError) {
     if (authError.type === 'user_not_registered') {
       return <UserNotRegisteredError />;
-    } else if (authError.type === 'auth_required') {
-      // Redirect to login automatically
-      navigateToLogin();
-      return null;
+    }
+    if (authError.type === 'auth_required') {
+      return (
+        <Routes>
+          <Route path="/login" element={<Login />} />
+          <Route path="*" element={<Navigate to="/login" replace />} />
+        </Routes>
+      );
     }
   }
 
+  // Session expired modal (NW-UPGRADE-076E-PHASE2)
+  const openSessionExpired = sessionExpired;
+  const closeSessionExpired = () => {
+    setSessionExpired(false);
+    window.location.pathname = '/login';
+  };
+
   // Render the main app
   return (
-    <Routes>
+    <>
+      <Dialog open={openSessionExpired} onOpenChange={(open) => !open && closeSessionExpired()}>
+        <DialogContent className="sm:max-w-md" onPointerDownOutside={(e) => e.preventDefault()}>
+          <DialogHeader>
+            <DialogTitle>Session expired</DialogTitle>
+            <DialogDescription>Please log in again.</DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button onClick={closeSessionExpired}>OK</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      <Routes>
       <Route path="/" element={<Navigate to="/Dashboard" replace />} />
+      <Route path="/login" element={<Navigate to="/Dashboard" replace />} />
       <Route path="/Dashboard" element={<LayoutWrapper currentPageName="Dashboard"><Dashboard /></LayoutWrapper>} />
       <Route path="/Clients" element={<LayoutWrapper currentPageName="Clients"><Clients /></LayoutWrapper>} />
       <Route path="/ClientDetail" element={<LayoutWrapper currentPageName="ClientDetail"><ClientDetail /></LayoutWrapper>} />
@@ -132,6 +166,7 @@ const AuthenticatedApp = () => {
       <Route path="/BuildVerificationDashboard" element={<LayoutWrapper currentPageName="BuildVerificationDashboard"><BuildVerificationDashboard /></LayoutWrapper>} />
       <Route path="*" element={<PageNotFound />} />
     </Routes>
+    </>
   );
 };
 

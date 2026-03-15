@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { X, Loader2 } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
+import { useAuth } from '@/lib/AuthContext';
 import { Button } from '@/components/ui/button';
 
 export default function FeedbackModal({ onClose, currentPage, currentRoute }) {
+  const { user } = useAuth();
   const [step, setStep] = useState('type'); // type, form, submitting, success
   const [feedbackType, setFeedbackType] = useState(null);
   const [formData, setFormData] = useState({
@@ -23,7 +25,6 @@ export default function FeedbackModal({ onClose, currentPage, currentRoute }) {
 
   async function gatherContext() {
     try {
-      const user = await base44.auth.me();
       const contextData = {
         page: currentPage || 'Unknown',
         route: currentRoute || window.location.pathname,
@@ -45,7 +46,6 @@ export default function FeedbackModal({ onClose, currentPage, currentRoute }) {
 
     setIsSubmitting(true);
     try {
-      const user = await base44.auth.me();
       
       // Create feedback item
       const feedbackData = {

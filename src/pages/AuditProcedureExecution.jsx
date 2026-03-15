@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
+import { useAuth } from '@/lib/AuthContext';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -12,6 +13,7 @@ import PageHeader from '@/components/ui/PageHeader';
 import { Play, CheckCircle, FileText, Paperclip, AlertTriangle, Plus } from 'lucide-react';
 
 export default function AuditProcedureExecution() {
+  const { user } = useAuth();
   const urlParams = new URLSearchParams(window.location.search);
   const procedureId = urlParams.get('id');
 
@@ -100,12 +102,11 @@ export default function AuditProcedureExecution() {
 
   const startProcedureMutation = useMutation({
     mutationFn: async () => {
-      const user = await base44.auth.me();
       return base44.entities.AuditProcedure.update(procedureId, {
         execution_status: 'running',
         status: 'running',
         start_time: new Date().toISOString(),
-        assigned_to: user.email
+        assigned_to: user?.email
       });
     },
     onSuccess: () => {
@@ -155,11 +156,10 @@ export default function AuditProcedureExecution() {
 
   const createWorkpaperMutation = useMutation({
     mutationFn: async (data) => {
-      const user = await base44.auth.me();
       return base44.entities.AuditWorkpaper.create({
         ...data,
         audit_procedure_id: procedureId,
-        prepared_by: user.email,
+        prepared_by: user?.email,
         prepared_at: new Date().toISOString()
       });
     },
@@ -202,11 +202,10 @@ export default function AuditProcedureExecution() {
 
   const createSampleSetMutation = useMutation({
     mutationFn: async (data) => {
-      const user = await base44.auth.me();
       return base44.entities.SampleSet.create({
         ...data,
         audit_procedure_id: procedureId,
-        preparer: user.email
+        preparer: user?.email
       });
     },
     onSuccess: () => {

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
+import { useAuth } from '@/lib/AuthContext';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { Plus, Search, Building2, Trash2, Archive } from 'lucide-react';
@@ -17,6 +18,7 @@ import NextStepGuidance from '../components/help/NextStepGuidance';
 import { useQuery } from '@tanstack/react-query';
 
 export default function Clients() {
+  const { user } = useAuth();
   const [clients, setClients] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -25,7 +27,6 @@ export default function Clients() {
   const [form, setForm] = useState({});
   const [saving, setSaving] = useState(false);
   const [users, setUsers] = useState([]);
-  const [user, setUser] = useState(null);
   const [confirmDelete, setConfirmDelete] = useState(null);
   const [confirmArchive, setConfirmArchive] = useState(null);
   const [deleteError, setDeleteError] = useState('');
@@ -38,18 +39,16 @@ export default function Clients() {
   useEffect(() => { loadData(); }, []);
 
   async function loadData() {
-    const [c, u, me] = await Promise.all([
+    const [c, u] = await Promise.all([
       base44.entities.Client.list('-created_date', 100),
       base44.entities.User.list(),
-      base44.auth.me(),
     ]);
     setClients(c);
     setUsers(u);
-    setUser(me);
     setLoading(false);
   }
 
-  const isAdmin = ['admin', 'super_admin', 'compliance_admin'].includes(user?.role);
+  const isAdmin = user?.role === 'admin';
 
   // Next step logic
   const clientsWithNoEngagements = clients.filter(c => {

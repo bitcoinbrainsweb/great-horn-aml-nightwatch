@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { base44 } from '@/api/base44Client';
+import { useAuth } from '@/lib/AuthContext';
 import FeedbackButton from '@/components/feedback/FeedbackButton';
 import GlobalSearch from '@/components/search/GlobalSearch';
 import {
@@ -66,68 +67,22 @@ const NAV_ITEMS = [
 ];
 
 export default function Layout({ children, currentPageName }) {
+  const { user: authUser, logout: authLogout } = useAuth();
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [user, setUser] = useState(null);
-  const [accessDenied, setAccessDenied] = useState(false);
-  const [needsInvite, setNeedsInvite] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
   const [showNotifs, setShowNotifs] = useState(false);
   const [notifs, setNotifs] = useState([]);
 
   useEffect(() => {
     loadUser();
-  }, []);
+  }, [authUser]);
 
-  async function loadUser() {
-    try {
-      const isAuth = await base44.auth.isAuthenticated();
-      if (!isAuth) {
-        base44.auth.redirectToLogin();
-        return;
-      }
-      const me = await base44.auth.me();
-      // Platform admin (app builder/owner) always gets through as Technical Admin
-      if (me.role === 'admin') {
-        setUser(me);
-        loadNotifications(me.email);
-        return;
-      }
-
-      const domain = me.email?.split('@')[1];
-      const allowed = ['greathornaml.com', 'libertylabs.ca', 'bitcoinbrains.com', 'nightwatch.test'];
-      if (!allowed.includes(domain)) {
-        setAccessDenied(true);
-        return;
-      }
-      // Check invitation
-      const invitations = await base44.entities.UserInvitation.filter({ email: me.email });
-      const validInvite = invitations.find(i => ['Pending', 'Active'].includes(i.status));
-      if (!validInvite) {
-        setAccessDenied(true);
-        setNeedsInvite(true);
-        return;
-      }
-      // Activate invite if pending
-      if (validInvite.status === 'Pending') {
-        await base44.entities.UserInvitation.update(validInvite.id, { status: 'Active' });
-      }
-      // Auto-assign role on first login
-      if (!me.role || me.role === 'user') {
-        let newRole = validInvite.role || 'reviewer';
-        // Amanda auto-maps to compliance_admin
-        if (me.email === 'amanda@greathornaml.com') newRole = 'compliance_admin';
-        await base44.auth.updateMe({ role: newRole });
-        const updated = await base44.auth.me();
-        setUser(updated);
-        loadNotifications(updated.email);
-        return;
-      }
-      setUser(me);
-      loadNotifications(me.email);
-    } catch (error) {
-      console.error('Auth error:', error);
-      setAccessDenied(true);
+  function loadUser() {
+    setUser(authUser ?? null);
+    if (authUser?.email) {
+      loadNotifications(authUser.email);
     }
   }
 
@@ -150,33 +105,6 @@ export default function Layout({ children, currentPageName }) {
     setUnreadCount(c => Math.max(0, c - 1));
   }
 
-  if (accessDenied) {
-    return (
-      <div className="min-h-screen bg-black flex items-center justify-center p-6">
-        <div className="max-w-sm w-full text-center space-y-6">
-          <div className="w-16 h-16 rounded-2xl bg-black border border-white/10 flex items-center justify-center mx-auto">
-            <img src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/69afb09f3cf8f7f93f857eb1/aff189096_GreatHornAMLLogo.png" alt="Great Horn AML" className="w-10 h-10 object-contain" />
-          </div>
-          <div>
-            <p className="text-xs font-semibold text-amber-400/80 uppercase tracking-widest mb-2">Great Horn AML</p>
-            <h1 className="text-xl font-bold text-white">Nightwatch</h1>
-            {needsInvite ? (
-              <p className="text-slate-300 text-sm mt-3 leading-relaxed">
-                Your account has not been invited to this Nightwatch workspace.<br />
-                <span className="text-slate-400">Please contact an administrator.</span>
-              </p>
-            ) : (
-              <p className="text-slate-400 text-sm mt-2">This Nightwatch workspace is restricted to approved company domains.</p>
-            )}
-          </div>
-          <button onClick={() => base44.auth.logout()} className="px-6 py-2.5 bg-white/10 hover:bg-white/20 text-white text-sm font-medium rounded-lg transition-colors w-full">
-            Sign Out
-          </button>
-        </div>
-      </div>
-    );
-  }
-
   if (!user) {
     return (
       <div className="min-h-screen bg-black flex items-center justify-center">
@@ -191,15 +119,13 @@ export default function Layout({ children, currentPageName }) {
     );
   }
 
+  /** NW-076F-PHASE2: Nightwatch roles only. */
   const roleName = {
-    super_admin: 'Technical Admin',
-    compliance_admin: 'Compliance Admin',
-    analyst: 'Analyst',
-    reviewer: 'Reviewer',
-    admin: 'Technical Admin',
-    user: 'Analyst',
-    test_automation: 'Test Automation'
-  }[user.role] || 'Analyst';
+    admin: 'Admin',
+    operator: 'Operator',
+    viewer: 'Viewer',
+    auditor: 'Auditor',
+  }[user.role] || (user.role || 'Viewer');
 
   return (
     <div className="min-h-screen bg-slate-50 flex">
@@ -293,12 +219,12 @@ export default function Layout({ children, currentPageName }) {
                 <p className="text-xs font-medium text-white truncate">{user.full_name || user.email}</p>
                 <p className="text-[10px] text-slate-500 truncate">{roleName}</p>
               </div>
-              <button onClick={() => base44.auth.logout()} className="text-slate-500 hover:text-white transition-colors">
+              <button onClick={() => authLogout()} className="text-slate-500 hover:text-white transition-colors">
                 <LogOut className="w-4 h-4" />
               </button>
             </div>
           ) : (
-            <button onClick={() => base44.auth.logout()} className="text-slate-500 hover:text-white transition-colors p-1">
+            <button onClick={() => authLogout()} className="text-slate-500 hover:text-white transition-colors p-1">
               <LogOut className="w-4 h-4" />
             </button>
           )}

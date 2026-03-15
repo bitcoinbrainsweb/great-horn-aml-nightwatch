@@ -1,14 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
+import { useAuth } from '@/lib/AuthContext';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Loader2, Check, X } from 'lucide-react';
 
 export default function ApprovalQueueView() {
+  const { user } = useAuth();
   const [approvals, setApprovals] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [user, setUser] = useState(null);
 
   useEffect(() => {
     loadData();
@@ -16,12 +17,8 @@ export default function ApprovalQueueView() {
 
   async function loadData() {
     try {
-      const [approvalsData, userData] = await Promise.all([
-        base44.entities.ApprovalRequest.filter({ status: 'pending' }),
-        base44.auth.me(),
-      ]);
+      const approvalsData = await base44.entities.ApprovalRequest.filter({ status: 'pending' });
       setApprovals(approvalsData || []);
-      setUser(userData);
     } catch (error) {
       console.error('Failed to load approvals:', error);
     } finally {
@@ -33,7 +30,7 @@ export default function ApprovalQueueView() {
     try {
       await base44.entities.ApprovalRequest.update(id, {
         status: 'approved',
-        approvedBy: user.email,
+        approvedBy: user?.email,
         approvedAt: new Date().toISOString(),
       });
       setApprovals(approvals.filter(a => a.id !== id));

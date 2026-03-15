@@ -9,19 +9,30 @@ function getIp(req: Request): string | null {
   return req.headers.get('x-forwarded-for') ?? req.headers.get('x-real-ip') ?? null;
 }
 
+/** NW-UPGRADE-076E-PHASE2: Get session token from body, Bearer, or Cookie nw_session. */
+function getTokenFromRequest(req: Request, body: Record<string, unknown>): string {
+  const fromBody =
+    typeof body.session_token === 'string' ? body.session_token.trim() :
+    typeof body.token === 'string' ? body.token.trim() : '';
+  if (fromBody) return fromBody;
+  const bearer = req.headers.get('authorization')?.replace(/^Bearer\s+/i, '')?.trim() ?? '';
+  if (bearer) return bearer;
+  const cookieHeader = req.headers.get('cookie');
+  if (!cookieHeader) return '';
+  const match = cookieHeader.match(/\bnw_session=([^;]*)/);
+  return match ? decodeURIComponent(match[1].trim()) : '';
+}
+
 Deno.serve(async (req) => {
   if (req.method !== 'POST') {
     return Response.json({ error: 'Method not allowed' }, { status: 405 });
   }
   try {
-    const body = await req.json().catch(() => ({}));
-    const token =
-      typeof body.session_token === 'string' ? body.session_token.trim() :
-      typeof body.token === 'string' ? body.token.trim() :
-      req.headers.get('authorization')?.replace(/^Bearer\s+/i, '')?.trim() ?? '';
+    const body = await req.json().catch(() => ({})) as Record<string, unknown>;
+    const token = getTokenFromRequest(req, body);
 
     if (!token) {
-      return Response.json({ error: 'session_token required' }, { status: 400 });
+      return Response.json({ error: 'session_token required (or send cookie)' }, { status: 400 });
     }
 
     const base44 = createClientFromRequest(req);
@@ -64,7 +75,12 @@ Deno.serve(async (req) => {
       });
     }
 
-    return Response.json({ success: true, message: 'Logged out' });
+    const res = Response.json({ success: true, message: 'Logged out' });
+    res.headers.set(
+      'Set-Cookie',
+      'nw_session=; Path=/; Max-Age=0; HttpOnly; Secure; SameSite=Strict'
+    );
+    return res;
   } catch (error) {
     console.error('nwAuthLogout error:', error);
     return Response.json(

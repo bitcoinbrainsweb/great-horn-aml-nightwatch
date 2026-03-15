@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
+import { useAuth } from '@/lib/AuthContext';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { ArrowLeft, CheckCircle2, XCircle, Lightbulb } from 'lucide-react';
@@ -11,6 +12,7 @@ import EmptyState from '../components/ui/EmptyState';
 import { format } from 'date-fns';
 
 export default function AdminSuggestions() {
+  const { user } = useAuth();
   const [suggestions, setSuggestions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [reviewNotes, setReviewNotes] = useState({});
@@ -19,10 +21,9 @@ export default function AdminSuggestions() {
   async function load() { setSuggestions(await base44.entities.RiskSuggestion.list('-created_date', 100)); setLoading(false); }
 
   async function handleDecision(id, status) {
-    const me = await base44.auth.me();
     await base44.entities.RiskSuggestion.update(id, {
       status,
-      reviewed_by: me.email,
+      reviewed_by: user?.email,
       review_notes: reviewNotes[id] || ''
     });
 

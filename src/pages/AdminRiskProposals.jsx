@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
+import { useAuth } from '@/lib/AuthContext';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { ArrowLeft, CheckCircle2, XCircle, Edit2 } from 'lucide-react';
@@ -19,9 +20,9 @@ const STATUS_COLORS = {
 };
 
 export default function AdminRiskProposals() {
+  const { user } = useAuth();
   const [proposals, setProposals] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [user, setUser] = useState(null);
   const [selected, setSelected] = useState(null);
   const [reviewNotes, setReviewNotes] = useState('');
   const [saving, setSaving] = useState(false);
@@ -29,16 +30,12 @@ export default function AdminRiskProposals() {
   useEffect(() => { load(); }, []);
 
   async function load() {
-    const [props, me] = await Promise.all([
-      base44.entities.RiskChangeProposal.list('-created_date', 100),
-      base44.auth.me(),
-    ]);
+    const props = await base44.entities.RiskChangeProposal.list('-created_date', 100);
     setProposals(props);
-    setUser(me);
     setLoading(false);
   }
 
-  const isAdmin = ['super_admin', 'compliance_admin', 'admin'].includes(user?.role);
+  const isAdmin = user?.role === 'admin';
 
   async function handleDecision(status) {
     setSaving(true);

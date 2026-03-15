@@ -1,20 +1,15 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import PageHeader from '@/components/ui/PageHeader';
 import ScenarioLibraryView from '@/components/regression/ScenarioLibraryView';
 import RegressionRunDashboard from '@/components/regression/RegressionRunDashboard';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { base44 } from '@/api/base44Client';
+import { useAuth } from '@/lib/AuthContext';
 import { ShieldAlert } from 'lucide-react';
 
 function AdminGate({ children }) {
-  const [allowed, setAllowed] = useState(null);
-  useEffect(() => {
-    base44.auth.me().then(me => {
-      setAllowed(['admin', 'super_admin'].includes(me?.role));
-    }).catch(() => setAllowed(false));
-  }, []);
-  if (allowed === null) return <div className="flex items-center justify-center min-h-screen"><div className="w-8 h-8 border-4 border-slate-200 border-t-slate-800 rounded-full animate-spin" /></div>;
-  if (!allowed) return <div className="flex flex-col items-center justify-center min-h-screen gap-4"><ShieldAlert className="w-12 h-12 text-red-500" /><p className="text-lg font-semibold text-slate-800">Access Denied</p><p className="text-sm text-slate-500">This page requires admin privileges.</p></div>;
+  const { user } = useAuth();
+  if (!user) return <div className="flex items-center justify-center min-h-screen"><div className="w-8 h-8 border-4 border-slate-200 border-t-slate-800 rounded-full animate-spin" /></div>;
+  if (user.role !== 'admin') return <div className="flex flex-col items-center justify-center min-h-screen gap-4"><ShieldAlert className="w-12 h-12 text-red-500" /><p className="text-lg font-semibold text-slate-800">Access Denied</p><p className="text-sm text-slate-500">This page requires admin privileges.</p></div>;
   return children;
 }
 

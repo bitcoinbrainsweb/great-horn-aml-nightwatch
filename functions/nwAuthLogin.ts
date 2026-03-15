@@ -1,5 +1,6 @@
 /**
  * NW-UPGRADE-076B: Nightwatch password login.
+ * NW-UPGRADE-076E-PHASE1: Issues session cookie (nw_session) with HttpOnly, Secure, SameSite=Strict.
  * Uses NwAuthUser, NwAuthSession, NwAuthEvent. Lockout after 5 failures for 15 min.
  * Does NOT replace Base44 auth; parallel auth only.
  */
@@ -11,7 +12,15 @@ import {
   sessionExpiresAt,
   lockedUntil,
   LOCKOUT_THRESHOLD,
+  SESSION_EXPIRY_DAYS,
 } from './auth-nw-helpers.ts';
+
+/** NW-076F-PHASE1: Generate CSRF token (same shape as session token). */
+function generateCsrfToken(): string {
+  const bytes = new Uint8Array(32);
+  crypto.getRandomValues(bytes);
+  return btoa(String.fromCharCode(...bytes)).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+}
 
 const SENSITIVE_KEYS = ['password_hash', 'mfa_secret'];
 
@@ -165,12 +174,20 @@ Deno.serve(async (req) => {
       metadata: {},
     });
 
-    const sanitized = sanitizeUser(user);
-    return Response.json({
-      session_token: sessionToken,
-      expires_at: expiresAt,
-      user: sanitized,
-    });
+    const sanitized = sanitizeUser(user) as Record<string, unknown> & { id?: string; email?: string; role?: string };
+    const maxAgeSec = SESSION_EXPIRY_DAYS * 24 * 60 * 60;
+    const sessionCookie = `nw_session=${sessionToken}; HttpOnly; Secure; SameSite=Strict; Path=/; Max-Age=${maxAgeSec}`;
+    const csrfCookie = `nw_csrf_token=${csrfToken}; SameSite=Strict; Secure; Path=/; Max-Age=${maxAgeSec}`;
+    const headers = new Headers({ 'Content-Type': 'application/json' });
+    headers.append('Set-Cookie', sessionCookie);
+    headers.append('Set-Cookie', csrfCookie);
+    return new Response(
+      JSON.stringify({
+        user: { id: sanitized.id, email: sanitized.email, role: sanitized.role },
+        session_expires_at: expiresAt,
+      }),
+      { status: 200, headers }
+    );
   } catch (error) {
     console.error('nwAuthLogin error:', error);
     return Response.json(

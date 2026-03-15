@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
+import { useAuth } from '@/lib/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
@@ -15,31 +16,29 @@ import { Badge } from '../ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../ui/dialog';
 
 export default function ControlsTab({ engagement, isLocked }) {
+  const { user } = useAuth();
   const [engRisks, setEngRisks] = useState([]);
   const [controlAssessments, setControlAssessments] = useState([]);
   const [controlLibrary, setControlLibrary] = useState([]);
   const [riskLibrary, setRiskLibrary] = useState([]);
   const [expandedRisk, setExpandedRisk] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [user, setUser] = useState(null);
   const [addControlToRisk, setAddControlToRisk] = useState(null);
   const [controlSearchQuery, setControlSearchQuery] = useState('');
 
   useEffect(() => { loadData(); }, [engagement.id]);
 
   async function loadData() {
-    const [risks, controls, lib, rLib, me] = await Promise.all([
+    const [risks, controls, lib, rLib] = await Promise.all([
       base44.entities.EngagementRisk.filter({ engagement_id: engagement.id }),
       base44.entities.ControlAssessment.filter({ engagement_id: engagement.id }),
       base44.entities.ControlLibrary.filter({ status: 'Active' }),
       base44.entities.RiskLibrary.filter({ status: 'Active' }),
-      base44.auth.me(),
     ]);
     setEngRisks(risks);
     setControlAssessments(controls);
     setControlLibrary(lib);
     setRiskLibrary(rLib);
-    setUser(me);
     setLoading(false);
   }
 

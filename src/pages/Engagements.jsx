@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
+import { useAuth } from '@/lib/AuthContext';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { Plus, Search, FileStack, Trash2, Archive } from 'lucide-react';
@@ -19,6 +20,7 @@ import NextStepGuidance from '../components/help/NextStepGuidance';
 import { useQuery } from '@tanstack/react-query';
 
 export default function Engagements() {
+  const { user } = useAuth();
   const [engagements, setEngagements] = useState([]);
   const [clients, setClients] = useState([]);
   const [methodologies, setMethodologies] = useState([]);
@@ -30,7 +32,6 @@ export default function Engagements() {
   const [showCreate, setShowCreate] = useState(false);
   const [form, setForm] = useState({});
   const [saving, setSaving] = useState(false);
-  const [user, setUser] = useState(null);
   const [confirmDelete, setConfirmDelete] = useState(null);
   const [confirmArchive, setConfirmArchive] = useState(null);
 
@@ -42,22 +43,20 @@ export default function Engagements() {
   useEffect(() => { loadData(); }, []);
 
   async function loadData() {
-    const [e, c, m, u, me] = await Promise.all([
+    const [e, c, m, u] = await Promise.all([
       base44.entities.Engagement.list('-created_date', 100),
       base44.entities.Client.list('-legal_name', 200),
       base44.entities.Methodology.list(),
       base44.entities.User.list(),
-      base44.auth.me(),
     ]);
     setEngagements(e);
     setClients(c);
     setMethodologies(m);
     setUsers(u);
-    setUser(me);
     setLoading(false);
   }
 
-  const isAdmin = ['admin', 'super_admin', 'compliance_admin'].includes(user?.role);
+  const isAdmin = user?.role === 'admin';
 
   // Next step logic
   const activeEngagements = engagements.filter(e => 

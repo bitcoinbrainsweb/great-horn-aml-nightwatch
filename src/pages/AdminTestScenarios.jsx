@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
+import { useAuth } from '@/lib/AuthContext';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { ArrowLeft, FlaskConical, Sparkles, Trash2, CheckCircle2, ExternalLink, AlertTriangle } from 'lucide-react';
@@ -13,8 +14,7 @@ import { calculateInherentRisk, calculateResidualRisk, LIKELIHOOD_SCALE, IMPACT_
 import { logAudit } from '../components/util/auditLog';
 
 export default function AdminTestScenarios() {
-  const [user, setUser] = useState(null);
-  const [authLoading, setAuthLoading] = useState(true);
+  const { user } = useAuth();
   const [scenarioType, setScenarioType] = useState('Canadian Bitcoin Exchange');
   const [clientName, setClientName] = useState('');
   const [autoRisks, setAutoRisks] = useState(true);
@@ -24,15 +24,7 @@ export default function AdminTestScenarios() {
   const [deleting, setDeleting] = useState(false);
   const [result, setResult] = useState(null);
 
-  useEffect(() => {
-    base44.auth.me().then(me => { setUser(me); setAuthLoading(false); });
-  }, []);
-
-  if (authLoading) {
-    return <div className="flex items-center justify-center h-64"><div className="w-8 h-8 border-2 border-slate-300 border-t-slate-800 rounded-full animate-spin" /></div>;
-  }
-
-  const isAuthorized = ['admin', 'super_admin', 'compliance_admin'].includes(user?.role);
+  const isAuthorized = user?.role === 'admin';
   if (!isAuthorized) {
     return (
       <div className="flex flex-col items-center justify-center h-64 gap-3">

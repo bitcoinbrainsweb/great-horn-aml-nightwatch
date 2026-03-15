@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
+import { useAuth } from '@/lib/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import PageHeader from '@/components/ui/PageHeader';
@@ -7,7 +8,7 @@ import { FileCheck, Database, TestTube, RefreshCw, AlertCircle, CheckCircle } fr
 import { getChangeLogArtifacts, CHANGELOG_QUERY_CONFIG } from '../components/changelog/ChangeLogQuery';
 
 export default function ArtifactDiagnostics() {
-  const [user, setUser] = useState(null);
+  const { user } = useAuth();
   const [accessDenied, setAccessDenied] = useState(false);
   const [loading, setLoading] = useState(true);
   const [diagnostics, setDiagnostics] = useState(null);
@@ -15,26 +16,14 @@ export default function ArtifactDiagnostics() {
   const [testing, setTesting] = useState(false);
 
   useEffect(() => {
-    checkAccess();
-  }, []);
-
-  async function checkAccess() {
-    try {
-      const me = await base44.auth.me();
-      setUser(me);
-      // Technical Admin access: admin or super_admin roles
-      if (!['admin', 'super_admin'].includes(me?.role)) {
-        setAccessDenied(true);
-        setLoading(false);
-        return;
-      }
-      await loadDiagnostics();
-    } catch (error) {
-      console.error('Auth error:', error);
+    if (!user) return;
+    if (user.role !== 'admin') {
       setAccessDenied(true);
       setLoading(false);
+      return;
     }
-  }
+    loadDiagnostics();
+  }, [user]);
 
   async function loadDiagnostics() {
     setLoading(true);

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
+import { useAuth } from '@/lib/AuthContext';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { Search, ListTodo, Filter } from 'lucide-react';
@@ -11,22 +12,18 @@ import EmptyState from '../components/ui/EmptyState';
 import { format } from 'date-fns';
 
 export default function Tasks() {
+  const { user } = useAuth();
   const [tasks, setTasks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
-  const [user, setUser] = useState(null);
   const [myOnly, setMyOnly] = useState(false);
 
   useEffect(() => { loadData(); }, []);
 
   async function loadData() {
-    const [t, me] = await Promise.all([
-      base44.entities.Task.list('-created_date', 200),
-      base44.auth.me()
-    ]);
+    const t = await base44.entities.Task.list('-created_date', 200);
     setTasks(t);
-    setUser(me);
     setLoading(false);
   }
 

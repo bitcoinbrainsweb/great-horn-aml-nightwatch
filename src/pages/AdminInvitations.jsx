@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
+import { useAuth } from '@/lib/AuthContext';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { buildInviteLink } from '@/utils/inviteLink';
@@ -15,18 +16,13 @@ import { logAudit } from '../components/util/auditLog';
 import { format } from 'date-fns';
 
 const ROLES = [
-  { value: 'compliance_admin', label: 'Compliance Admin' },
-  { value: 'analyst', label: 'Analyst' },
-  { value: 'reviewer', label: 'Reviewer' },
-  { value: 'super_admin', label: 'Technical Admin' },
+  { value: 'admin', label: 'Admin' },
+  { value: 'operator', label: 'Operator' },
+  { value: 'viewer', label: 'Viewer' },
+  { value: 'auditor', label: 'Auditor' },
 ];
 
-const ROLE_DISPLAY = {
-  super_admin: 'Technical Admin',
-  compliance_admin: 'Compliance Admin',
-  analyst: 'Analyst',
-  reviewer: 'Reviewer',
-};
+const ROLE_DISPLAY = { admin: 'Admin', operator: 'Operator', viewer: 'Viewer', auditor: 'Auditor' };
 
 const STATUS_COLORS = {
   Pending: 'bg-amber-50 text-amber-700 border-amber-200',
@@ -37,33 +33,30 @@ const STATUS_COLORS = {
 const SMOKE_EMAIL = 'smoke@nightwatch.test';
 
 export default function AdminInvitations() {
+  const { user } = useAuth();
   const [invitations, setInvitations] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [user, setUser] = useState(null);
   const [showInvite, setShowInvite] = useState(false);
-  const [form, setForm] = useState({ email: '', role: 'analyst', notes: '' });
+  const [form, setForm] = useState({ email: '', role: 'viewer', notes: '' });
   const [saving, setSaving] = useState(false);
   const [copyFeedback, setCopyFeedback] = useState(null);
+  const [users, setUsers] = useState([]);
 
   useEffect(() => { load(); }, []);
 
-  const [users, setUsers] = useState([]);
-
   async function load() {
-    const [inv, me, uList] = await Promise.all([
+    const [inv, uList] = await Promise.all([
       base44.entities.UserInvitation.list('-created_date', 100),
-      base44.auth.me(),
       base44.entities.User.list(),
     ]);
     setInvitations(inv);
-    setUser(me);
     setUsers(uList);
     setLoading(false);
   }
 
   const userExists = (email) => users.some(u => (u.email || '').toLowerCase() === (email || '').toLowerCase());
 
-  const canManage = ['super_admin', 'compliance_admin', 'admin'].includes(user?.role);
+  const canManage = user?.role === 'admin';
 
   async function sendInvite(e) {
     e.preventDefault();

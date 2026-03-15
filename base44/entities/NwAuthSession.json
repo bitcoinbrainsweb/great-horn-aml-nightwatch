@@ -11,7 +11,8 @@
     "ip_address": { "type": "string" },
     "user_agent": { "type": "string" },
     "revoked_at": { "type": "string", "format": "date-time" },
-    "session_version_snapshot": { "type": "number" }
+    "session_version_snapshot": { "type": "number" },
+    "csrf_token_hash": { "type": "string", "description": "NW-076F-PHASE1: SHA-256 hex hash of CSRF token for this session." }
   },
   "required": ["user_id", "token_hash", "expires_at"]
 }

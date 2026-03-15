@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
+import { useAuth } from '@/lib/AuthContext';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -14,6 +15,7 @@ import NextStepGuidance from '@/components/help/NextStepGuidance';
 import { Plus, Calendar, CheckCircle } from 'lucide-react';
 
 export default function AdminAuditPrograms() {
+  const { user } = useAuth();
   const [showProgramDialog, setShowProgramDialog] = useState(false);
   const [showScheduleDialog, setShowScheduleDialog] = useState(false);
   const [selectedProgram, setSelectedProgram] = useState(null);
@@ -48,10 +50,9 @@ export default function AdminAuditPrograms() {
 
   const createProgramMutation = useMutation({
     mutationFn: async (data) => {
-      const user = await base44.auth.me();
       return base44.entities.AuditProgram.create({
         ...data,
-        owner: user.email
+        owner: user?.email
       });
     },
     onSuccess: () => {

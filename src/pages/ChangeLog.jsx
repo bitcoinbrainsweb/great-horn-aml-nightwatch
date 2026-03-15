@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
+import { useAuth } from '@/lib/AuthContext';
 import { Search, FileCheck, RefreshCw, Database, TestTube, AlertCircle, CheckCircle } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -11,11 +12,11 @@ import VerificationRecordCard from '../components/verification/VerificationRecor
 import { getChangeLogArtifacts, CHANGELOG_QUERY_CONFIG } from '../components/changelog/ChangeLogQuery';
 
 export default function ChangeLog() {
+  const { user } = useAuth();
   const [records, setRecords] = useState([]);
   const [systemArtifacts, setSystemArtifacts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
-  const [user, setUser] = useState(null);
   const [accessDenied, setAccessDenied] = useState(false);
   const [activeTab, setActiveTab] = useState('verification');
   const [diagnostics, setDiagnostics] = useState(null);
@@ -26,11 +27,18 @@ export default function ChangeLog() {
   const [nw040rTriggered, setNw040rTriggered] = useState(false);
 
   useEffect(() => {
-    checkAccess();
-  }, []);
+    if (!user) return;
+    if (user.role !== 'admin') {
+      setAccessDenied(true);
+      setLoading(false);
+      return;
+    }
+    loadVerificationRecords();
+    loadDiagnostics();
+  }, [user]);
 
   useEffect(() => {
-    if (!user || !['admin', 'super_admin'].includes(user?.role)) return;
+    if (!user || user?.role !== 'admin') return;
     
     // Subscribe to real-time PublishedOutput changes
     const unsubscribe = base44.entities.PublishedOutput.subscribe((event) => {
@@ -66,7 +74,7 @@ export default function ChangeLog() {
   useEffect(() => {
     if (nw040rTriggered) return;
     if (activeTab !== 'diagnostics') return;
-    if (!user || !['admin', 'super_admin'].includes(user.role)) return;
+    if (!user || user.role !== 'admin') return;
 
     (async () => {
       try {
@@ -79,25 +87,6 @@ export default function ChangeLog() {
       }
     })();
   }, [activeTab, user, nw040rTriggered]);
-
-  async function checkAccess() {
-    try {
-      const me = await base44.auth.me();
-      setUser(me);
-      // Technical Admin access: admin or super_admin roles
-      if (!['admin', 'super_admin'].includes(me?.role)) {
-        setAccessDenied(true);
-        setLoading(false);
-        return;
-      }
-      loadVerificationRecords();
-      loadDiagnostics();
-    } catch (error) {
-      console.error('Auth error:', error);
-      setAccessDenied(true);
-      setLoading(false);
-    }
-  }
 
   async function loadVerificationRecords() {
     setLoading(true);

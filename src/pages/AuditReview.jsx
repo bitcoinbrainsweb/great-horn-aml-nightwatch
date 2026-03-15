@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
+import { useAuth } from '@/lib/AuthContext';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -14,6 +15,7 @@ import { FileText, CheckCircle, AlertTriangle, Calendar } from 'lucide-react';
 import { createPageUrl } from '@/utils';
 
 export default function AuditReview() {
+  const { user } = useAuth();
   const urlParams = new URLSearchParams(window.location.search);
   const auditId = urlParams.get('id');
 
@@ -82,11 +84,10 @@ export default function AuditReview() {
 
   const generateReportMutation = useMutation({
     mutationFn: async () => {
-      const user = await base44.auth.me();
       return base44.entities.Audit.update(auditId, {
         report_status: 'review',
         report_generated_at: new Date().toISOString(),
-        report_generated_by: user.email
+        report_generated_by: user?.email
       });
     },
     onSuccess: () => {

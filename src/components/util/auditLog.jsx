@@ -18,13 +18,8 @@ export async function logAudit({
   details,
 }) {
   try {
-    let email = userEmail;
-    let name = userName;
-    if (!email) {
-      const me = await base44.auth.me();
-      email = me?.email || 'unknown';
-      name = name || me?.full_name || '';
-    }
+    const email = userEmail || 'unknown';
+    const name = userName || '';
     await base44.entities.AuditLog.create({
       workspace_id: workspaceId || '',
       user_email: email,

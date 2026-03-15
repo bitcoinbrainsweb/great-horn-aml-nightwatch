@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
+import { useAuth } from '@/lib/AuthContext';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { ArrowLeft, Plus, Edit2, Search, X, Eye } from 'lucide-react';
@@ -15,6 +16,7 @@ import { StatusBadge } from '../components/ui/RiskBadge';
 const SECTIONS = ['Executive Summary', 'Methodology', 'Risk Explanation', 'Control Explanation', 'Residual Risk Narrative'];
 
 export default function AdminNarratives() {
+  const { user } = useAuth();
   const [templates, setTemplates] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
@@ -39,7 +41,6 @@ export default function AdminNarratives() {
 
   async function handleSave(e) {
     e.preventDefault(); setSaving(true);
-    const user = await base44.auth.me();
     if (editId) {
       await base44.entities.NarrativeTemplate.update(editId, form);
       await base44.entities.AuditLog.create({

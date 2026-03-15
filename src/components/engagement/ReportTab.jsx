@@ -13,6 +13,7 @@ function generateSeal(data) {
   return `${h.slice(0, 4)}-${h.slice(4, 8)}`;
 }
 import { base44 } from '@/api/base44Client';
+import { useAuth } from '@/lib/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { FileText, Save, Sparkles, Send, CheckCircle2, Lock, Download, FileDown, AlertTriangle, ShieldCheck } from 'lucide-react';
@@ -30,28 +31,24 @@ const REPORT_SECTIONS = [
 ];
 
 export default function ReportTab({ engagement }) {
+  const { user } = useAuth();
   const [report, setReport] = useState(null);
   const [sections, setSections] = useState({});
   const [activeSect, setActiveSect] = useState('Executive Summary');
   const [loading, setLoading] = useState(true);
   const [generating, setGenerating] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [user, setUser] = useState(null);
   const [actionError, setActionError] = useState('');
 
   useEffect(() => { loadReport(); }, [engagement.id]);
 
   async function loadReport() {
-    const [reports, me] = await Promise.all([
-      base44.entities.Report.filter({ engagement_id: engagement.id }),
-      base44.auth.me()
-    ]);
+    const reports = await base44.entities.Report.filter({ engagement_id: engagement.id });
     if (reports.length > 0) {
       const latest = reports.sort((a, b) => (b.version || 1) - (a.version || 1))[0];
       setReport(latest);
       setSections(latest.sections || {});
     }
-    setUser(me);
     setLoading(false);
   }
 

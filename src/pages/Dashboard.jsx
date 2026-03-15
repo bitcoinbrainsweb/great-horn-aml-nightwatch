@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
+import { useAuth } from '@/lib/AuthContext';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import {
@@ -11,11 +12,11 @@ import { StatusBadge, RiskBadge, PriorityBadge } from '../components/ui/RiskBadg
 import { format } from 'date-fns';
 
 export default function Dashboard() {
+  const { user } = useAuth();
   const [engagements, setEngagements] = useState([]);
   const [tasks, setTasks] = useState([]);
   const [reports, setReports] = useState([]);
   const [activities, setActivities] = useState([]);
-  const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -23,14 +24,12 @@ export default function Dashboard() {
   }, []);
 
   async function loadData() {
-    const [me, eng, tsk, rpt, act] = await Promise.all([
-      base44.auth.me(),
+    const [eng, tsk, rpt, act] = await Promise.all([
       base44.entities.Engagement.list('-created_date', 50),
       base44.entities.Task.list('-created_date', 50),
       base44.entities.Report.list('-created_date', 10),
       base44.entities.ActivityLog.list('-created_date', 15),
     ]);
-    setUser(me);
     setEngagements(eng);
     setTasks(tsk);
     setReports(rpt);

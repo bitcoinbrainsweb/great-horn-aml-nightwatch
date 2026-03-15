@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
+import { useAuth } from '@/lib/AuthContext';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { ArrowLeft, Edit2, Building2, FileStack, FileUp, ListTodo, Clock } from 'lucide-react';
@@ -17,6 +18,7 @@ import { logAudit } from '../components/util/auditLog';
 import ComplianceOverview from '../components/client/ComplianceOverview';
 
 export default function ClientDetail() {
+  const { user } = useAuth();
   const urlParams = new URLSearchParams(window.location.search);
   const clientId = urlParams.get('id');
   const [client, setClient] = useState(null);
@@ -28,31 +30,29 @@ export default function ClientDetail() {
   const [editing, setEditing] = useState(false);
   const [form, setForm] = useState({});
   const [users, setUsers] = useState([]);
-  const [user, setUser] = useState(null);
 
   useEffect(() => { if (clientId) loadData(); }, [clientId]);
 
   async function loadData() {
-    const [c, e, d, t, a, u, me] = await Promise.all([
+    const [c, e, d, a, u] = await Promise.all([
       base44.entities.Client.list().then(all => all.find(x => x.id === clientId)),
       base44.entities.Engagement.filter({ client_id: clientId }),
       base44.entities.Document.filter({ client_id: clientId }),
-      base44.entities.Task.list('-created_date', 200).then(all => all.filter(t => engagements.some(e => e.id === t.engagement_id) || t.client_name === '')),
       base44.entities.ActivityLog.filter({ client_id: clientId }),
       base44.entities.User.list(),
-      base44.auth.me(),
     ]);
     setClient(c);
     setEngagements(e);
     setDocuments(d);
     setActivities(a);
     setUsers(u);
-    setUser(me);
     // Get tasks for client's engagements
     if (e.length > 0) {
       const engIds = new Set(e.map(x => x.id));
       const allTasks = await base44.entities.Task.list('-created_date', 200);
       setTasks(allTasks.filter(t => engIds.has(t.engagement_id)));
+    } else {
+      setTasks([]);
     }
     setLoading(false);
   }
@@ -83,7 +83,7 @@ export default function ClientDetail() {
       file_name: file.name,
       file_url,
       document_type: 'Client Material',
-      uploaded_by: (await base44.auth.me()).email
+      uploaded_by: user?.email
     });
     await loadData();
   }

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
+import { useAuth } from '@/lib/AuthContext';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import {
@@ -47,12 +48,12 @@ function SourceBadge({ source }) {
 }
 
 export default function LibraryReviewDashboard() {
+  const { user } = useAuth();
   const [riskProposals, setRiskProposals] = useState([]);
   const [controlProposals, setControlProposals] = useState([]);
   const [riskLibrary, setRiskLibrary] = useState([]);
   const [controlLibrary, setControlLibrary] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [user, setUser] = useState(null);
   const [selectedRisk, setSelectedRisk] = useState(null);
   const [selectedControl, setSelectedControl] = useState(null);
   const [selectedLegacyRisk, setSelectedLegacyRisk] = useState(null);
@@ -74,23 +75,21 @@ export default function LibraryReviewDashboard() {
   useEffect(() => { load(); }, []);
 
   async function load() {
-    const [rp, cp, rl, cl, me] = await Promise.all([
+    const [rp, cp, rl, cl] = await Promise.all([
       base44.entities.RiskChangeProposal.list('-created_date', 200),
       base44.entities.ControlChangeProposal.list('-created_date', 200),
       base44.entities.RiskLibrary.list('-created_date', 500),
       base44.entities.ControlLibrary.list('-created_date', 500),
-      base44.auth.me(),
     ]);
     setRiskProposals(rp);
     setControlProposals(cp);
     setRiskLibrary(rl);
     setControlLibrary(cl);
-    setUser(me);
     setLoading(false);
   }
 
-  const isAdmin = ['super_admin', 'compliance_admin'].includes(user?.role);
-  const isAnalyst = user?.role === 'analyst';
+  const isAdmin = user?.role === 'admin';
+  const isAnalyst = user?.role === 'operator';
 
   const now = new Date();
   const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);

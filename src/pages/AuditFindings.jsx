@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
+import { useAuth } from '@/lib/AuthContext';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
@@ -17,6 +18,7 @@ import RelationshipPanel from '@/components/audit/RelationshipPanel';
 import { AlertTriangle, Repeat, Link2, CheckCircle, XCircle, ArrowLeft } from 'lucide-react';
 
 export default function AuditFindings() {
+  const { user } = useAuth();
   const urlParams = new URLSearchParams(window.location.search);
   const auditId = urlParams.get('id');
 
@@ -67,10 +69,9 @@ export default function AuditFindings() {
 
   const verifyRemediationMutation = useMutation({
     mutationFn: async (data) => {
-      const user = await base44.auth.me();
       return base44.entities.RemediationAction.update(selectedRemediation.id, {
         ...data,
-        verified_by: user.email,
+        verified_by: user?.email,
         verified_at: new Date().toISOString()
       });
     },

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
+import { useAuth } from '@/lib/AuthContext';
 import { Plus, Pencil, FileText, Paperclip, AlertCircle, History } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -13,6 +14,7 @@ import { Badge } from '@/components/ui/badge';
 import EvidenceCard from '@/components/evidence/EvidenceCard';
 
 export default function ControlTests() {
+  const { user } = useAuth();
   const [tests, setTests] = useState([]);
   const [controls, setControls] = useState([]);
   const [cycles, setCycles] = useState([]);
@@ -223,7 +225,6 @@ export default function ControlTests() {
         return;
       }
 
-      const user = await base44.auth.me();
       const control = controls.find(c => c.id === testFormData.control_library_id);
 
       if (editingTest) {
@@ -319,8 +320,6 @@ export default function ControlTests() {
         return;
       }
 
-      const user = await base44.auth.me();
-
       // Compute SHA-256 hash for all evidence types
       let fileHash = null;
       if (evidenceFormData.evidence_type === 'File' && evidenceFormData.file_reference) {
@@ -375,7 +374,6 @@ export default function ControlTests() {
         return;
       }
 
-      const user = await base44.auth.me();
       const timestamp = new Date().toISOString();
 
       // Create normalized evidence record (NW-UPGRADE-055)
@@ -383,7 +381,7 @@ export default function ControlTests() {
         ...normalizedEvidenceFormData,
         related_test_id: selectedTest.id,
         captured_at: timestamp,
-        captured_by: user.email,
+        captured_by: user?.email,
         review_status: 'pending'
       });
 

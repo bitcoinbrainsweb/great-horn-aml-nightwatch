@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
-import { base44 } from '@/api/base44Client';
+import { useAuth } from '@/lib/AuthContext';
 import {
   BookOpen, ShieldCheck, FileText, Users, History,
   Globe, Factory, Lightbulb, FlaskConical, Mail, Lock, GitBranch
@@ -38,13 +38,8 @@ const SUPERADMIN_SECTIONS = [
 ];
 
 export default function Admin() {
-  const [user, setUser] = useState(null);
-
-  useEffect(() => {
-    base44.auth.me().then(setUser);
-  }, []);
-
-  const isSuperAdmin = ['admin', 'super_admin', 'compliance_admin'].includes(user?.role);
+  const { user } = useAuth();
+  const isSuperAdmin = user?.role === 'admin';
 
   const renderSection = (title, items) => (
     <div className="mb-3">
